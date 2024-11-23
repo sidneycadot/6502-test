@@ -1,7 +1,66 @@
 
-///////////////////////////
-// test_measure_cycles.c //
-///////////////////////////
+///////////////////////////////
+// test_instruction_clocks.c //
+///////////////////////////////
+
+// This test program aims to test the instruction timing (i.e., clock-cycle counts) for
+// all (or at least most) 151 "official" 6502 instructions.
+//
+// The program assumes the instructions are implemented correctly, other than that their
+// clock cycle counts may be off.
+//
+// The following instructions are currently tested:
+//
+// * The branch instructions (8):
+//
+//   This covers the opcodes BPL, BMI, BVC, BVS, BCC, BCS, BNE, BEQ.
+//
+// * The 1-byte, 2-cycle "implied" instructions (18):
+//
+//   CLC, SEC
+//   CLI, SEI    Note: The "SEI" is tested in the SEI,CLI combination, to prevent that it will leave interrupts disabled.
+//   CLV
+//   CLD, SED    Note: The "SED" is tested in the SED,CLD combination, to prevent that it leave decimal mode enabled.
+//
+//   INX, DEX
+//   INY, DEY
+//
+//   TAY, TYA
+//   TAX, TXA
+//
+//   TSX, TXS    Note: The "TXS" is tested in the TSC,TXS combination, to prevent that it will invalidate the stack.
+//
+//   NOP
+//
+// * The 1-byte, 6-cycle push/pull stack instructions (4):
+//
+//   TSX, PHA, TXS              The stack pointer is saved before, and restored after the instruction.
+//   TSX, PHP, TXS              The stack pointer is saved before, and restored after the instruction.
+//   PHA, PLA                   The value to be pulled is pushed immediately before.
+//   PHP, PLP                   The value to be pulled is pushed immediately before.
+//
+// * Jump, Jump-to-subroutine, and interrupt-handling instructions (6):
+//
+//   JMP abs
+//   JMP ind  (This assumes that the "JSR indirect" bug is present).
+//   JSR abs
+//   RTS
+//   RTI
+//   BRK
+//
+// * Immediate-mode instructions (11):
+//
+//   LDY #
+//   CPY #
+//   CPX #
+//   LDX #
+//   ORA #
+//   AND #
+//   EOR #
+//   ADC #
+//   LDA #
+//   CMP #
+//   SBC #
 
 #include <assert.h>
 #include <stdio.h>
@@ -202,7 +261,6 @@ static void test_branch_not_taken(char * test_description, uint8_t branch_opcode
     // suitable for the test at hand; specifically, to ensure that the branch instruction to be tested is *not* taken.
     //
     // Branch instructions, when not taken, always take 2 clock cycles.
-    //
 
     unsigned opcode_page_offset;
     unsigned operand;
@@ -212,7 +270,7 @@ static void test_branch_not_taken(char * test_description, uint8_t branch_opcode
 
     for (opcode_page_offset = 0; opcode_page_offset <= 0xff; ++opcode_page_offset)
     {
-        printf("[%lu] INFO (%s) page offset %02u, testing 256 operands ...\n",
+        printf("[%lu] INFO (%s) page offset %02x, testing 256 operands ...\n",
                 error_count, test_description, opcode_page_offset);
 
         entry_address = TESTCODE_BASE;
@@ -284,11 +342,78 @@ void test_branch_instructions(void)
     test_branch_not_taken("BEQ, not taken", 0xf0, 0xff, 0x00);
 }
 
+static void test_single_byte_instruction_sequence(char * test_description, uint8_t b1, unsigned predicted_cycles)
+{
+    unsigned opcode_page_offset;
+    unsigned actual_cycles;
+    uint8_t *opcode_address;
+
+    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; ++opcode_page_offset)
+    {
+        printf("[%lu] INFO (%s) page offset %02x ...\n",
+                error_count, test_description, opcode_page_offset);
+
+        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+
+        opcode_address[0] = b1;
+        opcode_address[1] = 0x60; // rts.
+
+        dma_and_interrupts_off();
+        ++test_count;
+        actual_cycles = measure_cycles(entry_address);
+        dma_and_interrupts_on();
+
+        if (actual_cycles != predicted_cycles)
+        {
+            ++error_count;
+            printf("[%lu] ERROR (%s) offset %02x cycles p/a %u/%u\n",
+                error_count,
+                test_description,
+                opcode_page_offset,
+                predicted_cycles, actual_cycles);
+        }
+    }
+}
+
+static void test_two_byte_instruction_sequence(char * test_description, uint8_t b1, uint8_t b2, unsigned predicted_cycles)
+{
+    unsigned opcode_page_offset;
+    unsigned actual_cycles;
+    uint8_t *opcode_address;
+
+    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; ++opcode_page_offset)
+    {
+        printf("[%lu] INFO (%s) page offset %02x ...\n",
+                error_count, test_description, opcode_page_offset);
+
+        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+
+        opcode_address[0] = b1;
+        opcode_address[1] = b2;
+        opcode_address[2] = 0x60; // rts.
+
+        dma_and_interrupts_off();
+        ++test_count;
+        actual_cycles = measure_cycles(entry_address);
+        dma_and_interrupts_on();
+
+        if (actual_cycles != predicted_cycles)
+        {
+            ++error_count;
+            printf("[%lu] ERROR (%s) offset %02x cycles p/a %u/%u\n",
+                error_count,
+                test_description,
+                opcode_page_offset,
+                predicted_cycles, actual_cycles);
+        }
+    }
+}
+
 int main(void)
 {
     int result;
 
-    printf("*** TIC v0.1.1 ***\n");
+    printf("*** TIC v0.1.2 ***\n");
     printf("\n");
 
     result = allocate_testcode_block(4096);
