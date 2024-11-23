@@ -60,44 +60,40 @@ _measure_cycles:
                 ; The 6502 "rts" instruction will return to the address found on the stack increased by 1.
                 ; Calculated the (pointer - 1) value and store it in RANDOM_T1, RANDOM_T1+1 so we can push it later.
 
-                sec                                     ; [2 / 54]
-                sbc     #<1                             ; [2 / 52]
-                sta     RANDOM_T1                       ; [4 / 48] (Note: we use RANDOM_T1 as temporary storage).
+                php                                     ; [3 / 53] Save the status bits (in particular, the P register).
+                cld                                     ; [2 / 51] Make sure we're not in decimal mode.
 
-                txa                                     ; [2 / 46]
-                sbc     #>1                             ; [2 / 44]
-                sta     RANDOM_T1+1                     ; [4 / 40]
+                sec                                     ; [2 / 49]
+                sbc     #<1                             ; [2 / 47]
+                sta     RANDOM_T1                       ; [4 / 43] (Note: we use RANDOM_T1 as temporary storage).
+
+                txa                                     ; [2 / 41]
+                sbc     #>1                             ; [2 / 39]
+                sta     RANDOM_T1+1                     ; [4 / 35]
 
                 ; First, push return address from the testcode.
                 ; Once we're in the test code and reach an RTCS, we should return back to the '@return_from_testcode' address.
 
-                lda     #>(@return_from_testcode - 1)   ; [2 / 38]
-                pha                                     ; [3 / 35]
-                lda     #<(@return_from_testcode - 1)   ; [2 / 33]
+                lda     #>(@return_from_testcode - 1)   ; [2 / 33]
                 pha                                     ; [3 / 30]
+                lda     #<(@return_from_testcode - 1)   ; [2 / 28]
+                pha                                     ; [3 / 25]
 
                 ; Push address to jump to the testcode upon RTS.
 
-                lda     RANDOM_T1+1                     ; [4 / 26]
-                pha                                     ; [3 / 23]
-                lda     RANDOM_T1                       ; [4 / 19]
-                pha                                     ; [3 / 16]
+                lda     RANDOM_T1+1                     ; [4 / 21]
+                pha                                     ; [3 / 18]
+                lda     RANDOM_T1                       ; [4 / 14]
+                pha                                     ; [3 / 11]
 
-                ; We set up a predictable register and flag environment for the test code.
+                ; Burn the last 11 clockcycles before the sampling.
 
-                lda #0                                  ; [2 / 14]
-                tax                                     ; [2 / 12]
-                tay                                     ; [2 / 10]
-                clc                                     ; [2 / 8]
-                clv                                     ; [2 / 6]
-                cld                                     ; [2 / 4]
+                pla                                     ; [4 /  7]
+                pha                                     ; [3 /  4]
+                nop                                     ; [2 /  2]
+                nop                                     ; [2 /  2]
 
-                ; Nothing useful left to do. Burn the last 4 cycles using NOPs.
-
-                nop                                     ; [2 / 2]
-                nop                                     ; [2 / 0]
-
-                ; Sample RANDOM three times, into RANDOM_T1[0..2], is assumed to take place periodically, at clock cycles T1, T1+8, and T1+16.
+@sample_before: ; Sample RANDOM three times, into RANDOM_T1[0..2], is assumed to take place periodically, at clock cycles T1, T1+8, and T1+16.
 
                 lda     RANDOM
                 sta     RANDOM_T1+0     ; Eight rightmost bits of 17-bits LSFR at time T1 + 0 (oldest)
@@ -156,10 +152,12 @@ _measure_cycles:
 
                 dex                                     ; Return with value 0xffff, denoting failure.
                 txa
-                rts
+                bne     @done
 
-@equal:         txa                                     ; Success! Return number of cycles in test code, excluding the rts.
-                sec                                     ; Subtract 36 cycles to only measure the start of the test-code subroutine to its RTS.
+@equal:         txa                                     ; Success! Return number of cycles in the test code, excluding the rts.
+                sec                                     ; Subtract 36 cycles to only measure the start of the test-code subroutine to its rts.
                 sbc     #36
                 ldx     #0
-@rts:           rts
+
+@done:          plp                                     ; Restore the flags that were present on entry.
+                rts
