@@ -138,7 +138,7 @@ static void test_branch_taken(char * test_description, uint8_t branch_opcode, ui
 
     for (opcode_page_offset = 0; opcode_page_offset <= 0xff; ++opcode_page_offset)
     {
-        printf("[%lu] INFO (%s) page offset %02u, testing 256 operands ...\n",
+        printf("[%lu] INFO (%s) page offset %02x, testing 256 operands ...\n",
                 error_count, test_description, opcode_page_offset);
 
         entry_address = TESTCODE_BASE;
@@ -265,9 +265,9 @@ void test_branch_instructions(void)
     // Test branch instructions on the overflow (V) flag.
 
     test_branch_taken    ("BVC, taken"    , 0x50, 0x00, 0x00);
-    test_branch_taken    ("BVC, not taken", 0x50, 0x40, 0x40);
+    test_branch_not_taken("BVC, not taken", 0x50, 0x40, 0x40);
     test_branch_taken    ("BVS, taken"    , 0x70, 0x40, 0x40);
-    test_branch_taken    ("BVS, not taken", 0x70, 0x00, 0x00);
+    test_branch_not_taken("BVS, not taken", 0x70, 0x00, 0x00);
 
     // Test branch instructions on the carry (C) flag.
 
@@ -288,7 +288,7 @@ int main(void)
 {
     int result;
 
-    printf("*** TIC v0.1.0 ***\n");
+    printf("*** TIC v0.1.1 ***\n");
     printf("\n");
 
     result = allocate_testcode_block(4096);
