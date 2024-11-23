@@ -360,7 +360,7 @@ static void test_single_byte_instruction_sequence(char * test_description, uint8
 
         dma_and_interrupts_off();
         ++test_count;
-        actual_cycles = measure_cycles(entry_address);
+        actual_cycles = measure_cycles(opcode_address);
         dma_and_interrupts_on();
 
         if (actual_cycles != predicted_cycles)
@@ -394,7 +394,7 @@ static void test_two_byte_instruction_sequence(char * test_description, uint8_t 
 
         dma_and_interrupts_off();
         ++test_count;
-        actual_cycles = measure_cycles(entry_address);
+        actual_cycles = measure_cycles(opcode_address);
         dma_and_interrupts_on();
 
         if (actual_cycles != predicted_cycles)
