@@ -1230,21 +1230,21 @@ int command_line_loop(void)
             printf("\n");
             printf("> msm <nreps> <min_c> <max_c>\n");
             printf("\n");
-            printf("    Test measurement functionality.\n");
+            printf("  Test measurement functionality.\n");
             printf("\n");
-            printf("      nreps: number of repeats\n");
-            printf("      min_c: min number of test-cycles\n");
-            printf("      max_c: max number of test-cycles\n");
+            printf("  * nreps: number of repeats\n");
+            printf("  * min_c: min number of cycles to test\n");
+            printf("  * max_c: max number of cycles to test\n");
             printf("\n");
             printf("> cpu <level>\n");
             printf("\n");
-            printf("    Test time of 6502 instructions.\n");
+            printf("  Test time of 6502 instructions.\n");
             printf("\n");
-            printf("      level: 0 (fast) to 7 (slow)\n");
+            printf("  * level: 0 (fast) to 7 (slow)\n");
             printf("\n");
             printf("> quit\n");
             printf("\n");
-            printf("    Quit the program.\n");
+            printf("  Quit the program.\n");
             printf("\n");
         }
     }
@@ -1258,7 +1258,7 @@ int main(void)
 {
     int result;
 
-    printf("*** TIC v0.1.3 ***\n");
+    printf("*** TIC v0.1.4 ***\n");
     printf("\n");
 
     result = command_line_loop();
