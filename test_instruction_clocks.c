@@ -133,16 +133,15 @@ void generate_code(uint8_t * code, unsigned cycles)
     *code++ = 0x60; // RTS
 }
 
-int baseline_test(unsigned repeats)
+void run_baseline_test(unsigned repeats, unsigned min_cycle_count, unsigned max_cycle_count)
 {
     // The Atari implementation should be good up to and including 27 cycles.
 
     unsigned wanted_cycles, actual_cycles, rep;
-    bool errors_seen = 0;
 
     for (rep = 1; rep <= repeats; ++rep)
     {
-        for (wanted_cycles = 0; wanted_cycles <= 27; ++wanted_cycles)
+        for (wanted_cycles = min_cycle_count; wanted_cycles <= max_cycle_count; ++wanted_cycles)
         {
             if (wanted_cycles == 1)
             {
@@ -150,21 +149,20 @@ int baseline_test(unsigned repeats)
                 continue;
             }
 
-            generate_code(TESTCODE_ANCHOR, wanted_cycles);
+            generate_code(TESTCODE_BASE, wanted_cycles);
 
             dma_and_interrupts_off();
-            actual_cycles = measure_cycles(TESTCODE_ANCHOR);
+            actual_cycles = measure_cycles(TESTCODE_BASE);
             dma_and_interrupts_on();
+            ++test_count;
 
             if (actual_cycles != wanted_cycles)
             {
                 printf("[%u] ERROR: wanted cycles: %u -> actual cycles %d\n", rep, wanted_cycles, actual_cycles);
-                errors_seen = true;
+                ++error_count;
             }
         }
     }
-
-    return errors_seen ? -1 : 0;
 }
 
 uint8_t lsb(uint8_t * ptr)
@@ -200,19 +198,19 @@ void test_branch_taken(char * test_description, uint8_t branch_opcode, uint8_t l
     // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
     // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
 
-    unsigned opcode_page_offset;
+    unsigned opcode_offset;
     unsigned operand;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *entry_address;
     uint8_t *branch_opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, 1 + 255 / STEP_SIZE, opcode_page_offset);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
+                error_count, test_description, 1 + 255 / STEP_SIZE, opcode_offset);
 
         entry_address = TESTCODE_BASE;
-        branch_opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
         {
@@ -247,10 +245,10 @@ void test_branch_taken(char * test_description, uint8_t branch_opcode, uint8_t l
             if (actual_cycles != predicted_cycles)
             {
                 ++error_count;
-                printf("[%lu] ERROR (%s) offset %02x operand %02x cycles p/a %u/%u\n",
+                printf("[%lu] ERROR (%s) opcode offset %02x operand %02x cycles p/a %u/%u\n",
                        error_count,
                        test_description,
-                       opcode_page_offset, operand,
+                       opcode_offset, operand,
                        predicted_cycles, actual_cycles);
             }
         }
@@ -272,19 +270,19 @@ void test_branch_not_taken(char * test_description, uint8_t branch_opcode, uint8
     //
     // Branch instructions, when not taken, always take 2 clock cycles.
 
-    unsigned opcode_page_offset;
+    unsigned opcode_offset;
     unsigned operand;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *entry_address;
     uint8_t *branch_opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
         entry_address = TESTCODE_BASE;
-        branch_opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
         {
@@ -311,10 +309,10 @@ void test_branch_not_taken(char * test_description, uint8_t branch_opcode, uint8
             if (actual_cycles != predicted_cycles)
             {
                 ++error_count;
-                printf("[%lu] ERROR (%s) offset %02x operand %02x cycles p/a %u/%u\n",
+                printf("[%lu] ERROR (%s) opcode offset %02x operand %02x cycles p/a %u/%u\n",
                        error_count,
                        test_description,
-                       opcode_page_offset, operand,
+                       opcode_offset, operand,
                        predicted_cycles, actual_cycles);
             }
         }
@@ -323,16 +321,16 @@ void test_branch_not_taken(char * test_description, uint8_t branch_opcode, uint8
 
 void test_single_byte_instruction_sequence(char * test_description, uint8_t b1, unsigned predicted_cycles)
 {
-    unsigned opcode_page_offset;
+    unsigned opcode_offset;
     unsigned actual_cycles;
     uint8_t *opcode_address;
 
-    printf("[%lu] INFO (%s) testing %u page offsets ...\n",
+    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
             error_count, test_description, 1 + 255 / STEP_SIZE);
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         opcode_address[0] = b1;
         opcode_address[1] = 0x60; // rts.
@@ -345,10 +343,10 @@ void test_single_byte_instruction_sequence(char * test_description, uint8_t b1, 
         if (actual_cycles != predicted_cycles)
         {
             ++error_count;
-            printf("[%lu] ERROR (%s) offset %02x cycles p/a %u/%u\n",
+            printf("[%lu] ERROR (%s) opcode offset %02x cycles p/a %u/%u\n",
                 error_count,
                 test_description,
-                opcode_page_offset,
+                opcode_offset,
                 predicted_cycles, actual_cycles);
         }
     }
@@ -356,16 +354,16 @@ void test_single_byte_instruction_sequence(char * test_description, uint8_t b1, 
 
 void test_two_byte_instruction_sequence(char * test_description, uint8_t b1, uint8_t b2, unsigned predicted_cycles)
 {
-    unsigned opcode_page_offset;
+    unsigned opcode_offset;
     unsigned actual_cycles;
     uint8_t *opcode_address;
 
-    printf("[%lu] INFO (%s) testing %u page offsets ...\n",
+    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
             error_count, test_description, 1 + 255 / STEP_SIZE);
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         opcode_address[0] = b1;
         opcode_address[1] = b2;
@@ -379,10 +377,10 @@ void test_two_byte_instruction_sequence(char * test_description, uint8_t b1, uin
         if (actual_cycles != predicted_cycles)
         {
             ++error_count;
-            printf("[%lu] ERROR (%s) offset %02x cycles p/a %u/%u\n",
+            printf("[%lu] ERROR (%s) opcode offset %02x cycles p/a %u/%u\n",
                 error_count,
                 test_description,
-                opcode_page_offset,
+                opcode_offset,
                 predicted_cycles, actual_cycles);
         }
     }
@@ -390,16 +388,16 @@ void test_two_byte_instruction_sequence(char * test_description, uint8_t b1, uin
 
 void test_three_byte_instruction_sequence(char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, unsigned predicted_cycles)
 {
-    unsigned opcode_page_offset;
+    unsigned opcode_offset;
     unsigned actual_cycles;
     uint8_t *opcode_address;
 
-    printf("[%lu] INFO (%s) testing %u page offsets ...\n",
+    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
             error_count, test_description, 1 + 255 / STEP_SIZE);
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         opcode_address[0] = b1;
         opcode_address[1] = b2;
@@ -414,10 +412,10 @@ void test_three_byte_instruction_sequence(char * test_description, uint8_t b1, u
         if (actual_cycles != predicted_cycles)
         {
             ++error_count;
-            printf("[%lu] ERROR (%s) offset %02x cycles p/a %u/%u\n",
+            printf("[%lu] ERROR (%s) opcode offset %02x cycles p/a %u/%u\n",
                 error_count,
                 test_description,
-                opcode_page_offset,
+                opcode_offset,
                 predicted_cycles, actual_cycles);
         }
     }
@@ -425,19 +423,19 @@ void test_three_byte_instruction_sequence(char * test_description, uint8_t b1, u
 
 void test_immediate_mode_instruction(char * test_description, uint8_t opcode)
 {
-    unsigned opcode_page_offset;
+    unsigned opcode_offset;
     unsigned operand;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE) // Sample a subset of the operands.
+        for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
         {
             opcode_address[0] = opcode;
             opcode_address[1] = operand;
@@ -453,10 +451,10 @@ void test_immediate_mode_instruction(char * test_description, uint8_t opcode)
             if (actual_cycles != predicted_cycles)
             {
                 ++error_count;
-                printf("[%lu] ERROR (%s) offset %02x operand %02x cycles p/a %u/%u\n",
+                printf("[%lu] ERROR (%s) opcode offset %02x operand %02x cycles p/a %u/%u\n",
                        error_count,
                        test_description,
-                       opcode_page_offset, operand,
+                       opcode_offset, operand,
                        predicted_cycles, actual_cycles);
             }
         }
@@ -465,22 +463,22 @@ void test_immediate_mode_instruction(char * test_description, uint8_t opcode)
 
 void test_read_zpage_instruction(char * test_description, uint8_t opcode)
 {
-    unsigned opcode_page_offset;
-    unsigned operand;
+    unsigned opcode_offset;
+    unsigned zp_address;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE) // Sample a subset of the operands.
+        for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
         {
             opcode_address[0] = opcode;
-            opcode_address[1] = operand;
+            opcode_address[1] = zp_address;
             opcode_address[2] = 0x60; // rts.
 
             predicted_cycles = 3;
@@ -493,10 +491,10 @@ void test_read_zpage_instruction(char * test_description, uint8_t opcode)
             if (actual_cycles != predicted_cycles)
             {
                 ++error_count;
-                printf("[%lu] ERROR (%s) offset %02x operand %02x cycles p/a %u/%u\n",
+                printf("[%lu] ERROR (%s) opcode offset %02x zp address %02x cycles p/a %u/%u\n",
                        error_count,
                        test_description,
-                       opcode_page_offset, operand,
+                       opcode_offset, zp_address,
                        predicted_cycles, actual_cycles);
             }
         }
@@ -505,26 +503,26 @@ void test_read_zpage_instruction(char * test_description, uint8_t opcode)
 
 void test_read_zpage_x_instruction(char * test_description, uint8_t opcode)
 {
-    unsigned opcode_page_offset;
-    unsigned operand, reg_x;
+    unsigned opcode_offset;
+    unsigned zp_address, reg_x;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode page offset %02x, testing %u zp addresses ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE) // Sample a subset of the operands.
+        for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
         {
-            for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE) // Sample a subset of the X values.
+            for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
                 opcode_address[0] = 0xa2;       // LDX #imm
                 opcode_address[1] = reg_x;
                 opcode_address[2] = opcode;
-                opcode_address[3] = operand;
+                opcode_address[3] = zp_address;
                 opcode_address[4] = 0x60; // rts.
 
                 predicted_cycles = 2 + 4;
@@ -537,10 +535,10 @@ void test_read_zpage_x_instruction(char * test_description, uint8_t opcode)
                 if (actual_cycles != predicted_cycles)
                 {
                     ++error_count;
-                    printf("[%lu] ERROR (%s) offset %02x operand %02x X %02x cycles p/a %u/%u\n",
+                    printf("[%lu] ERROR (%s) opcode offset %02x zp address %02x X %02x cycles p/a %u/%u\n",
                         error_count,
                         test_description,
-                        opcode_page_offset, operand, reg_x,
+                        opcode_offset, zp_address, reg_x,
                         predicted_cycles, actual_cycles);
                 }
             }
@@ -550,26 +548,26 @@ void test_read_zpage_x_instruction(char * test_description, uint8_t opcode)
 
 void test_read_zpage_y_instruction(char * test_description, uint8_t opcode)
 {
-    unsigned opcode_page_offset;
-    unsigned operand, reg_y;
+    unsigned opcode_offset;
+    unsigned zp_address, reg_y;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE) // Sample a subset of the operands.
+        for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
         {
-            for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE) // Sample a subset of the X values.
+            for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
             {
                 opcode_address[0] = 0xa0;       // LDY #imm
                 opcode_address[1] = reg_y;
                 opcode_address[2] = opcode;
-                opcode_address[3] = operand;
+                opcode_address[3] = zp_address;
                 opcode_address[4] = 0x60; // rts.
 
                 predicted_cycles = 2 + 4;
@@ -582,10 +580,10 @@ void test_read_zpage_y_instruction(char * test_description, uint8_t opcode)
                 if (actual_cycles != predicted_cycles)
                 {
                     ++error_count;
-                    printf("[%lu] ERROR (%s) offset %02x operand %02x Y %02x cycles p/a %u/%u\n",
+                    printf("[%lu] ERROR (%s) opcode offset %02x zp address %02x Y %02x cycles p/a %u/%u\n",
                         error_count,
                         test_description,
-                        opcode_page_offset, operand, reg_y,
+                        opcode_offset, zp_address, reg_y,
                         predicted_cycles, actual_cycles);
                 }
             }
@@ -595,21 +593,21 @@ void test_read_zpage_y_instruction(char * test_description, uint8_t opcode)
 
 void test_read_abs_instruction(char * test_description, uint8_t opcode)
 {
-    unsigned opcode_page_offset;
-    unsigned operand;
+    unsigned opcode_offset;
+    unsigned address_offset;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE) // Sample a subset of the operands.
+        for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
         {
-            uint8_t * read_address = TESTCODE_BASE + operand;
+            uint8_t * read_address = TESTCODE_BASE + address_offset;
 
             opcode_address[0] = opcode;
             opcode_address[1] = lsb(read_address);
@@ -626,10 +624,10 @@ void test_read_abs_instruction(char * test_description, uint8_t opcode)
             if (actual_cycles != predicted_cycles)
             {
                 ++error_count;
-                printf("[%lu] ERROR (%s) offset %02x operand %02x cycles p/a %u/%u\n",
+                printf("[%lu] ERROR (%s) opcode offset %02x address offset %02x cycles p/a %u/%u\n",
                        error_count,
                        test_description,
-                       opcode_page_offset, operand,
+                       opcode_offset, address_offset,
                        predicted_cycles, actual_cycles);
             }
         }
@@ -638,32 +636,32 @@ void test_read_abs_instruction(char * test_description, uint8_t opcode)
 
 void test_read_abs_x_instruction(char * test_description, uint8_t opcode)
 {
-    unsigned opcode_page_offset;
-    unsigned operand, reg_x;
+    unsigned opcode_offset;
+    unsigned address_offset, reg_x;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE) // Sample a subset of the operands.
+        for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
         {
-            uint8_t * read_address = TESTCODE_BASE + operand;
+            uint8_t * base_address = TESTCODE_BASE + address_offset;
 
-            for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE) // Sample a subset of the X values.
+            for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
                 opcode_address[0] = 0xa2;       // LDX #imm
                 opcode_address[1] = reg_x;
                 opcode_address[2] = opcode;
-                opcode_address[3] = lsb(read_address);
-                opcode_address[4] = msb(read_address);
+                opcode_address[3] = lsb(base_address);
+                opcode_address[4] = msb(base_address);
                 opcode_address[5] = 0x60; // rts.
 
-                predicted_cycles = 2 + 4 + different_pages(read_address, read_address + reg_x);
+                predicted_cycles = 2 + 4 + different_pages(base_address, base_address + reg_x);
 
                 dma_and_interrupts_off();
                 actual_cycles = measure_cycles(opcode_address);
@@ -673,10 +671,10 @@ void test_read_abs_x_instruction(char * test_description, uint8_t opcode)
                 if (actual_cycles != predicted_cycles)
                 {
                     ++error_count;
-                    printf("[%lu] ERROR (%s) offset %02x operand %02x X %02x cycles p/a %u/%u\n",
+                    printf("[%lu] ERROR (%s) opcode offset %02x address offset %02x X %02x cycles p/a %u/%u\n",
                         error_count,
                         test_description,
-                        opcode_page_offset, operand, reg_x,
+                        opcode_offset, address_offset, reg_x,
                         predicted_cycles, actual_cycles);
                 }
             }
@@ -686,32 +684,32 @@ void test_read_abs_x_instruction(char * test_description, uint8_t opcode)
 
 void test_read_abs_y_instruction(char * test_description, uint8_t opcode)
 {
-    unsigned opcode_page_offset;
-    unsigned operand, reg_y;
+    unsigned opcode_offset;
+    unsigned address_offset, reg_y;
     unsigned predicted_cycles, actual_cycles;
     uint8_t *opcode_address;
 
-    for (opcode_page_offset = 0; opcode_page_offset <= 0xff; opcode_page_offset += STEP_SIZE)
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) page offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_page_offset, 1 + 255 / STEP_SIZE);
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
 
-        opcode_address = TESTCODE_ANCHOR + opcode_page_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE) // Sample a subset of the operands.
+        for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
         {
-            uint8_t * read_address = TESTCODE_BASE + operand;
+            uint8_t * base_address = TESTCODE_BASE + address_offset;
 
-            for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE) // Sample a subset of the X values.
+            for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
             {
                 opcode_address[0] = 0xa0;       // LDY #imm
                 opcode_address[1] = reg_y;
                 opcode_address[2] = opcode;
-                opcode_address[3] = lsb(read_address);
-                opcode_address[4] = msb(read_address);
+                opcode_address[3] = lsb(base_address);
+                opcode_address[4] = msb(base_address);
                 opcode_address[5] = 0x60; // rts.
 
-                predicted_cycles = 2 + 4 + different_pages(read_address, read_address + reg_y);
+                predicted_cycles = 2 + 4 + different_pages(base_address, base_address + reg_y);
 
                 dma_and_interrupts_off();
                 actual_cycles = measure_cycles(opcode_address);
@@ -721,12 +719,95 @@ void test_read_abs_y_instruction(char * test_description, uint8_t opcode)
                 if (actual_cycles != predicted_cycles)
                 {
                     ++error_count;
-                    printf("[%lu] ERROR (%s) offset %02x operand %02x Y %02x cycles p/a %u/%u\n",
+                    printf("[%lu] ERROR (%s) opcode offset %02x address offset %02x Y %02x cycles p/a %u/%u\n",
                         error_count,
                         test_description,
-                        opcode_page_offset, operand, reg_y,
+                        opcode_offset, address_offset, reg_y,
                         predicted_cycles, actual_cycles);
                 }
+            }
+        }
+    }
+}
+
+void test_write_zpage_instruction(char * test_description, uint8_t opcode)
+{
+    unsigned opcode_offset;
+    unsigned zp_address;
+    unsigned predicted_cycles, actual_cycles;
+    uint8_t *opcode_address;
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
+
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
+        {
+            opcode_address[0] = opcode;
+            opcode_address[1] = zp_address;
+            opcode_address[2] = 0x60; // rts.
+
+            predicted_cycles = 3;
+
+            dma_and_interrupts_off();
+            actual_cycles = measure_cycles_zp_safe(opcode_address);
+            dma_and_interrupts_on();
+            ++test_count;
+
+            if (actual_cycles != predicted_cycles)
+            {
+                ++error_count;
+                printf("[%lu] ERROR (%s) opcode offset %02x zp address %02x cycles p/a %u/%u\n",
+                       error_count,
+                       test_description,
+                       opcode_offset, zp_address,
+                       opcode_offset, actual_cycles);
+            }
+        }
+    }
+}
+
+void test_write_abs_instruction(char * test_description, uint8_t opcode)
+{
+    unsigned opcode_offset;
+    unsigned address_offset;
+    unsigned predicted_cycles, actual_cycles;
+    uint8_t *opcode_address;
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
+
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
+        {
+            uint8_t * write_address = TESTCODE_BASE + address_offset;
+
+            opcode_address[0] = opcode;
+            opcode_address[1] = lsb(write_address);
+            opcode_address[2] = msb(write_address);
+            opcode_address[3] = 0x60; // rts.
+
+            predicted_cycles = 4;
+
+            dma_and_interrupts_off();
+            actual_cycles = measure_cycles(opcode_address);
+            dma_and_interrupts_on();
+            ++test_count;
+
+            if (actual_cycles != predicted_cycles)
+            {
+                ++error_count;
+                printf("[%lu] ERROR (%s) opcode offset %02x address offset %02x cycles p/a %u/%u\n",
+                       error_count,
+                       test_description,
+                       opcode_offset, address_offset,
+                       predicted_cycles, actual_cycles);
             }
         }
     }
@@ -953,42 +1034,26 @@ void test_read_abs_y_instructions(void)
     test_read_abs_y_instruction("SBC abs,Y", 0xf9);
 }
 
-int run_tests(void)
+void test_write_zpage_instructions(void)
 {
-    int result;
+    // The 3 write-to-zero-page instructions all take 3 cycles.
 
-    result = allocate_testcode_block(4096);
-    if (result != 0)
-    {
-        puts("Unable to allocate TESTCODE block.");
-        return -1;
-    }
+    test_write_zpage_instruction("STA zpage", 0x85);
+    test_write_zpage_instruction("STX zpage", 0x86);
+    test_write_zpage_instruction("STY zpage", 0x84);
+}
 
-    printf("Test memory was allocated as follows:\n");
-    printf("\n");
-    printf("  TESTCODE_PTR     %p\n", TESTCODE_PTR);
-    printf("  TESTCODE_BASE    %p\n", TESTCODE_BASE);
-    printf("  TESTCODE_ANCHOR  %p\n", TESTCODE_ANCHOR);
-    printf("\n");
+void test_write_abs_instructions(void)
+{
+    // The 3 write-to-absolute-address instructions all take 4 cycles.
 
-    printf("Performing baseline tests ...\n");
-    result = baseline_test(100);
-    if (result != 0)
-    {
-        printf("Baseline test failed -- the cycle measurement routine is not working properly.\n");
-        free_testcode_block();
-        return -1;
-    }
+    test_write_abs_instruction("STA abs", 0x8d);
+    test_write_abs_instruction("STX abs", 0x8e);
+    test_write_abs_instruction("STY abs", 0x8c);
+}
 
-    printf("Baseline test completed successfully.\n");
-    printf("\n");
-    printf("Press ENTER to start the timing test.\n");
-
-    getchar();
-
-    test_count = 0;
-    error_count = 0;
-
+void run_cpu_test(void)
+{
     // Test the timing of the 8 branch instructions.
     test_branch_instructions();
 
@@ -1019,65 +1084,63 @@ int run_tests(void)
     // Test the timing of the 8 three-byte read-from-zero-page-with-y-indexing instructions.
     test_read_abs_y_instructions();
 
-    // So far, tests were implemented for 94/151 instructions; 57 remaining.
+    // Test the timing of the 3 two-byte write-to-zero-page instructions.
+    test_write_zpage_instructions();
+
+    // Test the timing of the 3 three-byte write-to-absolute-address instructions.
+    test_write_abs_instructions();
+
+    // So far, tests were implemented for 100/151 instructions; 51 remaining.
     //
-    // =============================================================== TODO: Read (ind,X)         (7)      56
+    // =============================================================== TODO: Read (ind,X)         (7)      7
     //
     // ORA, AND, EOR, ADC, LDA, CMP, SBC
     //
-    // =============================================================== TODO: Read (ind),Y         (7)      63
+    // =============================================================== TODO: Read (ind),Y         (7)      14
     //
     // ORA, AND, EOR, ADC, LDA, CMP, SBC
     //
-    // =============================================================== TODO: Write zpage          (3)      66
-    //
-    // STA, STX, STY
-    //
-    // =============================================================== TODO: Write zpage,X        (2)      68
+    // =============================================================== TODO: Write zpage,X        (2)      16
     //
     // STA, STY
     //
-    // =============================================================== TODO: Write zpage,Y        (1)      69
+    // =============================================================== TODO: Write zpage,Y        (1)      17
     //
     // STX
     //
-    // =============================================================== TODO: Write abs            (3)      72
-    //
-    // STA, STX, STY
-    //
-    // ================================================================TODO: Write abs,X          (1)      73
+    // ================================================================TODO: Write abs,X          (1)      18
     //
     // STA
     //
-    // ================================================================TODO: Write abs,Y          (1)      74
+    // ================================================================TODO: Write abs,Y          (1)      19
     //
     // STA
     //
-    // =============================================================== TODO: Write (ind,X)        (1)      75
+    // =============================================================== TODO: Write (ind,X)        (1)      20
     //
     // STA
     //
-    // =============================================================== TODO: Write (ind),Y        (1)      76
+    // =============================================================== TODO: Write (ind),Y        (1)      21
     //
     // STA
     //
-    // =============================================================== TODO: R/M/W zpage          (6)      82
+    // =============================================================== TODO: R/M/W zpage          (6)      27
     //
     // ASL, LSR, ROL, ROR
     //
-    // =============================================================== TODO: R/M/W zpage,X        (6)      88
+    // =============================================================== TODO: R/M/W zpage,X        (6)      33
     //
     // ASL, LSR, ROL, ROR
     //
-    // =============================================================== TODO: R/M/W abs            (6)      94
+    // =============================================================== TODO: R/M/W abs            (6)      39
     //
     // ASL, LSR, ROL, ROR
     //
-    // =============================================================== TODO: R/M/W abs,X          (6)     100
+    // =============================================================== TODO: R/M/W abs,X          (6)      45
     //
     // ASL, LSR, ROL, ROR
     //
-    // =============================================================== TODO: Misc instructions    (6)     106
+    // =============================================================== TODO: Misc instructions    (6)      51
     //
     // JSR abs          JSR, followed by two PLAs and an RTS.
     // RTI              Push PHP and a return address.  3/2/3/2/3/RTI
@@ -1085,11 +1148,106 @@ int run_tests(void)
     // JMP abs          Just execute the JMP.
     // BRK
     // JMP (ind)
+}
 
+int command_line_loop(void)
+{
+    char command[80];
+    unsigned par1, par2, par3;
+    int result;
+
+    result = allocate_testcode_block(4096);
+    if (result != 0)
+    {
+        puts("Unable to allocate TESTCODE block.");
+        return -1;
+    }
+
+    printf("Test memory was allocated as follows:\n");
     printf("\n");
-    printf("Tests performed ...... : %lu\n", test_count);
-    printf("Tests failed ......... : %lu\n", error_count);
+    printf("  TESTCODE_PTR     %p\n", TESTCODE_PTR);
+    printf("  TESTCODE_BASE    %p\n", TESTCODE_BASE);
+    printf("  TESTCODE_ANCHOR  %p\n", TESTCODE_ANCHOR);
+    printf("  TESTCODE_END     %p\n", TESTCODE_BASE + TESTCODE_SIZE);
     printf("\n");
+
+    for (;;)
+    {
+        printf("Enter command (or ENTER for help)\n");
+        fgets(command, sizeof(command), stdin);
+
+        if (strcmp(command, "quit") == 0)
+        {
+            break;
+        }
+        else if (sscanf(command, "msm %u %u %u", &par1, &par2, &par3) == 3)
+        {
+            printf("\n");
+            printf("Performing baseline tests ...\n");
+
+            test_count = 0;
+            error_count = 0;
+
+            run_baseline_test(par1, par2, par3);
+
+            printf("\n");
+            printf("Tests performed ...... : %lu\n", test_count);
+            printf("Tests failed ......... : %lu\n", error_count);
+            printf("\n");
+        }
+        else if (sscanf(command, "cpu %u", &par1) == 1)
+        {
+            const unsigned lookup_table[8] = {1, 3, 5, 165, 17, 51, 85, 255};
+
+            printf("\n");
+
+            if (par1 > 7)
+            {
+                printf("Level must be 0 to 7. Higher values\n");
+                printf("test more cases, but are MUCH slower.\n");
+                printf("\n");
+                continue;
+            }
+
+            STEP_SIZE = lookup_table[7 - par1];
+
+            printf("Starting test with step size %u.\n", STEP_SIZE);
+            printf("\n");
+
+            test_count = 0;
+            error_count = 0;
+
+            run_cpu_test();
+
+            printf("\n");
+            printf("Tests performed ...... : %lu\n", test_count);
+            printf("Tests failed ......... : %lu\n", error_count);
+            printf("\n");
+        }
+        else
+        {
+            printf("Commands:\n");
+            printf("\n");
+            printf("> msm <nreps> <min_c> <max_c>\n");
+            printf("\n");
+            printf("    Test measurement functionality.\n");
+            printf("\n");
+            printf("      nreps: number of repeats\n");
+            printf("      min_c: min number of test-cycles\n");
+            printf("      max_c: max number of test-cycles\n");
+            printf("\n");
+            printf("> cpu <level>\n");
+            printf("\n");
+            printf("    Test time of 6502 instructions.\n");
+            printf("\n");
+            printf("      level: 0 (fast) to 7 (slow)\n");
+            printf("\n");
+            printf("> quit\n");
+            printf("\n");
+            printf("    Quit the program.\n");
+            printf("\n");
+        }
+    }
 
     free_testcode_block();
 
@@ -1103,13 +1261,7 @@ int main(void)
     printf("*** TIC v0.1.3 ***\n");
     printf("\n");
 
-    result = run_tests();
-
-    printf("6502 timing test status: %s.", (result == 0) ? "SUCCESS" : "FAILURE");
-    printf("\n");
-    printf("Press any key to exit.\n");
-
-    getchar();
+    result = command_line_loop();
 
     return (result == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

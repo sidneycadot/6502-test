@@ -1,5 +1,6 @@
 
                 .import _measure_cycles
+                .export _measure_cycles_zp_safe
 
                 .bss
 
