@@ -29,7 +29,7 @@
 //                              The length of instruction sequences that can be timed varies
 //                              between hardware platforms. The current implementation on the
 //                              Atari, for example, can only measure instruction sequences
-//                              up to 28 clock cycles.
+//                              reliably up to 27 clock cycles.
 //
 // A fourth external function is needed to accommodate tests that can write to the zero page,
 // which is usually in use by the external environment. This function depends on the
@@ -135,11 +135,14 @@ void generate_code(uint8_t * code, unsigned cycles)
 
 int baseline_test(unsigned repeats)
 {
-    unsigned wanted_cycles, actual_cycles;
+    // The Atari implementation should be good up to and including 27 cycles.
 
-    while (repeats--)
+    unsigned wanted_cycles, actual_cycles, rep;
+    bool errors_seen = 0;
+
+    for (rep = 1; rep <= repeats; ++rep)
     {
-        for (wanted_cycles = 0; wanted_cycles <= 28; ++wanted_cycles)
+        for (wanted_cycles = 0; wanted_cycles <= 27; ++wanted_cycles)
         {
             if (wanted_cycles == 1)
             {
@@ -155,13 +158,13 @@ int baseline_test(unsigned repeats)
 
             if (actual_cycles != wanted_cycles)
             {
-                printf("ERROR: wanted cycles: %u -> actual cycles %d\n", wanted_cycles, actual_cycles);
-                return -1;
+                printf("[%u] ERROR: wanted cycles: %u -> actual cycles %d\n", rep, wanted_cycles, actual_cycles);
+                errors_seen = true;
             }
         }
     }
 
-    return 0; // Success.
+    return errors_seen ? -1 : 0;
 }
 
 uint8_t lsb(uint8_t * ptr)
@@ -968,16 +971,18 @@ int run_tests(void)
     printf("  TESTCODE_ANCHOR  %p\n", TESTCODE_ANCHOR);
     printf("\n");
 
-    result = baseline_test(20);
+    printf("Performing baseline tests ...\n");
+    result = baseline_test(100);
     if (result != 0)
     {
-        printf("Baseline test failed -- the cycle measurement routine is not working properly.");
+        printf("Baseline test failed -- the cycle measurement routine is not working properly.\n");
         free_testcode_block();
         return -1;
     }
 
     printf("Baseline test completed successfully.\n");
-    printf("Press ENTER to start testing.\n");
+    printf("\n");
+    printf("Press ENTER to start the timing test.\n");
 
     getchar();
 
