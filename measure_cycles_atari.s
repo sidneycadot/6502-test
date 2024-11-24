@@ -11,7 +11,7 @@
 
                 .include "atari.inc"
 
-                .data
+                .bss
 
                 ; Note: it is important that these are NOT zero pages addresses! Storing data into them should take 4 clock cycles,
                 ; to ensure that the RANDOM samples are taken 8 clock cycles apart.

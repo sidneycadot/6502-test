@@ -3,11 +3,49 @@
 // test_instruction_clocks.c //
 ///////////////////////////////
 
-// This test program aims to test the instruction timing (i.e., clock-cycle counts) for
-// all (or at least most) 151 "official" 6502 instructions.
+// This program tests the instruction timing (i.e., clock-cycle counts) for all
+// (or at least most) documented 151 6502 instructions.
 //
-// The program assumes the instructions are implemented correctly, other than that their
-// clock cycle counts may be off.
+// This program was validated on physical hardware (for example, an Atari 800 XL and a
+// Commodore 64); those show zero errors.
+//
+// With that fact in mind, the program can serve as a validation reference for emulators
+// that try to emulate an entire machine, or only the 6502.
+//
+// The program depends on the availability of four external functions. Three of those
+// are specific to the hardware platform on which the program is run:
+//
+// * dma_and_interrupts_off()   This create an environment where the measure_cycles()
+//                              and measure_cycles_zp_safe() functions can do their work.
+//                              On most hardware, this is a matter of disabling video DMA
+//                              and interrupts; hence the name.
+//
+// * dma_and_interrupts_on()    Restore a "normal" environment, where DMA, interrupts, and
+//                              any other timing disturbances are once again allowed.
+//
+// * measure_cycles()           Measure the number of clock cycles needed to execute a short
+//                              sequence of 6502 instructions.
+//
+//                              The length of instruction sequences that can be timed varies
+//                              between hardware platforms. The current implementation on the
+//                              Atari, for example, can only measure instruction sequences
+//                              up to 28 clock cycles.
+//
+// A fourth external function is needed to accommodate tests that can write to the zero page,
+// which is usually in use by the external environment. This function depends on the
+// hardware-platform dependent measure_cycles(), but is itself hardware-platform independent:
+//
+// * measure_cycles_zp_sage()   Save the contents of the zero page, execute measure_cycles(),
+//                              then restore the content of the zero page.
+//
+// ASSUMPTIONS
+// -----------
+//
+// * The program assumes the instructions work correctly, other than that their clock cycle
+//   counts may be off.
+//
+// * Later tests assume that the clock cycle counts of 6502 instructions that were timed
+//   by earlier (simpler) instructions are correct.
 
 #include <assert.h>
 #include <stdio.h>
@@ -18,18 +56,23 @@
 
 #include "measure_cycles.h"
 
-// Sometimes, we want to go through a bunch of values in the range 0..255 with big steps,
-// Because examining all values is really overkill.
-// By taking steps of 17, we only examine 15 values of the 256 values.
-
-// The divisors of 255 are 1, 3, 5, 15, 17, 51, 85, and 255.
+// Sometimes, for testing purposes, we want to go through a bunch of values in the range 0..255
+// with big steps.
+// 
+// For example, By taking steps of 17, we only examine {0, 17, 34, ..., 238, 255} -- just 16 out of the 256 values.
+//
+// It is recommended to pick this value as a divisor of 255, so one of 1, 3, 5, 15, 17, 51, 85, and 255.
+//
 // For a full torture test, use STEP_SIZE==1.
-// For a quick-and-dirty runthrough, use STEP_SIZE=85 or even STEP_SIZE=255.
+// For a quick-and-dirty run-through (that will already expose quite a few timing mismatches if they are there),
+// use STEP_SIZE=85 or even STEP_SIZE=255.
+
 unsigned STEP_SIZE = 85;
 
 uint8_t * TESTCODE_PTR    = NULL; // The pointer, allocated using malloc().
 uint8_t * TESTCODE_BASE   = NULL; // The first address in the TESTCODE range that is on a page boundary.
 uint8_t * TESTCODE_ANCHOR = NULL; // The halfway point in the TESTCODE range. Put test code here.
+
 unsigned  TESTCODE_SIZE   = 0;
 
 unsigned long test_count;
@@ -39,8 +82,9 @@ int allocate_testcode_block(unsigned size)
 {
     unsigned offset;
 
-    if (size % 2 != 0)
+    if (size % 512 != 0)
     {
+        // We are only willing to allocate an even number of pages; report failure.
         return -1;
     }
 
@@ -48,6 +92,7 @@ int allocate_testcode_block(unsigned size)
     TESTCODE_PTR = malloc(size + 255);
     if (TESTCODE_PTR == NULL)
     {
+        // Unable to allocate the required memory; report failure.
         return -1;
     }
 
@@ -88,28 +133,35 @@ void generate_code(uint8_t * code, unsigned cycles)
     *code++ = 0x60; // RTS
 }
 
-void baseline_test(void)
+int baseline_test(unsigned repeats)
 {
-    unsigned k, cycles;
+    unsigned wanted_cycles, actual_cycles;
 
-    dma_and_interrupts_off();
-
-    for (k = 0; k <= 28; ++k)
+    while (repeats--)
     {
-        if (k == 1)
+        for (wanted_cycles = 0; wanted_cycles <= 28; ++wanted_cycles)
         {
-            // Cannot generate 1-cycle code.
-            continue;
+            if (wanted_cycles == 1)
+            {
+                // Cannot generate 1-cycle test code.
+                continue;
+            }
+
+            generate_code(TESTCODE_ANCHOR, wanted_cycles);
+
+            dma_and_interrupts_off();
+            actual_cycles = measure_cycles(TESTCODE_ANCHOR);
+            dma_and_interrupts_on();
+
+            if (actual_cycles != wanted_cycles)
+            {
+                printf("ERROR: wanted cycles: %u -> actual cycles %d\n", wanted_cycles, actual_cycles);
+                return -1;
+            }
         }
-
-        generate_code(TESTCODE_ANCHOR, k);
-
-        cycles = measure_cycles(TESTCODE_ANCHOR);
-
-        printf("cycles: %u -> %d%s\n", k, cycles, (k == cycles) ? "" : " *** ERROR ***");
     }
 
-    dma_and_interrupts_on();
+    return 0; // Success.
 }
 
 uint8_t lsb(uint8_t * ptr)
@@ -169,10 +221,10 @@ void test_branch_taken(char * test_description, uint8_t branch_opcode, uint8_t l
                 continue;
             }
 
-            entry_address[0] = 0x18;
-            entry_address[1] = 0xa9;
+            entry_address[0] = 0x18;        // CLC
+            entry_address[1] = 0xa9;        // LDA #<lda_value>
             entry_address[2] = lda_value;
-            entry_address[3] = 0x69;
+            entry_address[3] = 0x69;        // ADC #<adc_value>
             entry_address[4] = adc_value;
             entry_address[5] = 0x4c;
             entry_address[6] = lsb(branch_opcode_address);
@@ -185,9 +237,9 @@ void test_branch_taken(char * test_description, uint8_t branch_opcode, uint8_t l
             predicted_cycles = 2 + 2 + 2 + 3 + 3 + different_pages(&branch_opcode_address[2], &branch_opcode_address[2 + displacement]);
 
             dma_and_interrupts_off();
-            ++test_count;
             actual_cycles = measure_cycles(entry_address);
             dma_and_interrupts_on();
+            ++test_count;
 
             if (actual_cycles != predicted_cycles)
             {
@@ -249,9 +301,9 @@ void test_branch_not_taken(char * test_description, uint8_t branch_opcode, uint8
             predicted_cycles = 2 + 2 + 2 + 3 + 2;
 
             dma_and_interrupts_off();
-            ++test_count;
             actual_cycles = measure_cycles(entry_address);
             dma_and_interrupts_on();
+            ++test_count;
 
             if (actual_cycles != predicted_cycles)
             {
@@ -283,9 +335,9 @@ void test_single_byte_instruction_sequence(char * test_description, uint8_t b1, 
         opcode_address[1] = 0x60; // rts.
 
         dma_and_interrupts_off();
-        ++test_count;
         actual_cycles = measure_cycles(opcode_address);
         dma_and_interrupts_on();
+        ++test_count;
 
         if (actual_cycles != predicted_cycles)
         {
@@ -317,9 +369,9 @@ void test_two_byte_instruction_sequence(char * test_description, uint8_t b1, uin
         opcode_address[2] = 0x60; // rts.
 
         dma_and_interrupts_off();
-        ++test_count;
         actual_cycles = measure_cycles(opcode_address);
         dma_and_interrupts_on();
+        ++test_count;
 
         if (actual_cycles != predicted_cycles)
         {
@@ -352,9 +404,9 @@ void test_three_byte_instruction_sequence(char * test_description, uint8_t b1, u
         opcode_address[3] = 0x60; // rts.
 
         dma_and_interrupts_off();
-        ++test_count;
         actual_cycles = measure_cycles(opcode_address);
         dma_and_interrupts_on();
+        ++test_count;
 
         if (actual_cycles != predicted_cycles)
         {
@@ -391,9 +443,9 @@ void test_immediate_mode_instruction(char * test_description, uint8_t opcode)
             predicted_cycles = 2;
 
             dma_and_interrupts_off();
-            ++test_count;
             actual_cycles = measure_cycles(opcode_address);
             dma_and_interrupts_on();
+            ++test_count;
 
             if (actual_cycles != predicted_cycles)
             {
@@ -431,9 +483,9 @@ void test_read_zpage_instruction(char * test_description, uint8_t opcode)
             predicted_cycles = 3;
 
             dma_and_interrupts_off();
-            ++test_count;
             actual_cycles = measure_cycles(opcode_address);
             dma_and_interrupts_on();
+            ++test_count;
 
             if (actual_cycles != predicted_cycles)
             {
@@ -475,9 +527,9 @@ void test_read_zpage_x_instruction(char * test_description, uint8_t opcode)
                 predicted_cycles = 2 + 4;
 
                 dma_and_interrupts_off();
-                ++test_count;
                 actual_cycles = measure_cycles(opcode_address);
                 dma_and_interrupts_on();
+                ++test_count;
 
                 if (actual_cycles != predicted_cycles)
                 {
@@ -520,9 +572,9 @@ void test_read_zpage_y_instruction(char * test_description, uint8_t opcode)
                 predicted_cycles = 2 + 4;
 
                 dma_and_interrupts_off();
-                ++test_count;
                 actual_cycles = measure_cycles(opcode_address);
                 dma_and_interrupts_on();
+                ++test_count;
 
                 if (actual_cycles != predicted_cycles)
                 {
@@ -564,9 +616,9 @@ void test_read_abs_instruction(char * test_description, uint8_t opcode)
             predicted_cycles = 4;
 
             dma_and_interrupts_off();
-            ++test_count;
             actual_cycles = measure_cycles(opcode_address);
             dma_and_interrupts_on();
+            ++test_count;
 
             if (actual_cycles != predicted_cycles)
             {
@@ -611,9 +663,9 @@ void test_read_abs_x_instruction(char * test_description, uint8_t opcode)
                 predicted_cycles = 2 + 4 + different_pages(read_address, read_address + reg_x);
 
                 dma_and_interrupts_off();
-                ++test_count;
                 actual_cycles = measure_cycles(opcode_address);
                 dma_and_interrupts_on();
+                ++test_count;
 
                 if (actual_cycles != predicted_cycles)
                 {
@@ -659,9 +711,9 @@ void test_read_abs_y_instruction(char * test_description, uint8_t opcode)
                 predicted_cycles = 2 + 4 + different_pages(read_address, read_address + reg_y);
 
                 dma_and_interrupts_off();
-                ++test_count;
                 actual_cycles = measure_cycles(opcode_address);
                 dma_and_interrupts_on();
+                ++test_count;
 
                 if (actual_cycles != predicted_cycles)
                 {
@@ -679,7 +731,7 @@ void test_read_abs_y_instruction(char * test_description, uint8_t opcode)
 
 void test_branch_instructions(void)
 {
-    // Test branch instructions on the sign (N) flag.
+    // Test branch instructions on the sign a.k.a. negative (N) flag.
 
     test_branch_taken    ("BPL, taken"    , 0x10, 0x00, 0x00);
     test_branch_not_taken("BPL, not taken", 0x10, 0x80, 0x00);
@@ -719,10 +771,12 @@ void test_single_byte_two_cycle_implied_instructions(void)
     test_single_byte_instruction_sequence("SEC", 0x38, 2);
 
     // CLI, SEI
-    // Note: The "SEI" is tested in the SEI,CLI combination, to prevent that it will leave interrupts disabled.
+    //
+    // Note: These change interrupt flags, which may be critical to restore to guarantee the proper working
+    // of the external environment. For that reason, we sandwich these between PHP/PLP instructions.
 
-    test_single_byte_instruction_sequence("CLI", 0x58, 2);
-    test_two_byte_instruction_sequence   ("SEI, followed by CLI", 0x78, 0x58, 2 + 2);
+    test_three_byte_instruction_sequence("CLI, between PHP and PLP", 0x08, 0x58, 0x28, 3 + 2 + 4);
+    test_three_byte_instruction_sequence("SEI, between PHP and PLP", 0x08, 0x78, 0x28, 3 + 2 + 4);
 
     // CLD, SED
     // Note: The "SED" is tested in the SED,CLD combination, to prevent that it leave decimal mode enabled.
@@ -765,7 +819,7 @@ void test_single_byte_two_cycle_implied_instructions(void)
 
 void test_single_byte_stack_instructions(void)
 {
-    // Test the 1-byte, 6-cycle push/pull stack instructions.
+    // Test the single-byte, 6-cycle push/pull stack instructions.
     //
     // TSX, PHA, TXS              The stack pointer is saved before, and restored after the instruction.
 
@@ -804,7 +858,7 @@ void test_immediate_mode_instructions(void)
 
 void test_read_zpage_instructions(void)
 {
-    // The 12 read-from-zpage instructions all take 3 cycles.
+    // The 12 read-from-zero-page instructions all take 3 cycles.
 
     test_read_zpage_instruction("BIT zpage", 0x24);
     test_read_zpage_instruction("LDX zpage", 0xa6);
@@ -823,7 +877,7 @@ void test_read_zpage_instructions(void)
 
 void test_read_zpage_x_instructions(void)
 {
-    // The 8 read-from-zpage-with-X-indexing instructions all take 4 cycles.
+    // The 8 read-from-zero-page-with-X-indexing instructions all take 4 cycles.
 
     test_read_zpage_x_instruction("LDY zpage,X", 0xb4);
 
@@ -838,14 +892,14 @@ void test_read_zpage_x_instructions(void)
 
 void test_read_zpage_y_instructions(void)
 {
-    // The 1 read-from-zpage-with-Y-indexing instructions takes 4 cycles.
+    // The 1 read-from-zero-page-with-Y-indexing instruction takes 4 cycles.
 
     test_read_zpage_y_instruction("LDX zpage,Y", 0xb6);
 }
 
 void test_read_abs_instructions(void)
 {
-    // The 12 read-from-zpage instructions all take 3 cycles.
+    // The 12 read-from-absolute-address instructions all take 4 cycles.
 
     test_read_abs_instruction("BIT abs", 0x2c);
     test_read_abs_instruction("LDX abs", 0xae);
@@ -864,7 +918,9 @@ void test_read_abs_instructions(void)
 
 void test_read_abs_x_instructions(void)
 {
-    // The 8 read-from-zpage-with-X-indexing instructions all take 4 cycles.
+    // The 8 read-from-absolute-addressing-with-X-indexing instructions take 4 or 5 cycles.
+    // An extra cycle is added in case the indexing with X causes the effective address
+    // to be on a different page than the base address.
 
     test_read_abs_x_instruction("LDY abs,X", 0xbc);
 
@@ -879,31 +935,30 @@ void test_read_abs_x_instructions(void)
 
 void test_read_abs_y_instructions(void)
 {
-    // The 8 read-from-zpage-with-X-indexing instructions all take 4 cycles.
+    // The 8 read-from-absolute-addressing-with-Y-indexing instructions take 4 or 5 cycles.
+    // An extra cycle is added in case the indexing with Y causes the effective address
+    // to be on a different page than the base address.
 
-    //test_read_abs_y_instruction("LDX abs,Y", 0xbe);
+    test_read_abs_y_instruction("LDX abs,Y", 0xbe);
 
-    //test_read_abs_y_instruction("ORA abs,Y", 0x19);
-    //test_read_abs_y_instruction("AND abs,Y", 0x39);
-    //test_read_abs_y_instruction("EOR abs,Y", 0x59);
-    //test_read_abs_y_instruction("ADC abs,Y", 0x79);
+    test_read_abs_y_instruction("ORA abs,Y", 0x19);
+    test_read_abs_y_instruction("AND abs,Y", 0x39);
+    test_read_abs_y_instruction("EOR abs,Y", 0x59);
+    test_read_abs_y_instruction("ADC abs,Y", 0x79);
     test_read_abs_y_instruction("LDA abs,Y", 0xb9);
-    //test_read_abs_y_instruction("CMP abs,Y", 0xd9);
-    //test_read_abs_y_instruction("SBC abs,Y", 0xf9);
+    test_read_abs_y_instruction("CMP abs,Y", 0xd9);
+    test_read_abs_y_instruction("SBC abs,Y", 0xf9);
 }
 
-int main(void)
+int run_tests(void)
 {
     int result;
-
-    printf("*** TIC v0.1.2 ***\n");
-    printf("\n");
 
     result = allocate_testcode_block(4096);
     if (result != 0)
     {
         puts("Unable to allocate TESTCODE block.");
-        return EXIT_FAILURE;
+        return -1;
     }
 
     printf("Test memory was allocated as follows:\n");
@@ -913,118 +968,143 @@ int main(void)
     printf("  TESTCODE_ANCHOR  %p\n", TESTCODE_ANCHOR);
     printf("\n");
 
-    for (;;)
+    result = baseline_test(20);
+    if (result != 0)
     {
-        printf("Press ENTER to start testing.\n");
-        getchar();
-
-        test_count = 0;
-        error_count = 0;
- 
-        // Test the timing of the 8 branch instructions.
-        test_branch_instructions();
-
-        // Test the timing of the 22 single-byte, two-cycle opcodes.
-        test_single_byte_two_cycle_implied_instructions();
-
-        // Test the timing of the 4 stack push/pull instructions.
-        test_single_byte_stack_instructions();
-
-        // Test the timing of the 11 two-byte immediate-mode instructions.
-        test_immediate_mode_instructions();
-
-        // Test the timing of the 12 two-byte read-from-zero-page instructions.
-        test_read_zpage_instructions();
-
-        // Test the timing of the 8 two-byte read-from-zero-page-with-x-indexing instructions.
-        test_read_zpage_x_instructions();
-
-        // Test the timing of the 1 two-byte read-from-zero-page-with-y-indexing instruction.
-        test_read_zpage_y_instructions();
-
-        // Test the timing of the 12 two-byte read-from-abs-address instructions.
-        test_read_abs_instructions();
-
-        // Test the timing of the 8 three-byte read-from-zero-page-with-x-indexing instructions.
-        test_read_abs_x_instructions();
-
-        // Test the timing of the 8 three-byte read-from-zero-page-with-y-indexing instructions.
-        test_read_abs_y_instructions();
-
-        // So far, tests were implemented for 94/151 instructions; 57 remaining.
-        //
-        // =============================================================== TODO: Read (ind,X)         (7)      56
-        //
-        // ORA, AND, EOR, ADC, LDA, CMP, SBC
-        //
-        // =============================================================== TODO: Read (ind),Y         (7)      63
-        //
-        // ORA, AND, EOR, ADC, LDA, CMP, SBC
-        //
-        // =============================================================== TODO: Write zpage          (3)      66
-        //
-        // STA, STX, STY
-        //
-        // =============================================================== TODO: Write zpage,X        (2)      68
-        //
-        // STA, STY
-        //
-        // =============================================================== TODO: Write zpage,Y        (1)      69
-        //
-        // STX
-        //
-        // =============================================================== TODO: Write abs            (3)      72
-        //
-        // STA, STX, STY
-        //
-        // ================================================================TODO: Write abs,X          (1)      73
-        //
-        // STA
-        //
-        // ================================================================TODO: Write abs,Y          (1)      74
-        //
-        // STA
-        //
-        // =============================================================== TODO: Write (ind,X)        (1)      75
-        //
-        // STA
-        //
-        // =============================================================== TODO: Write (ind),Y        (1)      76
-        //
-        // STA
-        //
-        // =============================================================== TODO: R/M/W zpage          (6)      82
-        //
-        // ASL, LSR, ROL, ROR
-        //
-        // =============================================================== TODO: R/M/W zpage,X        (6)      88
-        //
-        // ASL, LSR, ROL, ROR
-        //
-        // =============================================================== TODO: R/M/W abs            (6)      94
-        //
-        // ASL, LSR, ROL, ROR
-        //
-        // =============================================================== TODO: R/M/W abs,X          (6)     100
-        //
-        // ASL, LSR, ROL, ROR
-        //
-        // =============================================================== TODO: Misc instructions    (6)     106
-        //
-        // BRK
-        // JSR abs
-        // RTI
-        // RTS
-        // JMP abs
-        // JMP (ind)
-
-        printf("\n");
-        printf("Tests performed ...... : %lu\n", test_count);
-        printf("Tests failed ......... : %lu\n", error_count);
-        printf("\n");
+        printf("Baseline test failed -- the cycle measurement routine is not working properly.");
+        free_testcode_block();
+        return -1;
     }
+
+    printf("Baseline test completed successfully.\n");
+    printf("Press ENTER to start testing.\n");
+
+    getchar();
+
+    test_count = 0;
+    error_count = 0;
+
+    // Test the timing of the 8 branch instructions.
+    test_branch_instructions();
+
+    // Test the timing of the 22 single-byte, two-cycle opcodes.
+    test_single_byte_two_cycle_implied_instructions();
+
+    // Test the timing of the 4 stack push/pull instructions.
+    test_single_byte_stack_instructions();
+
+    // Test the timing of the 11 two-byte immediate-mode instructions.
+    test_immediate_mode_instructions();
+
+    // Test the timing of the 12 two-byte read-from-zero-page instructions.
+    test_read_zpage_instructions();
+
+    // Test the timing of the 8 two-byte read-from-zero-page-with-x-indexing instructions.
+    test_read_zpage_x_instructions();
+
+    // Test the timing of the 1 two-byte read-from-zero-page-with-y-indexing instruction.
+    test_read_zpage_y_instructions();
+
+    // Test the timing of the 12 two-byte read-from-abs-address instructions.
+    test_read_abs_instructions();
+
+    // Test the timing of the 8 three-byte read-from-zero-page-with-x-indexing instructions.
+    test_read_abs_x_instructions();
+
+    // Test the timing of the 8 three-byte read-from-zero-page-with-y-indexing instructions.
+    test_read_abs_y_instructions();
+
+    // So far, tests were implemented for 94/151 instructions; 57 remaining.
+    //
+    // =============================================================== TODO: Read (ind,X)         (7)      56
+    //
+    // ORA, AND, EOR, ADC, LDA, CMP, SBC
+    //
+    // =============================================================== TODO: Read (ind),Y         (7)      63
+    //
+    // ORA, AND, EOR, ADC, LDA, CMP, SBC
+    //
+    // =============================================================== TODO: Write zpage          (3)      66
+    //
+    // STA, STX, STY
+    //
+    // =============================================================== TODO: Write zpage,X        (2)      68
+    //
+    // STA, STY
+    //
+    // =============================================================== TODO: Write zpage,Y        (1)      69
+    //
+    // STX
+    //
+    // =============================================================== TODO: Write abs            (3)      72
+    //
+    // STA, STX, STY
+    //
+    // ================================================================TODO: Write abs,X          (1)      73
+    //
+    // STA
+    //
+    // ================================================================TODO: Write abs,Y          (1)      74
+    //
+    // STA
+    //
+    // =============================================================== TODO: Write (ind,X)        (1)      75
+    //
+    // STA
+    //
+    // =============================================================== TODO: Write (ind),Y        (1)      76
+    //
+    // STA
+    //
+    // =============================================================== TODO: R/M/W zpage          (6)      82
+    //
+    // ASL, LSR, ROL, ROR
+    //
+    // =============================================================== TODO: R/M/W zpage,X        (6)      88
+    //
+    // ASL, LSR, ROL, ROR
+    //
+    // =============================================================== TODO: R/M/W abs            (6)      94
+    //
+    // ASL, LSR, ROL, ROR
+    //
+    // =============================================================== TODO: R/M/W abs,X          (6)     100
+    //
+    // ASL, LSR, ROL, ROR
+    //
+    // =============================================================== TODO: Misc instructions    (6)     106
+    //
+    // JSR abs          JSR, followed by two PLAs and an RTS.
+    // RTI              Push PHP and a return address.  3/2/3/2/3/RTI
+    // RTS              Push a return address, then execute the return. 2/3/2/3/RTS
+    // JMP abs          Just execute the JMP.
+    // BRK
+    // JMP (ind)
+
+    printf("\n");
+    printf("Tests performed ...... : %lu\n", test_count);
+    printf("Tests failed ......... : %lu\n", error_count);
+    printf("\n");
 
     free_testcode_block();
 
-    return EXIT_SUCCESS;
+    return 0; // Report success.
+}
+
+int main(void)
+{
+    int result;
+
+    printf("*** TIC v0.1.3 ***\n");
+    printf("\n");
+
+    result = run_tests();
+
+    printf("6502 timing test status: %s.", (result == 0) ? "SUCCESS" : "FAILURE");
+    printf("\n");
+    printf("Press any key to exit.\n");
+
+    getchar();
+
+    return (result == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
