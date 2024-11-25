@@ -25,14 +25,14 @@ void timing_test_single_byte_two_cycle_implied_instructions(void)
     // Note: These change CPU the interrupt flag, which may be critical to guarantee the proper working
     // of the external environment. For that reason, we sandwich these between PHP/PLP instructions.
 
-    timing_test_three_byte_instruction_sequence("CLI, between PHP and PLP", 0x08, 0x58, 0x28, 3 + 4, 2);
-    timing_test_three_byte_instruction_sequence("SEI, between PHP and PLP", 0x08, 0x78, 0x28, 3 + 4, 2);
+    timing_test_three_byte_instruction_sequence("CLI", 0x08, 0x58, 0x28, 3 + 4, 2);
+    timing_test_three_byte_instruction_sequence("SEI", 0x08, 0x78, 0x28, 3 + 4, 2);
 
     // CLD, SED
     // Note: The "SED" is tested in the SED,CLD combination, to prevent that the test leaves decimal mode enabled.
 
     timing_test_single_byte_instruction_sequence("CLD", 0xd8, 2);
-    timing_test_two_byte_instruction_sequence   ("SED, followed by CLD", 0xf8, 0xd8, 2, 2);
+    timing_test_two_byte_instruction_sequence   ("SED", 0xf8, 0xd8, 2, 2);
 
     // INX, DEX
     // INY, DEY
@@ -53,14 +53,14 @@ void timing_test_single_byte_two_cycle_implied_instructions(void)
     // TSX, TXS
 
     timing_test_single_byte_instruction_sequence("TSX", 0xba, 2);
-    timing_test_two_byte_instruction_sequence   ("TXS, preceded by TSX", 0xba, 0x9a, 2, 2);
+    timing_test_two_byte_instruction_sequence   ("TXS", 0xba, 0x9a, 2, 2);
 
     // ASL, ROL, LSR, ROR on the accumulator register.
 
-    timing_test_single_byte_instruction_sequence("ASL", 0x0a, 2);
-    timing_test_single_byte_instruction_sequence("ROL", 0x2a, 2);
-    timing_test_single_byte_instruction_sequence("LSR", 0x4a, 2);
-    timing_test_single_byte_instruction_sequence("ROR", 0x6a, 2);
+    timing_test_single_byte_instruction_sequence("ASL A", 0x0a, 2);
+    timing_test_single_byte_instruction_sequence("ROL A", 0x2a, 2);
+    timing_test_single_byte_instruction_sequence("LSR A", 0x4a, 2);
+    timing_test_single_byte_instruction_sequence("ROR A", 0x6a, 2);
 
     // NOP
 
@@ -73,19 +73,19 @@ void timing_test_single_byte_stack_instructions(void)
     //
     // TSX, PHA, TXS              The stack pointer is saved before, and restored after the instruction.
 
-    timing_test_three_byte_instruction_sequence("PHA, between TSX and TXS", 0xba, 0x48, 0x9a, 2 + 2, 3);
+    timing_test_three_byte_instruction_sequence("PHA", 0xba, 0x48, 0x9a, 2 + 2, 3);
 
     // TSX, PHP, TXS              The stack pointer is saved before, and restored after the instruction.
 
-    timing_test_three_byte_instruction_sequence("PHP, between TSX and TXS", 0xba, 0x08, 0x9a, 2 + 2, 3);
+    timing_test_three_byte_instruction_sequence("PHP", 0xba, 0x08, 0x9a, 2 + 2, 3);
 
     // PHA, PLA                   The value to be pulled is pushed immediately before.
 
-    timing_test_two_byte_instruction_sequence("PLA, preceded by PHA", 0x48, 0x68, 3, 4);
+    timing_test_two_byte_instruction_sequence("PLA", 0x48, 0x68, 3, 4);
 
     // PHP, PLP                   The value to be pulled is pushed immediately before.
 
-    timing_test_two_byte_instruction_sequence("PLP, preceded by PHP", 0x08, 0x28, 3, 4);
+    timing_test_two_byte_instruction_sequence("PLP", 0x08, 0x28, 3, 4);
 }
 
 void timing_test_read_immediate_instructions(void)
@@ -337,14 +337,14 @@ void timing_test_read_modify_write_abs_x_instructions(void)
 
 void timing_test_jump_instructions(void)
 {
-    timing_test_branch_instruction("BPL", 0x10, 0); // Branch if N=0.
-    timing_test_branch_instruction("BMI", 0x30, 1); // Branch if N=1.
-    timing_test_branch_instruction("BVC", 0x50, 0); // Branch if V=0.
-    timing_test_branch_instruction("BVS", 0x70, 1); // Branch if V=1.
-    timing_test_branch_instruction("BCC", 0x90, 0); // Branch if C=0.
-    timing_test_branch_instruction("BCS", 0xb0, 1); // Branch if C=1.
-    timing_test_branch_instruction("BNE", 0xd0, 0); // Branch if Z=0.
-    timing_test_branch_instruction("BEQ", 0xf0, 1); // Branch if Z=1.
+    timing_test_branch_instruction("BPL rel", 0x10, 0); // Branch if N=0.
+    timing_test_branch_instruction("BMI rel", 0x30, 1); // Branch if N=1.
+    timing_test_branch_instruction("BVC rel", 0x50, 0); // Branch if V=0.
+    timing_test_branch_instruction("BVS rel", 0x70, 1); // Branch if V=1.
+    timing_test_branch_instruction("BCC rel", 0x90, 0); // Branch if C=0.
+    timing_test_branch_instruction("BCS rel", 0xb0, 1); // Branch if C=1.
+    timing_test_branch_instruction("BNE rel", 0xd0, 0); // Branch if Z=0.
+    timing_test_branch_instruction("BEQ rel", 0xf0, 1); // Branch if Z=1.
 
     timing_test_jmp_abs_instruction("JMP abs");
     timing_test_jmp_indirect_instruction("JMP (ind)");

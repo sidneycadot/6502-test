@@ -60,7 +60,7 @@ void timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
 void timing_test_read_modify_write_abs_instruction    (const char * test_description, uint8_t opcode);
 void timing_test_read_modify_write_abs_x_instruction  (const char * test_description, uint8_t opcode);
 
-// Timing tests for jump- and interrupt-related instructions.
+// Timing tests for branch, jump, and interrupt-related instructions.
 
 void timing_test_branch_instruction      (const char * test_description, uint8_t opcode, bool flag_value);
 void timing_test_jmp_abs_instruction     (const char * test_description);

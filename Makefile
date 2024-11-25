@@ -5,7 +5,7 @@ default : prep-atari-tic-run
 
 TARGET_PLATFORM=atari
 
-# Note: the compiler and assembler also take a _'-t" option, which is used for string encoding.
+# Note: CC65 the compiler and assembler also take a '-t" option, which is used for string encoding.
 CC65_FLAGS = -O -t ${TARGET_PLATFORM}
 CA65_FLAGS =    -t ${TARGET_PLATFORM}
 
