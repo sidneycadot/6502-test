@@ -1,152 +1,14 @@
 
-///////////////////////////////
-// test_instruction_clocks.c //
-///////////////////////////////
+////////////////////////
+// tic_cmd_cpu_test.c //
+////////////////////////
 
-// This program tests the instruction timing (i.e., clock-cycle counts) of
-// the 151 documented 6502 instructions.
-//
-// This program was validated on physical hardware (for example, an Atari 800 XL and a
-// Commodore 64); those show zero errors.
-//
-// With that fact in mind, the program can serve as a validation reference for emulators
-// that try to emulate an entire machine, or only the 6502.
-//
-// The program depends on the availability of four external functions. Three of those
-// are specific to the hardware platform on which the program is run:
-//
-// * dma_and_interrupts_off()   This create an environment where the measure_cycles()
-//                              and measure_cycles_zp_safe() functions can do their work.
-//                              On most hardware, this is a matter of disabling video DMA
-//                              and interrupts; hence the name.
-//
-// * dma_and_interrupts_on()    Restore a "normal" environment, where DMA, interrupts, and
-//                              any other timing disturbances are once again allowed.
-//
-// * measure_cycles()           Measure the number of clock cycles needed to execute a short
-//                              sequence of 6502 instructions.
-//
-//                              The length of instruction sequences that can be timed varies
-//                              between hardware platforms. The current implementation on the
-//                              Atari, for example, can only measure instruction sequences
-//                              reliably up to 27 clock cycles.
-//
-// A fourth external function is needed to accommodate tests that can write to the zero page,
-// which may be in use by the 6502 machine's operating system. This function depends on the
-// platform dependent measure_cycles() routine, but is itself platform independent. It is a
-// drop-in replacement for the standard 'measure_cycles' for cases when this zero-page
-// preservation behavior is needed:
-//
-// * measure_cycles_zp_safe()   Save the contents of the zero page, execute measure_cycles(),
-//                              then restore the content of the zero page.
-//
-// ASSUMPTIONS
-// -----------
-//
-// * The program assumes that the 6502 instructions work correctly, other than that their clock
-//   cycle counts may be off.
-//
-// * Later tests assume that the clock cycle counts of 6502 instructions that were timed
-//   by earlier tests for simpler instructions are correct.
-//
-// * The 65C02 changes (fixes) the behavior of the C and V flags when doing addition or subtraction
-//   (ADC or SBC) in decimal mode, at the cost of an extra clock cycle. This will currently not
-//   be tested, as the tests are all run with decimal mode disabled. We will add explicit tests
-//   for this once we have a 65C02 system available.
-
-#include <assert.h>
 #include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "timing_test_memory.h"
 #include "timing_test_routines.h"
 #include "timing_test_report.h"
-#include "measure_cycles.h"
 
-void generate_code(uint8_t * code, unsigned cycles)
-{
-    assert(cycles != 1);
-
-    while (cycles != 0)
-    {
-        if (cycles % 2 != 0)
-        {
-            *code++ = 0xa5; // LDA 0 (zp)       [3]
-            *code++ = 0x00;
-            cycles -= 3;
-        }
-        else
-        {
-            *code++ = 0xea; // NOP              [2]
-            cycles -= 2;
-        }
-    }
-    *code++ = 0x60; // RTS
-}
-
-void run_measurement_test(unsigned repeats, unsigned min_cycle_count, unsigned max_cycle_count)
-{
-    unsigned instruction_cycles, actual_cycles, rep;
-
-    for (rep = 1; rep <= repeats; ++rep)
-    {
-        for (instruction_cycles = min_cycle_count; instruction_cycles <= max_cycle_count; ++instruction_cycles)
-        {
-            if (instruction_cycles == 1)
-            {
-                // Cannot generate 1-cycle test code.
-                continue;
-            }
-
-            generate_code(TESTCODE_BASE, instruction_cycles);
-
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(TESTCODE_BASE);
-            dma_and_interrupts_on();
-
-            test_report(
-                "measurement test",
-                0,
-                instruction_cycles,
-                actual_cycles,
-                NULL
-            );
-        }
-    }
-}
-
-void timing_test_branch_instructions(void)
-{
-    // Test branch instructions on the sign a.k.a. negative (N) flag.
-
-    timing_test_branch_taken_instruction    ("BPL, taken"    , 0x10, false);
-    timing_test_branch_not_taken_instruction("BPL, not taken", 0x10, true );
-    timing_test_branch_taken_instruction    ("BMI, taken"    , 0x30, true );
-    timing_test_branch_not_taken_instruction("BMI, not taken", 0x30, false);
-
-    // Test branch instructions on the overflow (V) flag.
-
-    timing_test_branch_taken_instruction    ("BVC, taken"    , 0x50, false);
-    timing_test_branch_not_taken_instruction("BVC, not taken", 0x50, true );
-    timing_test_branch_taken_instruction    ("BVS, taken"    , 0x70, true );
-    timing_test_branch_not_taken_instruction("BVS, not taken", 0x70, false);
-
-    // Test branch instructions on the carry (C) flag.
-
-    timing_test_branch_taken_instruction    ("BCC, taken"    , 0x90, false);
-    timing_test_branch_not_taken_instruction("BCC, not taken", 0x90, true );
-    timing_test_branch_taken_instruction    ("BCS, taken"    , 0xb0, true );
-    timing_test_branch_not_taken_instruction("BCS, not taken", 0xb0, false);
-
-    // Test branch instructions on the zero (Z) flag.
-
-    timing_test_branch_taken_instruction    ("BNE, taken"    , 0xd0, false);
-    timing_test_branch_not_taken_instruction("BNE, not taken", 0xd0, true);
-    timing_test_branch_taken_instruction    ("BEQ, taken"    , 0xf0, true);
-    timing_test_branch_not_taken_instruction("BEQ, not taken", 0xf0, false);
-}
+#include "tic_cmd_cpu_test.h"
 
 void timing_test_single_byte_two_cycle_implied_instructions(void)
 {
@@ -473,11 +335,29 @@ void timing_test_read_modify_write_abs_x_instructions(void)
     timing_test_read_modify_write_abs_x_instruction("INC abs,X", 0xfe);
 }
 
-void run_cpu_test(void)
+void timing_test_jump_instructions(void)
 {
-    // Test the timing of the 8 branch instructions.
-    timing_test_branch_instructions();
+    timing_test_branch_instruction("BPL", 0x10, 0); // Branch if N=0.
+    timing_test_branch_instruction("BMI", 0x30, 1); // Branch if N=1.
+    timing_test_branch_instruction("BVC", 0x50, 0); // Branch if V=0.
+    timing_test_branch_instruction("BVS", 0x70, 1); // Branch if V=1.
+    timing_test_branch_instruction("BCC", 0x90, 0); // Branch if C=0.
+    timing_test_branch_instruction("BCS", 0xb0, 1); // Branch if C=1.
+    timing_test_branch_instruction("BNE", 0xd0, 0); // Branch if Z=0.
+    timing_test_branch_instruction("BEQ", 0xf0, 1); // Branch if Z=1.
 
+    timing_test_jmp_abs_instruction("JMP abs");
+    timing_test_jmp_indirect_instruction("JMP (ind)");
+
+    timing_test_jsr_abs_instruction("JSR abs");
+    timing_test_rts_instruction("RTS");
+
+    timing_test_brk_instruction("BRK");
+    timing_test_rti_instruction("RTI");
+}
+
+void run_instruction_timing_tests(void)
+{
     // Test the timing of the 22 single-byte, two-cycle opcodes.
     timing_test_single_byte_two_cycle_implied_instructions();
 
@@ -547,128 +427,25 @@ void run_cpu_test(void)
     // Test the timing of the 6 three-byte read-modify-write-absolute-address-with-x-indexing instructions.
     timing_test_read_modify_write_abs_x_instructions();
 
-    // Test the timing of the 6 remaining instructions.
-
-    timing_test_jmp_abs_instruction("JMP abs");
-    timing_test_jmp_indirect_instruction("JMP (ind)");
-
-    //timing_test_jsr_abs_instruction("JSR abs");
-    //timing_test_rts_instruction("RTS");
-
-    //timing_test_brk_instruction("BRK");
-    //timing_test_rti_instruction("RTI");
+    // Test the timing of the 14 jump- and interrupt related instructions.
+    timing_test_jump_instructions();
 }
 
-int command_line_loop(void)
+void tic_cmd_cpu_test(unsigned level)
 {
-    char command[80];
-    unsigned par1, par2, par3;
-    int result;
+    const unsigned lookup_table[8] = {1, 3, 5, 15, 17, 51, 85, 255};
 
-    result = allocate_testcode_block(2048);
-    if (result != 0)
+    if (level > 7)
     {
-        puts("Unable to allocate TESTCODE block.");
-        return -1;
+        level = 7;
     }
 
-    printf("Test memory was allocated as follows:\n");
-    printf("\n");
-    printf("  TESTCODE_PTR     %p\n", TESTCODE_PTR);
-    printf("  TESTCODE_BASE    %p\n", TESTCODE_BASE);
-    printf("  TESTCODE_ANCHOR  %p\n", TESTCODE_ANCHOR);
-    printf("  TESTCODE_LAST    %p\n", TESTCODE_LAST);
+    STEP_SIZE = lookup_table[7 - level];
+
+    printf("Starting level %u test (step size %u).\n", level, STEP_SIZE);
     printf("\n");
 
-    for (;;)
-    {
-        printf("Enter command (or ENTER for help)\n");
-        fgets(command, sizeof(command), stdin);
-
-        if (strcmp(command, "quit") == 0)
-        {
-            break;
-        }
-        else if (sscanf(command, "msm %u %u %u", &par1, &par2, &par3) == 3)
-        {
-            printf("\n");
-            printf("Performing measurement tests ...\n");
-
-            test_count = 0;
-            error_count = 0;
-
-            run_measurement_test(par1, par2, par3);
-
-            printf("Tests performed ...... : %lu\n", test_count);
-            printf("Tests failed ......... : %lu\n", error_count);
-            printf("\n");
-        }
-        else if (sscanf(command, "cpu %u", &par1) == 1)
-        {
-            const unsigned lookup_table[8] = {1, 3, 5, 15, 17, 51, 85, 255};
-
-            printf("\n");
-
-            if (par1 > 7)
-            {
-                printf("Level must be 0 to 7. Higher values\n");
-                printf("test more cases, but are MUCH slower.\n");
-                printf("\n");
-                continue;
-            }
-
-            STEP_SIZE = lookup_table[7 - par1];
-
-            printf("Starting level %u test (step size %u).\n", par1, STEP_SIZE);
-            printf("\n");
-
-            test_count = 0;
-            error_count = 0;
-
-            run_cpu_test();
-
-            printf("\n");
-            printf("Tests performed ...... : %lu\n", test_count);
-            printf("Tests failed ......... : %lu\n", error_count);
-            printf("\n");
-        }
-        else
-        {
-            printf("Commands:\n");
-            printf("\n");
-            printf("> msm <nreps> <min_c> <max_c>\n");
-            printf("\n");
-            printf("  Test measurement functionality.\n");
-            printf("\n");
-            printf("  * nreps: number of repeats\n");
-            printf("  * min_c: min number of cycles to test\n");
-            printf("  * max_c: max number of cycles to test\n");
-            printf("\n");
-            printf("> cpu <level>\n");
-            printf("\n");
-            printf("  Test timing of 6502 instructions.\n");
-            printf("\n");
-            printf("  * level: 0 (fast) to 7 (slow)\n");
-            printf("\n");
-            printf("> quit\n");
-            printf("\n");
-            printf("  Quit the program.\n");
-            printf("\n");
-        }
-    }
-
-    free_testcode_block();
-
-    return 0; // Report success.
-}
-
-int main(void)
-{
-    int result;
-
-    printf("*** TIC v0.2.1 ***\n");
-    printf("\n");
-    result = command_line_loop();
-
-    return (result == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    reset_test_counts();
+    run_instruction_timing_tests();
+    report_test_counts();
 }

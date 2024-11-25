@@ -8,7 +8,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-//#include "timing_test_report.h"
+#include "timing_test_report.h"
 
 unsigned long test_count;
 unsigned long error_count;
@@ -19,19 +19,27 @@ void reset_test_counts(void)
     error_count = 0;
 }
 
-void print_label_value_pair(const char * prefix, const char * label, unsigned long value, unsigned max_label_length, bool hex_flag)
+void report_test_counts(void)
+{
+    printf("Tests performed ...... : %lu\n", test_count);
+    printf("Tests failed ......... : %lu\n", error_count);
+    printf("\n");
+}
+
+void print_label_value_pair(const char * prefix, const char * label, unsigned long value, unsigned max_label_length)
 {   unsigned k;
     printf("%s", prefix);
     k = printf("%s ", label);
     do putchar('.'); while (++k < max_label_length + 7);
-    if (hex_flag)
-    {
-        printf(" : 0x%02lx\n", value);
-    }
-    else
-    {
-        printf(" : %lu\n", value);
-    }
+    printf(" : %lu\n", value);
+}
+
+void print_label_hex_value_pair(const char * prefix, const char * label, unsigned value, unsigned max_label_length)
+{   unsigned k;
+    printf("%s", prefix);
+    k = printf("%s ", label);
+    do putchar('.'); while (++k < max_label_length + 7);
+    printf(" : 0x%02x\n", value);
 }
 
 void test_report(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, unsigned actual_cycles, ...)
@@ -69,11 +77,11 @@ void test_report(const char * test_description, unsigned test_overhead_cycles, u
         }
         va_end(ap);
 
-        print_label_value_pair("  ", "test count"           , test_count           , max_label_length, false);
-        print_label_value_pair("  ", "error count"          , error_count          , max_label_length, false);
-        print_label_value_pair("  ", "test overhead cycles" , test_overhead_cycles , max_label_length, false);
-        print_label_value_pair("  ", "instruction cycles"   , instruction_cycles   , max_label_length, false);
-        print_label_value_pair("  ", "actual cycles"        , actual_cycles        , max_label_length, false);
+        print_label_value_pair("  ", "test count"           , test_count           , max_label_length);
+        print_label_value_pair("  ", "error count"          , error_count          , max_label_length);
+        print_label_value_pair("  ", "test overhead cycles" , test_overhead_cycles , max_label_length);
+        print_label_value_pair("  ", "instruction cycles"   , instruction_cycles   , max_label_length);
+        print_label_value_pair("  ", "actual cycles"        , actual_cycles        , max_label_length);
 
         va_start(ap, actual_cycles);
         for (;;)
@@ -90,7 +98,7 @@ void test_report(const char * test_description, unsigned test_overhead_cycles, u
 
             value = va_arg(ap, unsigned);
 
-            print_label_value_pair("  ", label, value, max_label_length, true);
+            print_label_hex_value_pair("  ", label, value, max_label_length);
         }
         va_end(ap);
 

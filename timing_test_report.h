@@ -8,6 +8,7 @@
 
 void reset_test_counts(void);
 void test_report(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, unsigned actual_cycles, ...);
+void report_test_counts(void);
 
 extern unsigned long error_count;
 extern unsigned long test_count;

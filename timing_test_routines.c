@@ -13,6 +13,12 @@
 
 unsigned STEP_SIZE = 85;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+//                                              TRIVIAL SUPPORT ROUTINES                                             //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static uint8_t lsb(uint8_t * ptr)
 {
     return (uint16_t)ptr & 0xff;
@@ -28,6 +34,12 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
     return msb(u1) != msb(u2);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+//                           TIMING TESTS FOR SINGLE, DOUBLE, AND TRIPLE BYTE INSTRUCTION SEQUENCES                  //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t b1, unsigned instruction_cycles)
 {
     unsigned opcode_offset;
@@ -35,7 +47,7 @@ void timing_test_single_byte_instruction_sequence(const char * test_description,
     uint8_t *opcode_address;
 
     printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
+           error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -64,7 +76,7 @@ void timing_test_two_byte_instruction_sequence(const char * test_description, ui
     uint8_t *opcode_address;
 
     printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
+           error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -94,7 +106,7 @@ void timing_test_three_byte_instruction_sequence(const char * test_description, 
     uint8_t *opcode_address;
 
     printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
+           error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -118,7 +130,13 @@ void timing_test_three_byte_instruction_sequence(const char * test_description, 
     }
 }
 
-void timing_test_branch_taken_instruction(const char * test_description, uint8_t opcode, bool flag_value)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+//                                        TIMING TESTS FOR BRANCH INSTRUCTIONS                                       //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
     // is in a state that lead to the branch being taken.
@@ -188,7 +206,7 @@ void timing_test_branch_taken_instruction(const char * test_description, uint8_t
     }
 }
 
-void timing_test_branch_not_taken_instruction(const char * test_description, uint8_t opcode, bool flag_value)
+static void timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
     // is in a state that lead to the branch *NOT* being taken.
@@ -246,6 +264,35 @@ void timing_test_branch_not_taken_instruction(const char * test_description, uin
         }
     }
 }
+
+void timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool flag_value)
+{
+    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
+    // is in a state that lead to the branch being taken.
+    //
+    // The flag value (true or false) that leads to the branch being taken is passed in the 'flag_value' parameter.
+    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
+    // set to this value.
+    //
+    // Branch instructions, when taken, take 3 or 4 clock cycles:
+    //
+    // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
+    // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
+
+    char augmented_test_description[40];
+
+    sprintf(augmented_test_description, "%s - taken", test_description);
+    timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value);
+
+    sprintf(augmented_test_description, "%s - not taken", test_description);
+    timing_test_branch_instruction_not_taken(augmented_test_description, opcode, !flag_value);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+//                                         TIMING TESTS FOR READ INSTRUCTIONS                                        //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void timing_test_read_immediate_instruction(const char * test_description, uint8_t opcode)
 {
@@ -675,6 +722,12 @@ void timing_test_read_zpage_indirect_y_instruction(const char * test_description
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+//                                        TIMING TESTS FOR WRITE INSTRUCTIONS                                        //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void timing_test_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     unsigned opcode_offset;
@@ -1061,6 +1114,12 @@ void timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+//                                    TIMING TESTS FOR READ-MODIFY-WRITE INSTRUCTIONS                                //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void timing_test_read_modify_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     unsigned opcode_offset;
@@ -1226,6 +1285,12 @@ void timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+//                                    TIMING TESTS FOR READ-MODIFY-WRITE INSTRUCTIONS                                //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void timing_test_jmp_abs_instruction(const char * test_description)
 {
