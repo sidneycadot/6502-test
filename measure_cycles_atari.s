@@ -5,9 +5,10 @@
 ; It can do cycle-exact code fragment timing of code fragments that takes between 0 and 28 (inclusive) cycles
 ; to execute. Tested code fragments should end in an RTS instruction (not included in the 0..28 cycle count).
 
-                .export _measure_cycles
                 .export _dma_and_interrupts_off
                 .export _dma_and_interrupts_on
+                .export _set_irq_vector_address
+                .export _measure_cycles
 
                 .include "atari.inc"
 
@@ -22,6 +23,7 @@ RANDOM_T2:      .res 3  ; Three samples of the RANDOM register taken immediately
                 .code
 
 _dma_and_interrupts_off:
+
                 lda     #0
                 sta     NMIEN
                 sta     IRQEN
@@ -29,12 +31,25 @@ _dma_and_interrupts_off:
                 rts
 
 _dma_and_interrupts_on:
+
                 lda     SDMCTL
                 sta     DMACTL
                 lda     POKMSK
                 sta     IRQEN
                 lda     #64
                 sta     NMIEN
+                rts
+
+_set_irq_vector_address:
+
+                ; Set VIMIRQ (the IRQ handler address) to AX, and return the old address in AX.
+
+                ldy     VIMIRQ                          ; old vector, LSB
+                sta     VIMIRQ                          ; new vector, LSB
+                lda     VIMIRQ+1                        ; old vector, MSB
+                stx     VIMIRQ+1                        ; new vector, MSB
+                tax
+                tya
                 rts
 
 _measure_cycles:

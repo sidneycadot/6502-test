@@ -12,4 +12,4 @@ prep-atari-tic-run : tic.xex
 	cp tic.xex atari/
 
 clean :
-	$(RM) tic.xex
+	$(RM) *~ *.o tic.xex
