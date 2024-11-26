@@ -337,6 +337,9 @@ void timing_test_read_modify_write_abs_x_instructions(void)
 
 void timing_test_jump_instructions(void)
 {
+    // The 8 branch instructions take 2 cycles if the branch is not taken,
+    // and 3/4 cycles if the branch is taken.
+
     timing_test_branch_instruction("BPL rel", 0x10, 0); // Branch if N=0.
     timing_test_branch_instruction("BMI rel", 0x30, 1); // Branch if N=1.
     timing_test_branch_instruction("BVC rel", 0x50, 0); // Branch if V=0.
@@ -346,12 +349,15 @@ void timing_test_jump_instructions(void)
     timing_test_branch_instruction("BNE rel", 0xd0, 0); // Branch if Z=0.
     timing_test_branch_instruction("BEQ rel", 0xf0, 1); // Branch if Z=1.
 
+    // JMP abs takes 3 cycles; JMP (ind) takes 5 cycles.
     timing_test_jmp_abs_instruction("JMP abs");
     timing_test_jmp_indirect_instruction("JMP (ind)");
 
+    // JSR and RTS both take 6 cycles.
     timing_test_jsr_abs_instruction("JSR abs");
     timing_test_rts_instruction("RTS");
 
+    // The BRK instruction takes 7 cycles; the RTI instruction takes 6 cycles.
     timing_test_brk_instruction("BRK");
     timing_test_rti_instruction("RTI");
 }

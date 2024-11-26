@@ -132,164 +132,6 @@ void timing_test_three_byte_instruction_sequence(const char * test_description, 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
-//                                        TIMING TESTS FOR BRANCH INSTRUCTIONS                                       //
-//                                                                                                                   //
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
-{
-    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
-    // is in a state that lead to the branch being taken.
-    //
-    // The flag value (true or false) that leads to the branch being taken is passed in the 'flag_value' parameter.
-    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
-    // set to this value.
-    //
-    // Branch instructions, when taken, take 3 or 4 clock cycles:
-    //
-    // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
-    // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
-
-    unsigned opcode_offset;
-    unsigned operand;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
-    uint8_t *entry_address;
-    uint8_t *branch_opcode_address;
-
-    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
-    {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
-        entry_address = TESTCODE_BASE;
-        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
-
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
-        {
-            int displacement = (operand <= 0x7f) ? operand : operand - 0x100;
-
-            if (displacement == -1 || displacement == -2)
-            {
-                // Putting an RTS here would overwrite the branch instruction itself; skip.
-                continue;
-            }
-
-            entry_address[0] = 0x08;                        // PHP                  [3]
-            entry_address[1] = 0x68;                        // PLA                  [4]
-            entry_address[2] = flag_value ? 0x09 : 0x29;    // ORA #$C3 / AND #$3C  [2]
-            entry_address[3] = flag_value ? 0xc3 : 0x3c;    //
-            entry_address[4] = 0x48;                        // PHA                  [3]
-            entry_address[5] = 0x28;                        // PLP                  [4]
-            entry_address[6] = 0x4c;                        // JMP branch_opcode    [3]
-            entry_address[7] = lsb(branch_opcode_address);  //
-            entry_address[8] = msb(branch_opcode_address);  //
-
-            branch_opcode_address[0] = opcode;              // Bxx operand          [3 or 4]
-            branch_opcode_address[1] = operand;             //
-            branch_opcode_address[2 + displacement] = 0x60; // RTS                  [-]
-
-            test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
-            instruction_cycles = 3 + different_pages(&branch_opcode_address[2], &branch_opcode_address[2 + displacement]);
-
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(entry_address);
-            dma_and_interrupts_on();
-
-            test_report(
-                test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
-                "opcode offset", opcode_offset,
-                "operand", operand,
-                NULL
-            );
-        }
-    }
-}
-
-static void timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
-{
-    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
-    // is in a state that lead to the branch *NOT* being taken.
-    //
-    // The flag value (true or false) that leads to the branch being not taken is passed in the 'flag_value' parameter.
-    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
-    // set to this value.
-    //
-    // Branch instructions, when not taken, always take 2 clock cycles.
-
-    unsigned opcode_offset;
-    unsigned operand;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
-    uint8_t *entry_address;
-    uint8_t *branch_opcode_address;
-
-    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
-    {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
-        entry_address = TESTCODE_BASE;
-        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
-
-        for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
-        {
-            entry_address[0] = 0x08;                        // PHP                  [3]
-            entry_address[1] = 0x68;                        // PLA                  [4]
-            entry_address[2] = flag_value ? 0x09 : 0x29;    // ORA #$C3 / AND #$3C  [2]
-            entry_address[3] = flag_value ? 0xc3 : 0x3c;    // 
-            entry_address[4] = 0x48;                        // PHA                  [3]
-            entry_address[5] = 0x28;                        // PLP                  [4]
-            entry_address[6] = 0x4c;                        // JMP branch_opcode    [3]
-            entry_address[7] = lsb(branch_opcode_address);  //
-            entry_address[8] = msb(branch_opcode_address);  //
-
-            branch_opcode_address[0] = opcode;              // Bxx operand          [2]
-            branch_opcode_address[1] = operand;             //
-            branch_opcode_address[2] = 0x60;                // RTS                  [-]
-
-            test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
-            instruction_cycles = 2;
-
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(entry_address);
-            dma_and_interrupts_on();
-
-            test_report(
-                test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
-                "opcode offset", opcode_offset,
-                "operand", operand,
-                NULL
-            );
-        }
-    }
-}
-
-void timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool flag_value)
-{
-    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
-    // is in a state that lead to the branch being taken.
-    //
-    // The flag value (true or false) that leads to the branch being taken is passed in the 'flag_value' parameter.
-    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
-    // set to this value.
-    //
-    // Branch instructions, when taken, take 3 or 4 clock cycles:
-    //
-    // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
-    // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
-
-    char augmented_test_description[40];
-
-    sprintf(augmented_test_description, "%s - taken", test_description);
-    timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value);
-
-    sprintf(augmented_test_description, "%s - not taken", test_description);
-    timing_test_branch_instruction_not_taken(augmented_test_description, opcode, !flag_value);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                   //
 //                                         TIMING TESTS FOR READ INSTRUCTIONS                                        //
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1288,9 +1130,160 @@ void timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
-//                                    TIMING TESTS FOR READ-MODIFY-WRITE INSTRUCTIONS                                //
+//                            TIMING TESTS FOR BRANCH, JUMP, and INTERRUPT-RELATED INSTRUCTIONS                      //
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
+{
+    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
+    // is in a state that lead to the branch being taken.
+    //
+    // The flag value (true or false) that leads to the branch being taken is passed in the 'flag_value' parameter.
+    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
+    // set to this value.
+    //
+    // Branch instructions, when taken, take 3 or 4 clock cycles:
+    //
+    // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
+    // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
+
+    unsigned opcode_offset;
+    unsigned operand;
+    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    uint8_t *entry_address;
+    uint8_t *branch_opcode_address;
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
+
+        entry_address = TESTCODE_BASE;
+        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
+        {
+            int displacement = (operand <= 0x7f) ? operand : operand - 0x100;
+
+            if (displacement == -1 || displacement == -2)
+            {
+                // Putting an RTS here would overwrite the branch instruction itself; skip.
+                continue;
+            }
+
+            entry_address[0] = 0x08;                        // PHP                  [3]
+            entry_address[1] = 0x68;                        // PLA                  [4]
+            entry_address[2] = flag_value ? 0x09 : 0x29;    // ORA #$C3 / AND #$3C  [2]
+            entry_address[3] = flag_value ? 0xc3 : 0x3c;    //
+            entry_address[4] = 0x48;                        // PHA                  [3]
+            entry_address[5] = 0x28;                        // PLP                  [4]
+            entry_address[6] = 0x4c;                        // JMP branch_opcode    [3]
+            entry_address[7] = lsb(branch_opcode_address);  //
+            entry_address[8] = msb(branch_opcode_address);  //
+
+            branch_opcode_address[0] = opcode;              // Bxx operand          [3 or 4]
+            branch_opcode_address[1] = operand;             //
+            branch_opcode_address[2 + displacement] = 0x60; // RTS                  [-]
+
+            test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
+            instruction_cycles = 3 + different_pages(&branch_opcode_address[2], &branch_opcode_address[2 + displacement]);
+
+            dma_and_interrupts_off();
+            actual_cycles = measure_cycles(entry_address);
+            dma_and_interrupts_on();
+
+            test_report(
+                test_description,
+                test_overhead_cycles, instruction_cycles, actual_cycles,
+                "opcode offset", opcode_offset,
+                "operand", operand,
+                NULL
+            );
+        }
+    }
+}
+
+static void timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
+{
+    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
+    // is in a state that lead to the branch *NOT* being taken.
+    //
+    // The flag value (true or false) that leads to the branch being not taken is passed in the 'flag_value' parameter.
+    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
+    // set to this value.
+    //
+    // Branch instructions, when not taken, always take 2 clock cycles.
+
+    unsigned opcode_offset;
+    unsigned operand;
+    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    uint8_t *entry_address;
+    uint8_t *branch_opcode_address;
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
+                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
+
+        entry_address = TESTCODE_BASE;
+        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
+        {
+            entry_address[0] = 0x08;                        // PHP                  [3]
+            entry_address[1] = 0x68;                        // PLA                  [4]
+            entry_address[2] = flag_value ? 0x09 : 0x29;    // ORA #$C3 / AND #$3C  [2]
+            entry_address[3] = flag_value ? 0xc3 : 0x3c;    // 
+            entry_address[4] = 0x48;                        // PHA                  [3]
+            entry_address[5] = 0x28;                        // PLP                  [4]
+            entry_address[6] = 0x4c;                        // JMP branch_opcode    [3]
+            entry_address[7] = lsb(branch_opcode_address);  //
+            entry_address[8] = msb(branch_opcode_address);  //
+
+            branch_opcode_address[0] = opcode;              // Bxx operand          [2]
+            branch_opcode_address[1] = operand;             //
+            branch_opcode_address[2] = 0x60;                // RTS                  [-]
+
+            test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
+            instruction_cycles = 2;
+
+            dma_and_interrupts_off();
+            actual_cycles = measure_cycles(entry_address);
+            dma_and_interrupts_on();
+
+            test_report(
+                test_description,
+                test_overhead_cycles, instruction_cycles, actual_cycles,
+                "opcode offset", opcode_offset,
+                "operand", operand,
+                NULL
+            );
+        }
+    }
+}
+
+void timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool flag_value)
+{
+    // This function tests any of the "branch" instructions, testing both the "branch taken" and "branch not taken"
+    // scenarios.
+    //
+    // The 'flag_value' parameter determines whether "branch taken" happens when the associated flag is High or Low.
+    // The instructions BMI, BCS, BVS, and BEQ jump when N/C/V/Z are 1; BPL, BCC, BVC and BNE jump when N/C/V/Z are 0.
+    //
+    // Branch instructions, when not taken, take 2 clock cycles. When taken, they take 3 or 4 clock cycles:
+    //
+    // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
+    // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
+
+    char augmented_test_description[40];
+
+    sprintf(augmented_test_description, "%s - taken", test_description);
+    timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value);
+
+    sprintf(augmented_test_description, "%s - not taken", test_description);
+    timing_test_branch_instruction_not_taken(augmented_test_description, opcode, !flag_value);
+}
 
 void timing_test_jmp_abs_instruction(const char * test_description)
 {
