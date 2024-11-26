@@ -46,6 +46,9 @@ platform_generic.o : platform_generic.s
 platform_atari.o : platform_atari.s
 	cl65 -c $(CA65_FLAGS) $< -o $@
 
+platform_c64.o : platform_c64.s
+	cl65 -c $(CA65_FLAGS) $< -o $@
+
 # The 'prep-atari-run' is a convenience target, to copy the 'tic.xex' executable to a location that is easy for tests.
 prep-atari-tic-run : tic_atari.xex
 	cp tic_atari.xex atari/tic.xex
