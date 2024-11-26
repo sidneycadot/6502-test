@@ -1,57 +1,62 @@
 
-.PHONY : clean prep-atari-tic-run
+.PHONY : atari c64 all prep-atari
 
-default : prep-atari-tic-run
+default:
+	@echo
+	@echo "Please provide a build target, e.g."
+	@echo
+	@echo "  make atari"
+	@echo "  make c64"
+	@echo "  make all"
+	@echo
 
-# The TIC_PLATFORM should be one of the platforms supported by sim65, e.g. atari or c64.
-TIC_PLATFORM=atari
+all  : atari c64
 
-# Note: CC65 the compiler and assembler also take a '-t" option, which is used for string encoding.
-CC65_FLAGS = -O -t ${TIC_PLATFORM}
-CA65_FLAGS =    -t ${TIC_PLATFORM}
+atari :
+	$(MAKE) tic_atari.xex TIC_TARGET=atari TIC_TARGET_UPPERCASE=ATARI TIC_TARGET_EXTENSION=xex
 
-TIC_OBJS = tic_main.o                              \
-           tic_cmd_measurement_test.o              \
-           tic_cmd_cpu_test.o                      \
-           timing_test_routines.o                  \
-           timing_test_report.o                    \
-           timing_test_memory.o                    \
-           platform_generic.o                      \
-           platform_${TIC_PLATFORM}.o
+c64 :
+	$(MAKE) tic_c64.prg TIC_TARGET=c64 TIC_TARGET_UPPERCASE=C64 TIC_TARGET_EXTENSION=prg
 
-tic_${TIC_PLATFORM}.xex : ${TIC_OBJS}
-	cc65 -t ${TIC_PLATFORM} $^ -o $@
-
-tic_main.o : tic_main.c
-	cc65 $(CC65_FLAGS) $< -o $@
-
-tic_cmd_measurement_test.o : tic_cmd_measurement_test.c
-	cc65 $(CC65_FLAGS) $< -o $@
-
-tic_cmd_cpu_test.o : tic_cmd_cpu_test.c
-	cc65 $(CC65_FLAGS) $< -o $@
-
-timing_test_routines.o : timing_test_routines.c timing_test_routines.h
-	cc65 $(CC65_FLAGS) $< -o $@
-
-timing_test_report.o : timing_test_report.c timing_test_report.h
-	cc65 $(CC65_FLAGS) $< -o $@
-
-timing_test_memory.o : timing_test_memory.c timing_test_memory.h
-	cc65 $(CC65_FLAGS) $< -o $@
-
-platform_generic.o : platform_generic.s
-	ca65 $(CA65_FLAGS) $< -o $@
-
-platform_atari.o : platform_atari.s
-	ca65 $(CA65_FLAGS) $< -o $@
-
-platform_c64.o : platform_c64.s
-	cl65 -c $(CA65_FLAGS) $< -o $@
-
-# The 'prep-atari-run' is a convenience target, to copy the 'tic.xex' executable to a location that is easy for tests.
-prep-atari-tic-run : tic_atari.xex
+# A convenience target to facilitate rapid development for the Atari.
+prep-atari : atari
 	cp tic_atari.xex atari/tic.xex
+
+# Define linker, compiler, and assembler flags.
+# Note that the C65 compiler and assembler take a -t option, which is used for string encoding.
+# This means that their output files are also target-specific.
+CC65_FLAGS := -O -t ${TIC_TARGET} -DTIC_TARGET_${TIC_TARGET_UPPERCASE}
+CA65_FLAGS :=    -t ${TIC_TARGET}
+LD65_FLAGS :=    -t ${TIC_TARGET}
+
+# Note: object files are not interchangeable between targets,
+# since they are compiled/assembled with the target-specific -t flag.
+TIC_OBJS := tic_main_${TIC_TARGET}.o                    \
+            tic_cmd_measurement_test_${TIC_TARGET}.o    \
+            tic_cmd_cpu_test_${TIC_TARGET}.o            \
+            timing_test_routines_${TIC_TARGET}.o        \
+            timing_test_report_${TIC_TARGET}.o          \
+            timing_test_memory_${TIC_TARGET}.o          \
+            platform_generic_${TIC_TARGET}.o            \
+            platform_${TIC_TARGET}.o
+
+# Link the final executable.
+# Note that we call cl65 as linker, not ld65.
+# The cl65 driver script knows to include all target-specific libraries.
+tic_${TIC_TARGET}.${TIC_TARGET_EXTENSION} : ${TIC_OBJS}
+	cl65 $(LD65_FLAGS) $^ -o $@
+
+# Compile a generic C file to a target-specific assembly file.
+%_${TIC_TARGET}.s : %.c
+	cc65 $(CC65_FLAGS) $< -o $@
+
+# Assemble a generic assembly file to a target-specific object file.
+%_${TIC_TARGET}.o : %.s
+	ca65 $(CA65_FLAGS) $< -o $@
+
+# Assemble a target-specific assembly file to a target-specific object file.
+%_${TIC_TARGET}.o : %_${TIC_TARGET}.s
+	ca65 $(CA65_FLAGS) $< -o $@
 
 clean :
 	$(RM) *~ *.o *.xex

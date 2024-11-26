@@ -65,8 +65,12 @@ int16_t __fastcall__ measure_cycles_zp_safe(uint8_t * code);
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
-#if (PLATFORM==atari)
-#define PLATFORM_SPECIFIC_IRQ_OVERHEAD 7
-#endif
-
-#endif
+# if defined(TIC_TARGET_ATARI)
+#     define PLATFORM_SPECIFIC_IRQ_OVERHEAD 7
+# elif defined(TIC_TARGET_C64)
+#     define PLATFORM_SPECIFIC_IRQ_OVERHEAD 28
+# elif defined(TIC_TARGET_SIM6502)
+#     define PLATFORM_SPECIFIC_IRQ_OVERHEAD 0
+# else
+#     error "Undefined platform."
+# endif
