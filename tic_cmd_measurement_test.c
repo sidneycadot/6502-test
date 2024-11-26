@@ -10,7 +10,7 @@
 #include "tic_cmd_measurement_test.h"
 #include "timing_test_report.h"
 #include "timing_test_memory.h"
-#include "measure_cycles.h"
+#include "platform.h"
 
 
 static void generate_code(uint8_t * code, unsigned cycles)
@@ -21,13 +21,19 @@ static void generate_code(uint8_t * code, unsigned cycles)
     {
         if (cycles % 2 != 0)
         {
-            *code++ = 0xa5; // LDA 0 (zp)       [3]
-            *code++ = 0x00;
+            uint8_t safe_zp_address = 0x00;
+            while (!zp_address_is_safe(safe_zp_address))
+            {
+                ++safe_zp_address;
+            }
+
+            *code++ = 0xa5; // LDA safe_zp_address  [3]
+            *code++ = safe_zp_address;
             cycles -= 3;
         }
         else
         {
-            *code++ = 0xea; // NOP              [2]
+            *code++ = 0xea; // NOP                  [2]
             cycles -= 2;
         }
     }

@@ -8,6 +8,7 @@
                 .export _dma_and_interrupts_off
                 .export _dma_and_interrupts_on
                 .export _set_irq_vector_address
+                .export _zp_address_is_safe
                 .export _measure_cycles
 
                 .include "atari.inc"
@@ -39,6 +40,12 @@ _dma_and_interrupts_on:
                 lda     #64
                 sta     NMIEN
                 rts
+
+_zp_address_is_safe:
+
+                lda     #1                              ; On the Atari, all zero-page addresses
+                ldx     #0                              ; can safely be used for tests,
+                rts                                     ; so just return true.
 
 _set_irq_vector_address:
 

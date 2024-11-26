@@ -9,7 +9,7 @@
 
 #include "timing_test_memory.h"
 #include "timing_test_report.h"
-#include "measure_cycles.h"
+#include "platform.h"
 
 unsigned STEP_SIZE = 85;
 
@@ -190,6 +190,11 @@ void timing_test_read_zpage_instruction(const char * test_description, uint8_t o
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
         {
+            if (!zp_address_is_safe(zp_address))
+            {
+                continue;
+            }
+
             opcode_address[0] = opcode;     // OPC zp_address  [3]
             opcode_address[1] = zp_address; //
             opcode_address[2] = 0x60;       // RTS             [-]
@@ -230,6 +235,11 @@ void timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
         {
             for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
+                if (!zp_address_is_safe(zp_address + reg_x))
+                {
+                    continue;
+                }
+
                 opcode_address[0] = 0xa2;       // LDX #imm         [2]
                 opcode_address[1] = reg_x;      //
                 opcode_address[2] = opcode;     // OPC zp_adress    [4]
@@ -274,6 +284,11 @@ void timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
         {
             for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
             {
+                if (!zp_address_is_safe(zp_address + reg_y))
+                {
+                    continue;
+                }
+
                 opcode_address[0] = 0xa0;       // LDY #imm           [2]
                 opcode_address[1] = reg_y;      //
                 opcode_address[2] = opcode;     // OPC zp_address     [4]
@@ -459,6 +474,11 @@ void timing_test_read_zpage_x_indirect_instruction(const char * test_description
                 zp_ptr_lo_address = (zp_base_address + reg_x + 0) & 0xff;
                 zp_ptr_hi_address = (zp_base_address + reg_x + 1) & 0xff;
 
+                if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
+                {
+                    continue;
+                }
+
                 for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
                 {
                     uint8_t * abs_address = TESTCODE_BASE + address_offset;
@@ -520,6 +540,11 @@ void timing_test_read_zpage_indirect_y_instruction(const char * test_description
         for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
         {
             unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) % 0xff;
+
+            if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
+            {
+                continue;
+            }
 
             for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
             {
@@ -586,6 +611,11 @@ void timing_test_write_zpage_instruction(const char * test_description, uint8_t 
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
         {
+            if (!zp_address_is_safe(zp_address))
+            {
+                continue;
+            }
+
             opcode_address[0] = opcode;     // OPC zp_address   [3]
             opcode_address[1] = zp_address; //
             opcode_address[2] = 0x60;       // RTS              [-]
@@ -625,6 +655,11 @@ void timing_test_write_zpage_x_instruction(const char * test_description, uint8_
         {
             for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
+                if (!zp_address_is_safe(zp_address + reg_x))
+                {
+                    continue;
+                }
+
                 opcode_address[0] = 0xa2;       // LDX #imm             [2]
                 opcode_address[1] = reg_x;      //
                 opcode_address[2] = opcode;     // OPC zp_address,X     [4]
@@ -668,6 +703,11 @@ void timing_test_write_zpage_y_instruction(const char * test_description, uint8_
         {
             for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
             {
+                if (!zp_address_is_safe(zp_address + reg_y))
+                {
+                    continue;
+                }
+
                 opcode_address[0] = 0xa0;       // LDY #imm          [2]
                 opcode_address[1] = reg_y;      //
                 opcode_address[2] = opcode;     // OPC zp_address,Y  [4]
@@ -851,6 +891,11 @@ void timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
                 zp_ptr_lo_address = (zp_base_address + reg_x + 0) & 0xff;
                 zp_ptr_hi_address = (zp_base_address + reg_x + 1) & 0xff;
 
+                if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
+                {
+                    continue;
+                }
+
                 for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
                 {
                     uint8_t * abs_address = TESTCODE_BASE + address_offset;
@@ -912,6 +957,11 @@ void timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
         for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
         {
             unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) % 0xff;
+
+            if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
+            {
+                continue;
+            }
 
             for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
             {
@@ -978,6 +1028,11 @@ void timing_test_read_modify_write_zpage_instruction(const char * test_descripti
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
         {
+            if (!zp_address_is_safe(zp_address))
+            {
+                continue;
+            }
+
             opcode_address[0] = opcode;     // OPC zp_address      [5]
             opcode_address[1] = zp_address; //
             opcode_address[2] = 0x60;       // RTS                 [-]
@@ -1017,6 +1072,11 @@ void timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
         {
             for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
+                if (!zp_address_is_safe(zp_address + reg_x))
+                {
+                    continue;
+                }
+
                 opcode_address[0] = 0xa2;       // LDX #imm            [2]
                 opcode_address[1] = reg_x;      //
                 opcode_address[2] = opcode;     // OPC zp_address,X    [6]
