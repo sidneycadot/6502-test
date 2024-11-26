@@ -395,7 +395,8 @@ void timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
-                    "X register", reg_x
+                    "X register", reg_x,
+                    NULL
                 );
             }
         }
@@ -441,7 +442,8 @@ void timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
-                    "Y register", reg_y
+                    "Y register", reg_y,
+                    NULL
                 );
             }
         }
@@ -512,7 +514,8 @@ void timing_test_read_zpage_x_indirect_instruction(const char * test_description
                             "opcode offset", opcode_offset,
                             "zp base address", zp_base_address,
                             "X register", reg_x,
-                            "address offset", address_offset
+                            "address offset", address_offset,
+                            NULL
                         );
                     }
                 }
@@ -581,7 +584,8 @@ void timing_test_read_zpage_indirect_y_instruction(const char * test_description
                         "opcode offset", opcode_offset,
                         "zp ptr address", zp_ptr_lo_address,
                         "address offset", address_offset,
-                        "Y register", reg_y
+                        "Y register", reg_y,
+                        NULL
                     );
                 }
             }
@@ -631,7 +635,8 @@ void timing_test_write_zpage_instruction(const char * test_description, uint8_t 
                 test_description,
                 test_overhead_cycles, instruction_cycles, actual_cycles,
                 "opcode offset", opcode_offset,
-                "zp address", zp_address
+                "zp address", zp_address,
+                NULL
             );
         }
     }
@@ -678,7 +683,8 @@ void timing_test_write_zpage_x_instruction(const char * test_description, uint8_
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
-                    "X register", reg_x
+                    "X register", reg_x,
+                    NULL
                 );
             }
         }
@@ -726,7 +732,8 @@ void timing_test_write_zpage_y_instruction(const char * test_description, uint8_
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
-                    "Y register", reg_y
+                    "Y register", reg_y,
+                    NULL
                 );
             }
         }
@@ -767,7 +774,8 @@ void timing_test_write_abs_instruction(const char * test_description, uint8_t op
                 test_description,
                 test_overhead_cycles, instruction_cycles, actual_cycles,
                 "opcode offset", opcode_offset,
-                "address offset", address_offset
+                "address offset", address_offset,
+                NULL
             );
         }
     }
@@ -812,7 +820,8 @@ void timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
-                    "X register", reg_x
+                    "X register", reg_x,
+                    NULL
                 );
             }
         }
@@ -858,7 +867,8 @@ void timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
-                    "Y register", reg_y
+                    "Y register", reg_y,
+                    NULL
                 );
             }
         }
@@ -929,7 +939,8 @@ void timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
                             "opcode offset", opcode_offset,
                             "zp base address", zp_base_address,
                             "address offset", address_offset,
-                            "X register", reg_x
+                            "X register", reg_x,
+                            NULL
                         );
                     }
                 }
@@ -998,7 +1009,8 @@ void timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
                         "opcode offset", opcode_offset,
                         "zp address", zp_ptr_lo_address,
                         "address offset", address_offset,
-                        "Y register", reg_y
+                        "Y register", reg_y,
+                        NULL
                     );
                 }
             }
@@ -1048,7 +1060,8 @@ void timing_test_read_modify_write_zpage_instruction(const char * test_descripti
                 test_description,
                 test_overhead_cycles, instruction_cycles, actual_cycles,
                 "opcode offset", opcode_offset,
-                "zp address", zp_address
+                "zp address", zp_address,
+                NULL
             );
         }
     }
@@ -1095,7 +1108,8 @@ void timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
-                    "X register", reg_x
+                    "X register", reg_x,
+                    NULL
                 );
             }
         }
@@ -1136,7 +1150,8 @@ void timing_test_read_modify_write_abs_instruction(const char * test_description
                 test_description,
                 test_overhead_cycles, instruction_cycles, actual_cycles,
                 "opcode offset", opcode_offset,
-                "address offset", address_offset
+                "address offset", address_offset,
+                NULL
             );
         }
     }
@@ -1181,7 +1196,8 @@ void timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
                     test_overhead_cycles, instruction_cycles, actual_cycles,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
-                    "X register", reg_x
+                    "X register", reg_x,
+                    NULL
                 );
             }
         }
@@ -1373,7 +1389,8 @@ void timing_test_jmp_abs_instruction(const char * test_description)
         test_report(
             test_description,
             test_overhead_cycles, instruction_cycles, actual_cycles,
-            "opcode offset", opcode_offset
+            "opcode offset", opcode_offset,
+            NULL
         );
     }
 }
@@ -1425,7 +1442,8 @@ void timing_test_jmp_indirect_instruction(const char * test_description)
             test_report(
                 test_description,
                 test_overhead_cycles, instruction_cycles, actual_cycles,
-                "opcode offset", opcode_offset
+                "opcode offset", opcode_offset,
+                NULL
             );
         }
     }
@@ -1461,7 +1479,8 @@ void timing_test_jsr_abs_instruction(const char * test_description)
         test_report(
             test_description,
             test_overhead_cycles, instruction_cycles, actual_cycles,
-            "opcode offset", opcode_offset
+            "opcode offset", opcode_offset,
+            NULL
         );
     }
 }
@@ -1501,7 +1520,8 @@ void timing_test_rts_instruction(const char * test_description)
         test_report(
             test_description,
             test_overhead_cycles, instruction_cycles, actual_cycles,
-            "opcode offset", opcode_offset
+            "opcode offset", opcode_offset,
+            NULL
         );
     }
 }
@@ -1543,7 +1563,8 @@ void timing_test_brk_instruction(const char * test_description)
         test_report(
             test_description,
             test_overhead_cycles, instruction_cycles, actual_cycles,
-            "opcode offset", opcode_offset
+            "opcode offset", opcode_offset,
+            NULL
         );
     }
 }
@@ -1581,7 +1602,8 @@ void timing_test_rti_instruction(const char * test_description)
         test_report(
             test_description,
             test_overhead_cycles, instruction_cycles, actual_cycles,
-            "opcode offset", opcode_offset
+            "opcode offset", opcode_offset,
+            NULL
         );
     }
 }
