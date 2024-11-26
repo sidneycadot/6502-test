@@ -20,31 +20,31 @@ TIC_OBJS = tic_main.o                              \
            platform_${TIC_PLATFORM}.o
 
 tic_${TIC_PLATFORM}.xex : ${TIC_OBJS}
-	cl65 -t ${TIC_PLATFORM} $^ -o $@
+	cc65 -t ${TIC_PLATFORM} $^ -o $@
 
 tic_main.o : tic_main.c
-	cl65 -c $(CC65_FLAGS) $< -o $@
+	cc65 $(CC65_FLAGS) $< -o $@
 
 tic_cmd_measurement_test.o : tic_cmd_measurement_test.c
-	cl65 -c $(CC65_FLAGS) $< -o $@
+	cc65 $(CC65_FLAGS) $< -o $@
 
 tic_cmd_cpu_test.o : tic_cmd_cpu_test.c
-	cl65 -c $(CC65_FLAGS) $< -o $@
+	cc65 $(CC65_FLAGS) $< -o $@
 
 timing_test_routines.o : timing_test_routines.c timing_test_routines.h
-	cl65 -c $(CC65_FLAGS) $< -o $@
+	cc65 $(CC65_FLAGS) $< -o $@
 
 timing_test_report.o : timing_test_report.c timing_test_report.h
-	cl65 -c $(CC65_FLAGS) $< -o $@
+	cc65 $(CC65_FLAGS) $< -o $@
 
 timing_test_memory.o : timing_test_memory.c timing_test_memory.h
-	cl65 -c $(CC65_FLAGS) $< -o $@
+	cc65 $(CC65_FLAGS) $< -o $@
 
 platform_generic.o : platform_generic.s
-	cl65 -c $(CA65_FLAGS) $< -o $@
+	ca65 $(CA65_FLAGS) $< -o $@
 
 platform_atari.o : platform_atari.s
-	cl65 -c $(CA65_FLAGS) $< -o $@
+	ca65 $(CA65_FLAGS) $< -o $@
 
 # The 'prep-atari-run' is a convenience target, to copy the 'tic.xex' executable to a location that is easy for tests.
 prep-atari-tic-run : tic_atari.xex
