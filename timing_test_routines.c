@@ -42,6 +42,7 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 
 void timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t b1, unsigned instruction_cycles)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned actual_cycles;
     uint8_t *opcode_address;
@@ -71,6 +72,7 @@ void timing_test_single_byte_instruction_sequence(const char * test_description,
 
 void timing_test_two_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned actual_cycles;
     uint8_t *opcode_address;
@@ -101,6 +103,7 @@ void timing_test_two_byte_instruction_sequence(const char * test_description, ui
 
 void timing_test_three_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned actual_cycles;
     uint8_t *opcode_address;
@@ -138,6 +141,7 @@ void timing_test_three_byte_instruction_sequence(const char * test_description, 
 
 void timing_test_read_immediate_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, operand
     unsigned opcode_offset;
     unsigned operand;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -176,6 +180,7 @@ void timing_test_read_immediate_instruction(const char * test_description, uint8
 
 void timing_test_read_zpage_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address
     unsigned opcode_offset;
     unsigned zp_address;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -219,6 +224,7 @@ void timing_test_read_zpage_instruction(const char * test_description, uint8_t o
 
 void timing_test_read_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address, reg_x
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -268,6 +274,7 @@ void timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
 
 void timing_test_read_zpage_y_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address, reg_y
     unsigned opcode_offset;
     unsigned zp_address, reg_y;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -317,6 +324,7 @@ void timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
 
 void timing_test_read_abs_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -358,6 +366,7 @@ void timing_test_read_abs_instruction(const char * test_description, uint8_t opc
 
 void timing_test_read_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset, reg_x
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
     unsigned instruction_cycles, test_overhead_cycles, actual_cycles;
@@ -405,6 +414,7 @@ void timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
 
 void timing_test_read_abs_y_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -452,6 +462,7 @@ void timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
 
 void timing_test_read_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
     unsigned opcode_offset;
     unsigned zp_base_address;
     unsigned reg_x;
@@ -485,39 +496,36 @@ void timing_test_read_zpage_x_indirect_instruction(const char * test_description
                 {
                     uint8_t * abs_address = TESTCODE_BASE + address_offset;
 
-                    for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
-                    {
-                        opcode_address[ 0] = 0xa2;              // LDX #<abs_address     [2]
-                        opcode_address[ 1] = lsb(abs_address);  //
-                        opcode_address[ 2] = 0x86;              // STX zp_ptr_lo_address [3]
-                        opcode_address[ 3] = zp_ptr_lo_address; //
-                        opcode_address[ 4] = 0xa2;              // LDX #>abs_address     [2]
-                        opcode_address[ 5] = msb(abs_address);  //
-                        opcode_address[ 6] = 0x86;              // STX zp_ptr_hi_address [3]
-                        opcode_address[ 7] = zp_ptr_hi_address; //
-                        opcode_address[ 8] = 0xa2;              // LDX #reg_x            [2]
-                        opcode_address[ 9] = reg_x;             //
-                        opcode_address[10] = opcode;            // OPC (zpage, X)        [6]
-                        opcode_address[11] = zp_base_address;   //
-                        opcode_address[12] = 0x60;              // RTS                   [-]
+                    opcode_address[ 0] = 0xa2;              // LDX #<abs_address     [2]
+                    opcode_address[ 1] = lsb(abs_address);  //
+                    opcode_address[ 2] = 0x86;              // STX zp_ptr_lo_address [3]
+                    opcode_address[ 3] = zp_ptr_lo_address; //
+                    opcode_address[ 4] = 0xa2;              // LDX #>abs_address     [2]
+                    opcode_address[ 5] = msb(abs_address);  //
+                    opcode_address[ 6] = 0x86;              // STX zp_ptr_hi_address [3]
+                    opcode_address[ 7] = zp_ptr_hi_address; //
+                    opcode_address[ 8] = 0xa2;              // LDX #reg_x            [2]
+                    opcode_address[ 9] = reg_x;             //
+                    opcode_address[10] = opcode;            // OPC (zpage, X)        [6]
+                    opcode_address[11] = zp_base_address;   //
+                    opcode_address[12] = 0x60;              // RTS                   [-]
 
-                        test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
-                        instruction_cycles = 6;
+                    test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
+                    instruction_cycles = 6;
 
-                        dma_and_interrupts_off();
-                        actual_cycles = measure_cycles_zp_safe(opcode_address);
-                        dma_and_interrupts_on();
+                    dma_and_interrupts_off();
+                    actual_cycles = measure_cycles_zp_safe(opcode_address);
+                    dma_and_interrupts_on();
 
-                        test_report(
-                            test_description,
-                            test_overhead_cycles, instruction_cycles, actual_cycles,
-                            "opcode offset", opcode_offset,
-                            "zp base address", zp_base_address,
-                            "X register", reg_x,
-                            "address offset", address_offset,
-                            NULL
-                        );
-                    }
+                    test_report(
+                        test_description,
+                        test_overhead_cycles, instruction_cycles, actual_cycles,
+                        "opcode offset", opcode_offset,
+                        "zp base address", zp_base_address,
+                        "X register", reg_x,
+                        "address offset", address_offset,
+                        NULL
+                    );
                 }
             }
         }
@@ -526,6 +534,7 @@ void timing_test_read_zpage_x_indirect_instruction(const char * test_description
 
 void timing_test_read_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned reg_y;
@@ -601,6 +610,7 @@ void timing_test_read_zpage_indirect_y_instruction(const char * test_description
 
 void timing_test_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address
     unsigned opcode_offset;
     unsigned zp_address;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -644,6 +654,7 @@ void timing_test_write_zpage_instruction(const char * test_description, uint8_t 
 
 void timing_test_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address, reg_x
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -693,6 +704,7 @@ void timing_test_write_zpage_x_instruction(const char * test_description, uint8_
 
 void timing_test_write_zpage_y_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address, reg_y
     unsigned opcode_offset;
     unsigned zp_address, reg_y;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -742,6 +754,7 @@ void timing_test_write_zpage_y_instruction(const char * test_description, uint8_
 
 void timing_test_write_abs_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -783,6 +796,7 @@ void timing_test_write_abs_instruction(const char * test_description, uint8_t op
 
 void timing_test_write_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset, reg_x
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -830,6 +844,7 @@ void timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
 
 void timing_test_write_abs_y_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -877,6 +892,7 @@ void timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
 
 void timing_test_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
     unsigned opcode_offset;
     unsigned zp_base_address;
     unsigned reg_x;
@@ -910,39 +926,36 @@ void timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
                 {
                     uint8_t * abs_address = TESTCODE_BASE + address_offset;
 
-                    for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
-                    {
-                        opcode_address[ 0] = 0xa2;              // LDX #<abs_address     [2]
-                        opcode_address[ 1] = lsb(abs_address);  //
-                        opcode_address[ 2] = 0x86;              // STX zp_ptr_lo_address [3]
-                        opcode_address[ 3] = zp_ptr_lo_address; //
-                        opcode_address[ 4] = 0xa2;              // LDX #>abs_address     [2]
-                        opcode_address[ 5] = msb(abs_address);  //
-                        opcode_address[ 6] = 0x86;              // STX zp_ptr_hi_address [3]
-                        opcode_address[ 7] = zp_ptr_hi_address; //
-                        opcode_address[ 8] = 0xa2;              // LDX #reg_x            [2]
-                        opcode_address[ 9] = reg_x;             //
-                        opcode_address[10] = opcode;            // OPC (zpage, X)        [6]
-                        opcode_address[11] = zp_base_address;   //
-                        opcode_address[12] = 0x60;              // RTS                   [-]
+                    opcode_address[ 0] = 0xa2;              // LDX #<abs_address     [2]
+                    opcode_address[ 1] = lsb(abs_address);  //
+                    opcode_address[ 2] = 0x86;              // STX zp_ptr_lo_address [3]
+                    opcode_address[ 3] = zp_ptr_lo_address; //
+                    opcode_address[ 4] = 0xa2;              // LDX #>abs_address     [2]
+                    opcode_address[ 5] = msb(abs_address);  //
+                    opcode_address[ 6] = 0x86;              // STX zp_ptr_hi_address [3]
+                    opcode_address[ 7] = zp_ptr_hi_address; //
+                    opcode_address[ 8] = 0xa2;              // LDX #reg_x            [2]
+                    opcode_address[ 9] = reg_x;             //
+                    opcode_address[10] = opcode;            // OPC (zpage, X)        [6]
+                    opcode_address[11] = zp_base_address;   //
+                    opcode_address[12] = 0x60;              // RTS                   [-]
 
-                        test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
-                        instruction_cycles = 6;
+                    test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
+                    instruction_cycles = 6;
 
-                        dma_and_interrupts_off();
-                        actual_cycles = measure_cycles_zp_safe(opcode_address);
-                        dma_and_interrupts_on();
+                    dma_and_interrupts_off();
+                    actual_cycles = measure_cycles_zp_safe(opcode_address);
+                    dma_and_interrupts_on();
 
-                        test_report(
-                            test_description,
-                            test_overhead_cycles, instruction_cycles, actual_cycles,
-                            "opcode offset", opcode_offset,
-                            "zp base address", zp_base_address,
-                            "address offset", address_offset,
-                            "X register", reg_x,
-                            NULL
-                        );
-                    }
+                    test_report(
+                        test_description,
+                        test_overhead_cycles, instruction_cycles, actual_cycles,
+                        "opcode offset", opcode_offset,
+                        "zp base address", zp_base_address,
+                        "address offset", address_offset,
+                        "X register", reg_x,
+                        NULL
+                    );
                 }
             }
         }
@@ -951,6 +964,7 @@ void timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
 
 void timing_test_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned reg_y;
@@ -1026,6 +1040,7 @@ void timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
 
 void timing_test_read_modify_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address
     unsigned opcode_offset;
     unsigned zp_address;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -1069,6 +1084,7 @@ void timing_test_read_modify_write_zpage_instruction(const char * test_descripti
 
 void timing_test_read_modify_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, zp_address, reg_x
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -1118,6 +1134,7 @@ void timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
 
 void timing_test_read_modify_write_abs_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -1159,6 +1176,7 @@ void timing_test_read_modify_write_abs_instruction(const char * test_description
 
 void timing_test_read_modify_write_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
+    // LOOPS: opcode_offset, address_offset, reg_x
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
@@ -1212,6 +1230,7 @@ void timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
 
 static void timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
+    // LOOPS: opcode_offset, operand
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
     // is in a state that lead to the branch being taken.
     //
@@ -1282,6 +1301,7 @@ static void timing_test_branch_instruction_taken(const char * test_description, 
 
 static void timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
+    // LOOPS: opcode_offset, operand
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
     // is in a state that lead to the branch *NOT* being taken.
     //
@@ -1363,6 +1383,7 @@ void timing_test_branch_instruction(const char * test_description, uint8_t opcod
 
 void timing_test_jmp_abs_instruction(const char * test_description)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
     uint8_t *opcode_address;
@@ -1397,6 +1418,7 @@ void timing_test_jmp_abs_instruction(const char * test_description)
 
 void timing_test_jmp_indirect_instruction(const char * test_description)
 {
+    // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset, address_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
     uint8_t *opcode_address;
@@ -1451,6 +1473,7 @@ void timing_test_jmp_indirect_instruction(const char * test_description)
 
 void timing_test_jsr_abs_instruction(const char * test_description)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
     uint8_t *opcode_address;
@@ -1488,6 +1511,7 @@ void timing_test_jsr_abs_instruction(const char * test_description)
 
 void timing_test_rts_instruction(const char * test_description)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
     uint8_t *opcode_address;
@@ -1528,6 +1552,7 @@ void timing_test_rts_instruction(const char * test_description)
 
 void timing_test_brk_instruction(const char * test_description)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
     uint8_t *opcode_address;
@@ -1571,6 +1596,7 @@ void timing_test_brk_instruction(const char * test_description)
 
 void timing_test_rti_instruction(const char * test_description)
 {
+    // LOOPS: opcode_offset
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
     uint8_t *opcode_address;
