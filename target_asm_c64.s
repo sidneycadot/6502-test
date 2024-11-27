@@ -37,7 +37,7 @@ _raster_031_wait:
 
                 lda     CIA1_ICR        ; Clear CIA#1 interrupt flags.
 
-                cli
+                cli                     ; Enable interrupts.
 
                 rts
 
