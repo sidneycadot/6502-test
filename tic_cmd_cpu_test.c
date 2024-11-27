@@ -10,9 +10,38 @@
 
 #include "tic_cmd_cpu_test.h"
 
+void timing_test_stackpointer_transfer_instructions(void)
+{
+    // Test the 2 instructions to transfer to stack pointer to and from the X register.
+    timing_test_single_byte_instruction_sequence("TSX", 0xba, 2);
+    timing_test_two_byte_instruction_sequence   ("TXS", 0xba, 0x9a, 2, 2);
+}
+
+void timing_test_single_byte_stack_push_pull_instructions(void)
+{
+    // Test the 4 instructions that push to /pull from the stack.
+    //
+    // TSX, PHA, TXS - The stack pointer is saved before, and restored after the instruction.
+
+    timing_test_three_byte_instruction_sequence("PHA", 0xba, 0x48, 0x9a, 2 + 2, 3);
+
+    // TSX, PHP, TXS - The stack pointer is saved before, and restored after the instruction.
+
+    timing_test_three_byte_instruction_sequence("PHP", 0xba, 0x08, 0x9a, 2 + 2, 3);
+
+    // PHA, PLA - The value to be pulled is pushed immediately before.
+
+    timing_test_two_byte_instruction_sequence("PLA", 0x48, 0x68, 3, 4);
+
+    // PHP, PLP - The value to be pulled is pushed immediately before.
+
+    timing_test_two_byte_instruction_sequence("PLP", 0x08, 0x28, 3, 4);
+}
+
 void timing_test_single_byte_two_cycle_implied_instructions(void)
 {
-    // Test timing of the 18 single-byte, 2-cycle "implied" instructions.
+    // Test 20 single-byte, 2-cycle "implied" instructions.
+    // Note: the TSX and TXS instructions are tested separately.
 
     // CLV, CLC, SEC
 
@@ -22,38 +51,31 @@ void timing_test_single_byte_two_cycle_implied_instructions(void)
 
     // CLI, SEI
     //
-    // Note: These change CPU the interrupt flag, which may be critical to guarantee the proper working
-    // of the external environment. For that reason, we sandwich these between PHP/PLP instructions.
+    // Note: These change the CPU interrupt-disable flag, which may be critical.
+    // For that reason, we sandwich them between PHP/PLP instructions.
 
     timing_test_three_byte_instruction_sequence("CLI", 0x08, 0x58, 0x28, 3 + 4, 2);
     timing_test_three_byte_instruction_sequence("SEI", 0x08, 0x78, 0x28, 3 + 4, 2);
 
     // CLD, SED
-    // Note: The "SED" is tested in the SED,CLD combination, to prevent that the test leaves decimal mode enabled.
+    // Note: The "SED" is tested in the SED, CLD combination, to prevent that the test leaves decimal mode enabled.
 
     timing_test_single_byte_instruction_sequence("CLD", 0xd8, 2);
     timing_test_two_byte_instruction_sequence   ("SED", 0xf8, 0xd8, 2, 2);
 
-    // INX, DEX
-    // INY, DEY
+    // INX, DEX, INY, DEY
 
     timing_test_single_byte_instruction_sequence("DEY", 0x88, 2);
     timing_test_single_byte_instruction_sequence("INY", 0xc8, 2);
     timing_test_single_byte_instruction_sequence("DEX", 0xca, 2);
     timing_test_single_byte_instruction_sequence("INX", 0xe8, 2);
 
-    // TAY, TYA
-    // TAX, TXA
+    // TAY, TYA, TAX, TXA
 
     timing_test_single_byte_instruction_sequence("TYA", 0x98, 2);
     timing_test_single_byte_instruction_sequence("TAY", 0xa8, 2);
     timing_test_single_byte_instruction_sequence("TXA", 0x8a, 2);
     timing_test_single_byte_instruction_sequence("TAX", 0xaa, 2);
-
-    // TSX, TXS
-
-    timing_test_single_byte_instruction_sequence("TSX", 0xba, 2);
-    timing_test_two_byte_instruction_sequence   ("TXS", 0xba, 0x9a, 2, 2);
 
     // ASL, ROL, LSR, ROR on the accumulator register.
 
@@ -65,27 +87,6 @@ void timing_test_single_byte_two_cycle_implied_instructions(void)
     // NOP
 
     timing_test_single_byte_instruction_sequence("NOP", 0xea, 2);
-}
-
-void timing_test_single_byte_stack_instructions(void)
-{
-    // Test the single-byte, 6-cycle push/pull stack instructions.
-    //
-    // TSX, PHA, TXS              The stack pointer is saved before, and restored after the instruction.
-
-    timing_test_three_byte_instruction_sequence("PHA", 0xba, 0x48, 0x9a, 2 + 2, 3);
-
-    // TSX, PHP, TXS              The stack pointer is saved before, and restored after the instruction.
-
-    timing_test_three_byte_instruction_sequence("PHP", 0xba, 0x08, 0x9a, 2 + 2, 3);
-
-    // PHA, PLA                   The value to be pulled is pushed immediately before.
-
-    timing_test_two_byte_instruction_sequence("PLA", 0x48, 0x68, 3, 4);
-
-    // PHP, PLP                   The value to be pulled is pushed immediately before.
-
-    timing_test_two_byte_instruction_sequence("PLP", 0x08, 0x28, 3, 4);
 }
 
 void timing_test_read_immediate_instructions(void)
@@ -364,13 +365,16 @@ void timing_test_jump_instructions(void)
 
 void run_instruction_timing_tests(void)
 {
-    // Test the timing of the 22 single-byte, two-cycle opcodes.
+    // Test the timing of the 2 single-byte stack-pointer transfer instructions.
+    timing_test_stackpointer_transfer_instructions();
+
+    // Test the timing of the 4 single-byte stack push/pull instructions.
+    timing_test_single_byte_stack_push_pull_instructions();
+
+    // Test the timing of the 20 single-byte, two-cycle opcodes.
     timing_test_single_byte_two_cycle_implied_instructions();
 
-    // Test the timing of the 4 stack push/pull instructions.
-    timing_test_single_byte_stack_instructions();
-
-    // Test the timing of the 11 two-byte immediate-mode instructions.
+    // Test the timing of the 11 two-byte read-immediate instructions.
     timing_test_read_immediate_instructions();
 
     // Test the timing of the 12 two-byte read-from-zero-page instructions.
@@ -433,7 +437,7 @@ void run_instruction_timing_tests(void)
     // Test the timing of the 6 three-byte read-modify-write-absolute-address-with-x-indexing instructions.
     timing_test_read_modify_write_abs_x_instructions();
 
-    // Test the timing of the 14 jump- and interrupt related instructions.
+    // Test the timing of the 14 branch, jump, and interrupt related instructions.
     timing_test_jump_instructions();
 }
 
@@ -448,7 +452,7 @@ void tic_cmd_cpu_test(unsigned level)
 
     STEP_SIZE = lookup_table[7 - level];
 
-    printf("Starting level %u test (step size %u).\n", level, STEP_SIZE);
+    printf("Starting level %u test (step size: %u).\n", level, STEP_SIZE);
     printf("\n");
 
     reset_test_counts();

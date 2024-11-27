@@ -1,4 +1,5 @@
 *~
 *.o
-*.xex *.prg
+*.xex
+*.prg
 atari
