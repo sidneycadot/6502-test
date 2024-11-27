@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "timing_test_memory.h"
 #include "tic_cmd_measurement_test.h"
@@ -64,6 +65,16 @@ int command_line_loop(void)
 
         printf("Enter command (or ENTER for help)\n");
         fgets(command, sizeof(command), stdin);
+
+        // Remove the trailing end-of-line character.
+
+        par1 = strlen(command);
+        if (par1 != 0)
+        {
+            command[par1 - 1] = '\0';
+        }
+
+        // Check for a command.
 
         if (strcmp(command, "quit") == 0)
         {
