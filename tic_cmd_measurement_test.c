@@ -52,6 +52,7 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
     // is equal to the number of cycles the code was expected to take.
 
     unsigned instruction_cycles, repeat_index;
+    unsigned long errors = 0;
 
     reset_test_counts();
     dma_and_interrupts_off();

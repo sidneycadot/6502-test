@@ -479,7 +479,7 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
 
         for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
         {
-            unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) % 0xff;
+            unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) & 0xff;
 
             if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
             {
@@ -861,7 +861,7 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
 
         for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
         {
-            unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) % 0xff;
+            unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) & 0xff;
 
             if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
             {
