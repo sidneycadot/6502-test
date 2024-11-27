@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "timing_test_memory.h"
 #include "tic_cmd_measurement_test.h"
@@ -84,12 +83,21 @@ int command_line_loop(void)
         {
             tic_cmd_measurement_test(par1, par2, par3);
         }
+        else if (sscanf(command, "msm %u %u", &par1, &par2) == 2)
+        {
+            tic_cmd_measurement_test(par1, par2, par2);
+        }
+        else if (sscanf(command, "msm %u", &par1) == 1)
+        {
+            tic_cmd_measurement_test(1, par1, par1);
+        }
         else if (sscanf(command, "cpu %u", &par1) == 1)
         {
             tic_cmd_cpu_test(par1);
         }
         else
         {
+            // No valid command found, show help.
             tic_cmd_help();
         }
     }
