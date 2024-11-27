@@ -35,16 +35,21 @@ TIC_OBJS := tic_main_${TIC_TARGET}.o                    \
             tic_cmd_measurement_test_${TIC_TARGET}.o    \
             tic_cmd_cpu_test_${TIC_TARGET}.o            \
             timing_test_routines_${TIC_TARGET}.o        \
-            timing_test_report_${TIC_TARGET}.o          \
+            timing_test_measurement_${TIC_TARGET}.o     \
             timing_test_memory_${TIC_TARGET}.o          \
-            platform_generic_${TIC_TARGET}.o            \
-            platform_${TIC_TARGET}.o
+            target_asm_generic_${TIC_TARGET}.o          \
+            target_asm_${TIC_TARGET}.o                  \
+            target_${TIC_TARGET}.o
 
 # Link the final executable.
 # Note that we call cl65 as linker, not ld65.
 # The cl65 driver script knows to include all target-specific libraries.
 tic_${TIC_TARGET}.${TIC_TARGET_EXTENSION} : ${TIC_OBJS}
 	cl65 $(LD65_FLAGS) $^ -o $@
+
+# Compile a target-specific C file to a target-specific assembly file.
+target_${TIC_TARGET}.s : target_${TIC_TARGET}.c
+	cc65 $(CC65_FLAGS) $< -o $@
 
 # Compile a generic C file to a target-specific assembly file.
 %_${TIC_TARGET}.s : %.c
@@ -59,4 +64,5 @@ tic_${TIC_TARGET}.${TIC_TARGET_EXTENSION} : ${TIC_OBJS}
 	ca65 $(CA65_FLAGS) $< -o $@
 
 clean :
-	$(RM) *~ *.o *.xex
+	$(RM) *~ *.o *.xex *.prg
+

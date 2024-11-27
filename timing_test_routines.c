@@ -8,8 +8,8 @@
 #include <stdbool.h>
 
 #include "timing_test_memory.h"
-#include "timing_test_report.h"
-#include "platform.h"
+#include "timing_test_measurement.h"
+#include "target.h"
 
 unsigned STEP_SIZE = 85;
 
@@ -40,15 +40,11 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t b1, unsigned instruction_cycles)
+bool timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t b1, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned actual_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-           error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -57,28 +53,21 @@ void timing_test_single_byte_instruction_sequence(const char * test_description,
         opcode_address[0] = b1;   // OPC
         opcode_address[1] = 0x60; // RTS [-]
 
-        dma_and_interrupts_off();
-        actual_cycles = measure_cycles(opcode_address);
-        dma_and_interrupts_on();
-
-        test_report(
+        if (!run_measurement(
             test_description,
-            0, instruction_cycles, actual_cycles,
+            0, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
-        );
+        )) return false;
     }
+    return true;
 }
 
-void timing_test_two_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_two_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned actual_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-           error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -88,28 +77,21 @@ void timing_test_two_byte_instruction_sequence(const char * test_description, ui
         opcode_address[1] = b2;   // OPC
         opcode_address[2] = 0x60; // RTS [-]
 
-        dma_and_interrupts_off();
-        actual_cycles = measure_cycles(opcode_address);
-        dma_and_interrupts_on();
-
-        test_report(
+        if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, actual_cycles,
+            test_overhead_cycles, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
-        );
+        )) return false;
     }
+    return true;
 }
 
-void timing_test_three_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_three_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned actual_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-           error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -120,17 +102,14 @@ void timing_test_three_byte_instruction_sequence(const char * test_description, 
         opcode_address[2] = b3;   // OPC
         opcode_address[3] = 0x60; // RTS [-]
 
-        dma_and_interrupts_off();
-        actual_cycles = measure_cycles(opcode_address);
-        dma_and_interrupts_on();
- 
-        test_report(
+        if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, actual_cycles,
+            test_overhead_cycles, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
-        );
+        )) return false;
     }
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,19 +118,16 @@ void timing_test_three_byte_instruction_sequence(const char * test_description, 
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void timing_test_read_immediate_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_immediate_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, operand
     unsigned opcode_offset;
     unsigned operand;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
@@ -163,34 +139,28 @@ void timing_test_read_immediate_instruction(const char * test_description, uint8
             test_overhead_cycles = 0;
             instruction_cycles = 2;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, false,
                 "opcode offset", opcode_offset,
                 "operand", operand,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_read_zpage_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address
     unsigned opcode_offset;
     unsigned zp_address;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -207,34 +177,28 @@ void timing_test_read_zpage_instruction(const char * test_description, uint8_t o
             test_overhead_cycles = 0;
             instruction_cycles = 3;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, false,
                 "opcode offset", opcode_offset,
                 "zp address", zp_address,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_read_zpage_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_x
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -255,36 +219,30 @@ void timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, false,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_read_zpage_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_y
     unsigned opcode_offset;
     unsigned zp_address, reg_y;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -305,36 +263,30 @@ void timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, false,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "Y register", reg_y,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_read_abs_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_abs_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset;
     unsigned address_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -349,34 +301,28 @@ void timing_test_read_abs_instruction(const char * test_description, uint8_t opc
             test_overhead_cycles = 0;
             instruction_cycles = 4;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, false,
                 "opcode offset", opcode_offset,
                 "address offset", address_offset,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_read_abs_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_x
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
-    unsigned instruction_cycles, test_overhead_cycles, actual_cycles;
+    unsigned instruction_cycles, test_overhead_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -395,36 +341,30 @@ void timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
                 test_overhead_cycles = 2;
                 instruction_cycles = 4 + different_pages(base_address, base_address + reg_x);
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, false,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_read_abs_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -443,24 +383,21 @@ void timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
                 test_overhead_cycles = 2;
                 instruction_cycles = 4 + different_pages(base_address, base_address + reg_y);
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, false,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "Y register", reg_y,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_read_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
     unsigned opcode_offset;
@@ -469,14 +406,11 @@ void timing_test_read_zpage_x_indirect_instruction(const char * test_description
     unsigned address_offset;
     unsigned zp_ptr_lo_address;
     unsigned zp_ptr_hi_address;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_base_address = 0; zp_base_address <= 0xff; zp_base_address += STEP_SIZE)
@@ -513,40 +447,34 @@ void timing_test_read_zpage_x_indirect_instruction(const char * test_description
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 6;
 
-                    dma_and_interrupts_off();
-                    actual_cycles = measure_cycles_zp_safe(opcode_address);
-                    dma_and_interrupts_on();
-
-                    test_report(
+                    if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, actual_cycles,
+                        test_overhead_cycles, instruction_cycles, opcode_address, true,
                         "opcode offset", opcode_offset,
                         "zp base address", zp_base_address,
                         "X register", reg_x,
                         "address offset", address_offset,
                         NULL
-                    );
+                    )) return false;
                 }
             }
         }
     }
+    return true;
 }
 
-void timing_test_read_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned reg_y;
     unsigned zp_ptr_lo_address;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
@@ -583,23 +511,20 @@ void timing_test_read_zpage_indirect_y_instruction(const char * test_description
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 5 + different_pages(base_address, effective_address);
 
-                    dma_and_interrupts_off();
-                    actual_cycles = measure_cycles_zp_safe(opcode_address);
-                    dma_and_interrupts_on();
-
-                    test_report(
+                    if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, actual_cycles,
+                        test_overhead_cycles, instruction_cycles, opcode_address, true,
                         "opcode offset", opcode_offset,
                         "zp ptr address", zp_ptr_lo_address,
                         "address offset", address_offset,
                         "Y register", reg_y,
                         NULL
-                    );
+                    )) return false;
                 }
             }
         }
     }
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -608,19 +533,16 @@ void timing_test_read_zpage_indirect_y_instruction(const char * test_description
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void timing_test_write_zpage_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address
     unsigned opcode_offset;
     unsigned zp_address;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -637,34 +559,28 @@ void timing_test_write_zpage_instruction(const char * test_description, uint8_t 
             test_overhead_cycles = 0;
             instruction_cycles = 3;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles_zp_safe(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, true,
                 "opcode offset", opcode_offset,
                 "zp address", zp_address,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_x
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -685,36 +601,30 @@ void timing_test_write_zpage_x_instruction(const char * test_description, uint8_
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles_zp_safe(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, true,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_write_zpage_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_y
     unsigned opcode_offset;
     unsigned zp_address, reg_y;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -735,36 +645,30 @@ void timing_test_write_zpage_y_instruction(const char * test_description, uint8_
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles_zp_safe(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, true,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "Y register", reg_y,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_write_abs_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_abs_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset;
     unsigned address_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -779,34 +683,28 @@ void timing_test_write_abs_instruction(const char * test_description, uint8_t op
             test_overhead_cycles = 0;
             instruction_cycles = 4;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, false,
                 "opcode offset", opcode_offset,
                 "address offset", address_offset,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_write_abs_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_x
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -825,36 +723,30 @@ void timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
                 test_overhead_cycles = 2;
                 instruction_cycles = 5;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, false,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_write_abs_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -873,24 +765,21 @@ void timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
                 test_overhead_cycles = 2;
                 instruction_cycles = 5;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, false,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "Y register", reg_y,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
     unsigned opcode_offset;
@@ -899,14 +788,11 @@ void timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
     unsigned address_offset;
     unsigned zp_ptr_lo_address;
     unsigned zp_ptr_hi_address;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_base_address = 0; zp_base_address <= 0xff; zp_base_address += STEP_SIZE)
@@ -943,40 +829,34 @@ void timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 6;
 
-                    dma_and_interrupts_off();
-                    actual_cycles = measure_cycles_zp_safe(opcode_address);
-                    dma_and_interrupts_on();
-
-                    test_report(
+                    if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, actual_cycles,
+                        test_overhead_cycles, instruction_cycles, opcode_address, true,
                         "opcode offset", opcode_offset,
                         "zp base address", zp_base_address,
                         "address offset", address_offset,
                         "X register", reg_x,
                         NULL
-                    );
+                    )) return false;
                 }
             }
         }
     }
+    return true;
 }
 
-void timing_test_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned reg_y;
     unsigned zp_ptr_lo_address;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
@@ -1013,23 +893,20 @@ void timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 6;
 
-                    dma_and_interrupts_off();
-                    actual_cycles = measure_cycles_zp_safe(opcode_address);
-                    dma_and_interrupts_on();
-
-                    test_report(
+                if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, actual_cycles,
+                        test_overhead_cycles, instruction_cycles, opcode_address, true,
                         "opcode offset", opcode_offset,
                         "zp address", zp_ptr_lo_address,
                         "address offset", address_offset,
                         "Y register", reg_y,
                         NULL
-                    );
+                    )) return false;
                 }
             }
         }
     }
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1038,19 +915,16 @@ void timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void timing_test_read_modify_write_zpage_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address
     unsigned opcode_offset;
     unsigned zp_address;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -1067,34 +941,28 @@ void timing_test_read_modify_write_zpage_instruction(const char * test_descripti
             test_overhead_cycles = 0;
             instruction_cycles = 5;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles_zp_safe(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, true,
                 "opcode offset", opcode_offset,
                 "zp address", zp_address,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_read_modify_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_x
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u zp addresses ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (zp_address = 0; zp_address <= 0xff; zp_address += STEP_SIZE)
@@ -1115,36 +983,30 @@ void timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
                 test_overhead_cycles = 2;
                 instruction_cycles = 6;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles_zp_safe(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, true,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
-void timing_test_read_modify_write_abs_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset;
     unsigned address_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -1159,34 +1021,28 @@ void timing_test_read_modify_write_abs_instruction(const char * test_description
             test_overhead_cycles = 0;
             instruction_cycles = 6;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, false,
                 "opcode offset", opcode_offset,
                 "address offset", address_offset,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_read_modify_write_abs_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_x
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u address offsets ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
@@ -1205,21 +1061,18 @@ void timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
                 test_overhead_cycles = 2;
                 instruction_cycles = 7;
 
-                dma_and_interrupts_off();
-                actual_cycles = measure_cycles(opcode_address);
-                dma_and_interrupts_on();
-
-                test_report(
+                if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, actual_cycles,
+                    test_overhead_cycles, instruction_cycles, opcode_address, false,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
                     NULL
-                );
+                )) return false;
             }
         }
     }
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1228,7 +1081,7 @@ void timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
+static bool timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
     // LOOPS: opcode_offset, operand
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
@@ -1245,17 +1098,14 @@ static void timing_test_branch_instruction_taken(const char * test_description, 
 
     unsigned opcode_offset;
     unsigned operand;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *entry_address;
-    uint8_t *branch_opcode_address;
+    uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         entry_address = TESTCODE_BASE;
-        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
         {
@@ -1273,33 +1123,30 @@ static void timing_test_branch_instruction_taken(const char * test_description, 
             entry_address[3] = flag_value ? 0xc3 : 0x3c;    //
             entry_address[4] = 0x48;                        // PHA                  [3]
             entry_address[5] = 0x28;                        // PLP                  [4]
-            entry_address[6] = 0x4c;                        // JMP branch_opcode    [3]
-            entry_address[7] = lsb(branch_opcode_address);  //
-            entry_address[8] = msb(branch_opcode_address);  //
+            entry_address[6] = 0x4c;                        // JMP opcode_address   [3]
+            entry_address[7] = lsb(opcode_address);         //
+            entry_address[8] = msb(opcode_address);         //
 
-            branch_opcode_address[0] = opcode;              // Bxx operand          [3 or 4]
-            branch_opcode_address[1] = operand;             //
-            branch_opcode_address[2 + displacement] = 0x60; // RTS                  [-]
+            opcode_address[0] = opcode;                     // Bxx operand          [3 or 4]
+            opcode_address[1] = operand;                    //
+            opcode_address[2 + displacement] = 0x60;        // RTS                  [-]
 
             test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
-            instruction_cycles = 3 + different_pages(&branch_opcode_address[2], &branch_opcode_address[2 + displacement]);
+            instruction_cycles = 3 + different_pages(&opcode_address[2], &opcode_address[2 + displacement]);
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(entry_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, entry_address, false,
                 "opcode offset", opcode_offset,
                 "operand", operand,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-static void timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
+static bool timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
     // LOOPS: opcode_offset, operand
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
@@ -1313,17 +1160,14 @@ static void timing_test_branch_instruction_not_taken(const char * test_descripti
 
     unsigned opcode_offset;
     unsigned operand;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *entry_address;
-    uint8_t *branch_opcode_address;
+    uint8_t *opcode_address;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
-        printf("[%lu] INFO (%s) opcode offset %02x, testing %u operands ...\n",
-                error_count, test_description, opcode_offset, 1 + 255 / STEP_SIZE);
-
         entry_address = TESTCODE_BASE;
-        branch_opcode_address = TESTCODE_ANCHOR + opcode_offset;
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
         for (operand = 0; operand <= 0xff; operand += STEP_SIZE)
         {
@@ -1333,33 +1177,30 @@ static void timing_test_branch_instruction_not_taken(const char * test_descripti
             entry_address[3] = flag_value ? 0xc3 : 0x3c;    // 
             entry_address[4] = 0x48;                        // PHA                  [3]
             entry_address[5] = 0x28;                        // PLP                  [4]
-            entry_address[6] = 0x4c;                        // JMP branch_opcode    [3]
-            entry_address[7] = lsb(branch_opcode_address);  //
-            entry_address[8] = msb(branch_opcode_address);  //
+            entry_address[6] = 0x4c;                        // JMP opcode_address   [3]
+            entry_address[7] = lsb(opcode_address);         //
+            entry_address[8] = msb(opcode_address);         //
 
-            branch_opcode_address[0] = opcode;              // Bxx operand          [2]
-            branch_opcode_address[1] = operand;             //
-            branch_opcode_address[2] = 0x60;                // RTS                  [-]
+            opcode_address[0] = opcode;                     // Bxx operand          [2]
+            opcode_address[1] = operand;                    //
+            opcode_address[2] = 0x60;                       // RTS                  [-]
 
             test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
             instruction_cycles = 2;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(entry_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, entry_address, false,
                 "opcode offset", opcode_offset,
                 "operand", operand,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool flag_value)
+bool timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool flag_value)
 {
     // This function tests any of the "branch" instructions, testing both the "branch taken" and "branch not taken"
     // scenarios.
@@ -1375,21 +1216,26 @@ void timing_test_branch_instruction(const char * test_description, uint8_t opcod
     char augmented_test_description[40];
 
     sprintf(augmented_test_description, "%s - taken", test_description);
-    timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value);
+    if (!timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value))
+    {
+        return false;
+    }
 
     sprintf(augmented_test_description, "%s - not taken", test_description);
-    timing_test_branch_instruction_not_taken(augmented_test_description, opcode, !flag_value);
+    if (!timing_test_branch_instruction_not_taken(augmented_test_description, opcode, !flag_value))
+    {
+        return false;
+    }
+
+    return true;
 }
 
-void timing_test_jmp_abs_instruction(const char * test_description)
+bool timing_test_jmp_abs_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1403,28 +1249,22 @@ void timing_test_jmp_abs_instruction(const char * test_description)
         test_overhead_cycles = 0;
         instruction_cycles   = 3;
 
-        dma_and_interrupts_off();
-        actual_cycles = measure_cycles(opcode_address);
-        dma_and_interrupts_on();
-
-        test_report(
+        if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, actual_cycles,
+            test_overhead_cycles, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
-        );
+        )) return false;
     }
+    return true;
 }
 
-void timing_test_jmp_indirect_instruction(const char * test_description)
+bool timing_test_jmp_indirect_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset, address_offset
     unsigned opcode_offset, address_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1457,29 +1297,23 @@ void timing_test_jmp_indirect_instruction(const char * test_description)
             test_overhead_cycles = 0;
             instruction_cycles   = 5;
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(opcode_address);
-            dma_and_interrupts_on();
-
-            test_report(
+            if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, actual_cycles,
+                test_overhead_cycles, instruction_cycles, opcode_address, false,
                 "opcode offset", opcode_offset,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
 }
 
-void timing_test_jsr_abs_instruction(const char * test_description)
+bool timing_test_jsr_abs_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1495,29 +1329,23 @@ void timing_test_jsr_abs_instruction(const char * test_description)
         test_overhead_cycles = 8;
         instruction_cycles   = 6;
 
-        dma_and_interrupts_off();
-        actual_cycles = measure_cycles(opcode_address);
-        dma_and_interrupts_on();
-
-        test_report(
+        if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, actual_cycles,
+            test_overhead_cycles, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
-        );
+        )) return false;
     }
+    return true;
 }
 
 
-void timing_test_rts_instruction(const char * test_description)
+bool timing_test_rts_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1537,29 +1365,24 @@ void timing_test_rts_instruction(const char * test_description)
         test_overhead_cycles = 2 + 3 + 2 + 3;
         instruction_cycles   = 6;
 
-        dma_and_interrupts_off();
-        actual_cycles = measure_cycles(opcode_address);
-        dma_and_interrupts_on();
-
-        test_report(
+        if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, actual_cycles,
+            test_overhead_cycles, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
-        );
+        )) return false;
     }
+    return true;
 }
 
-void timing_test_brk_instruction(const char * test_description)
+bool timing_test_brk_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
     uint8_t *oldvec;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
+    bool success;
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1579,30 +1402,31 @@ void timing_test_brk_instruction(const char * test_description)
         test_overhead_cycles = 2 + 4 + PLATFORM_SPECIFIC_IRQ_OVERHEAD + 4 + 2;
         instruction_cycles   = 7;
 
-        dma_and_interrupts_off();
         oldvec = set_irq_vector_address(opcode_address + 5);
-        actual_cycles = measure_cycles(opcode_address);
-        set_irq_vector_address(oldvec);
-        dma_and_interrupts_on();
 
-        test_report(
+        success = run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, actual_cycles,
+            test_overhead_cycles, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
         );
+
+        set_irq_vector_address(oldvec);
+
+        if (!success)
+        {
+            return false;
+        }
     }
+    return true;
 }
 
-void timing_test_rti_instruction(const char * test_description)
+bool timing_test_rti_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
-    unsigned test_overhead_cycles, instruction_cycles, actual_cycles;
+    unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
-
-    printf("[%lu] INFO (%s) testing %u opcode offsets ...\n",
-            error_count, test_description, 1 + 255 / STEP_SIZE);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1621,15 +1445,15 @@ void timing_test_rti_instruction(const char * test_description)
         test_overhead_cycles = 2 + 3 + 2 + 3 + 3;
         instruction_cycles   = 6;
 
-        dma_and_interrupts_off();
-        actual_cycles = measure_cycles(opcode_address);
-        dma_and_interrupts_on();
-
-        test_report(
+        if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, actual_cycles,
+            test_overhead_cycles, instruction_cycles, opcode_address, false,
             "opcode offset", opcode_offset,
             NULL
-        );
+        ))
+        {
+            return false;
+        }
     }
+    return true;
 }

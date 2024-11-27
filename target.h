@@ -1,10 +1,10 @@
 
-////////////////
-// platform.h //
-////////////////
+//////////////
+// target.h //
+//////////////
 
-#ifndef PLATFORM_H
-#define PLATFORM_H
+#ifndef TARGET_H
+#define TARGET_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -17,15 +17,16 @@
 
 // Enable/disable DMA and interrupts, to create a situation where the 6502 timing behaves in a way that
 // allows the 'measure_cycles' and 'measure_cycles_zp_safe' to do their job.
-
 void __fastcall__ dma_and_interrupts_off(void);
 void __fastcall__ dma_and_interrupts_on(void);
 
 // Indicate which zero-page addresses can be touched by the testing code.
 bool __fastcall__ zp_address_is_safe(uint8_t address);
 
-// Measure the number of cycles that a code fragment will take, up to (but not including) a final RTS.
+// Report back measurement status.
+void __fastcall__ measurement_live_report(const char * test_description, unsigned long test_count, bool success);
 
+// Measure the number of cycles that a code fragment will take, up to (but not including) a final RTS.
 int16_t __fastcall__ measure_cycles(uint8_t * code);
 
 // Code and constants to implement the BRK timing test.
@@ -74,3 +75,5 @@ int16_t __fastcall__ measure_cycles_zp_safe(uint8_t * code);
 # else
 #     error "Undefined platform."
 # endif
+
+#endif

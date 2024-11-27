@@ -1,6 +1,9 @@
 
+                ; Machine code routines used for all targets.
+
                 .import _measure_cycles
                 .import _zp_address_is_safe
+
                 .export _measure_cycles_zp_safe
 
                 .bss

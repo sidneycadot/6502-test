@@ -8,9 +8,9 @@
 #include <assert.h>
 
 #include "tic_cmd_measurement_test.h"
-#include "timing_test_report.h"
+#include "timing_test_measurement.h"
 #include "timing_test_memory.h"
-#include "platform.h"
+#include "target.h"
 
 static void generate_code(uint8_t * code, unsigned cycles)
 {
@@ -51,12 +51,10 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
     // cycles, then executing the 'measure_cycles' routine to verify that the number of cycles measured
     // is equal to the number of cycles the code was expected to take.
 
-    unsigned instruction_cycles, actual_cycles, repeat_index;
-
-    printf("Performing measurement tests ...\n");
+    unsigned instruction_cycles, repeat_index;
 
     reset_test_counts();
-
+    dma_and_interrupts_off();
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
         for (instruction_cycles = min_cycle_count; instruction_cycles <= max_cycle_count; ++instruction_cycles)
@@ -69,18 +67,14 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
 
             generate_code(TESTCODE_BASE, instruction_cycles);
 
-            dma_and_interrupts_off();
-            actual_cycles = measure_cycles(TESTCODE_BASE);
-            dma_and_interrupts_on();
-
-            test_report(
+            // Note that we do not bail out in case of errors!
+            run_measurement(
                 "measurement test",
-                0,
-                instruction_cycles,
-                actual_cycles,
+                0, instruction_cycles, TESTCODE_BASE, false,
                 NULL
             );
         }
     }
+    dma_and_interrupts_on();
     report_test_counts();
 }
