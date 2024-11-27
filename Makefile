@@ -64,5 +64,4 @@ target_${TIC_TARGET}.s : target_${TIC_TARGET}.c
 	ca65 $(CA65_FLAGS) $< -o $@
 
 clean :
-	$(RM) *~ *.o *.xex *.prg
-
+	$(RM) *~ *.o *.xex *.prg target_atari.s target_c64.s
