@@ -18,11 +18,13 @@ unsigned long error_count;
 void reset_test_counts(void)
 {
     test_count = 0;
+    error_count = 0;
 }
 
 void report_test_counts(void)
 {
-    printf("Tests performed ...... : %lu\n", test_count);
+    printf("Tests performed ... : %lu\n", test_count);
+    printf("Tests failed ...... : %lu\n", error_count);
     printf("\n");
 }
 
@@ -44,7 +46,7 @@ void print_label_hex_value_pair(const char * prefix, const char * label, unsigne
 
 static void print_test_report(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, unsigned actual_cycles, va_list pass1)
 {
-    unsigned max_label_length = 20;// Length of "test overhead cycles".
+    unsigned max_label_length = 20; // Length of "test overhead cycles".
 
     va_list pass2;
 
@@ -105,15 +107,7 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
     unsigned actual_cycles;
     bool success;
 
-    if (save_zp_flag)
-    {
-        actual_cycles = measure_cycles_zp_safe(entrypoint);
-    }
-    else
-    {
-        actual_cycles = measure_cycles(entrypoint);
-    }
-
+    actual_cycles = save_zp_flag ? measure_cycles_zp_safe(entrypoint) : measure_cycles(entrypoint);
     ++test_count;
 
     success = (actual_cycles == test_overhead_cycles + instruction_cycles);
@@ -122,8 +116,10 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
 
     if (!success)
     {
-        // An error occurred. Print an error report.
         va_list ap;
+
+        ++error_count;
+        // Print an error report.
         va_start(ap, save_zp_flag);
         print_test_report(test_description, test_overhead_cycles,instruction_cycles, actual_cycles, ap);
         va_end(ap);

@@ -9,11 +9,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-////////////////////////////////////////////////////////////////////////
-//                                                                    //
-// PROTOTYPES FOR FUNCTIONS THAT ARE IMPLEMENTED IN platform_<name>.s //
-//                                                                    //
-////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                     //
+//  PROTOTYPES FOR FUNCTIONS THAT ARE IMPLEMENTED (IN EITHER C OR ASSEMBLY) FOR EACH SUPPORTED TARGET  //
+//                                                                                                     //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Enable/disable DMA and interrupts, to create a situation where the 6502 timing behaves in a way that
 // allows the 'measure_cycles' and 'measure_cycles_zp_safe' to do their job.
@@ -52,28 +52,26 @@ int16_t __fastcall__ measure_cycles(uint8_t * code);
 
 uint8_t * __fastcall__  set_irq_vector_address(uint8_t * newvec);
 
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-// PROTOTYPES FOR FUNCTIONS THAT ARE IMPLEMENTED IN platform_generic.s //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+//                                                        //
+//  PROTOTYPES FOR GENERIC TARGET-INDEPENDENT) FUNCTIONS  //
+//                                                        //
+////////////////////////////////////////////////////////////
 
 int16_t __fastcall__ measure_cycles_zp_safe(uint8_t * code);
 
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//                     PLATFORM-DEPENDENT CONSTANTS                    //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+//                                                       //
+//  CONSTANTS THAT ARE SPECIFIC TO EACH SUPPRTED TARGET  //
+//                                                       //
+///////////////////////////////////////////////////////////
 
 # if defined(TIC_TARGET_ATARI)
-#     define PLATFORM_SPECIFIC_IRQ_OVERHEAD 7
+#     define TARGET_SPECIFIC_IRQ_OVERHEAD 7
 # elif defined(TIC_TARGET_C64)
-#     define PLATFORM_SPECIFIC_IRQ_OVERHEAD 28
-# elif defined(TIC_TARGET_SIM6502)
-#     define PLATFORM_SPECIFIC_IRQ_OVERHEAD 0
+#     define TARGET_SPECIFIC_IRQ_OVERHEAD 28
 # else
-#     error "Undefined platform."
+#     error "No valid target specified."
 # endif
 
 #endif

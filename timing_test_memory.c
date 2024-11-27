@@ -11,7 +11,6 @@
 uint8_t * TESTCODE_PTR    = NULL; // The pointer to the full test area, allocated using malloc().
 uint8_t * TESTCODE_BASE   = NULL; // The first address in the TESTCODE range that is on a page boundary.
 uint8_t * TESTCODE_ANCHOR = NULL; // The halfway point in the TESTCODE range, also on a page boundary. Put test code here.
-uint8_t * TESTCODE_LAST   = NULL; // The first address in the TESTCODE range that is on a page boundary.
 
 int allocate_testcode_block(unsigned size)
 {
@@ -43,7 +42,6 @@ int allocate_testcode_block(unsigned size)
 
     TESTCODE_BASE   = TESTCODE_PTR + offset;
     TESTCODE_ANCHOR = TESTCODE_BASE + size / 2;
-    TESTCODE_LAST   = TESTCODE_PTR + block_size - 1;
 
     return 0;
 }

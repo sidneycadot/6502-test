@@ -40,7 +40,7 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t b1, unsigned instruction_cycles)
+bool timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t opc, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
@@ -50,7 +50,7 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        opcode_address[0] = b1;   // OPC
+        opcode_address[0] = opc;  // OPC
         opcode_address[1] = 0x60; // RTS [-]
 
         if (!run_measurement(
@@ -63,7 +63,7 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
     return true;
 }
 
-bool timing_test_two_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_two_byte_instruction_sequence(const char * test_description, uint8_t opc1, uint8_t opc2, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
@@ -73,8 +73,8 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        opcode_address[0] = b1;   // OPC
-        opcode_address[1] = b2;   // OPC
+        opcode_address[0] = opc1; // OPC
+        opcode_address[1] = opc2; // OPC
         opcode_address[2] = 0x60; // RTS [-]
 
         if (!run_measurement(
@@ -87,7 +87,7 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
     return true;
 }
 
-bool timing_test_three_byte_instruction_sequence(const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_three_byte_instruction_sequence(const char * test_description, uint8_t opc1, uint8_t opc2, uint8_t opc3, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
     unsigned opcode_offset;
@@ -97,9 +97,9 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        opcode_address[0] = b1;   // OPC
-        opcode_address[1] = b2;   // OPC
-        opcode_address[2] = b3;   // OPC
+        opcode_address[0] = opc1; // OPC
+        opcode_address[1] = opc2; // OPC
+        opcode_address[2] = opc3; // OPC
         opcode_address[3] = 0x60; // RTS [-]
 
         if (!run_measurement(
@@ -1399,7 +1399,7 @@ bool timing_test_brk_instruction(const char * test_description)
         opcode_address[8] = 0x9a;                      // TXS          [2]
         opcode_address[9] = 0x60;                      // RTS          [-]
 
-        test_overhead_cycles = 2 + 4 + PLATFORM_SPECIFIC_IRQ_OVERHEAD + 4 + 2;
+        test_overhead_cycles = 2 + 4 + TARGET_SPECIFIC_IRQ_OVERHEAD + 4 + 2;
         instruction_cycles   = 7;
 
         oldvec = set_irq_vector_address(opcode_address + 5);

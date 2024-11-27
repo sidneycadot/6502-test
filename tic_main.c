@@ -49,14 +49,6 @@ int command_line_loop(void)
         return -1;
     }
 
-    printf("Test memory was allocated as follows:\n");
-    printf("\n");
-    printf("  TESTCODE_PTR     %p\n", TESTCODE_PTR);
-    printf("  TESTCODE_BASE    %p\n", TESTCODE_BASE);
-    printf("  TESTCODE_ANCHOR  %p\n", TESTCODE_ANCHOR);
-    printf("  TESTCODE_LAST    %p\n", TESTCODE_LAST);
-    printf("\n");
-
     for (;;)
     {
         char command[80];
@@ -111,7 +103,7 @@ int main(void)
 {
     int result;
 
-    printf("*** TIC v0.2.4 ***\n");
+    printf("*** TIC v0.2.5 ***\n");
     printf("\n");
 
     result = command_line_loop();
