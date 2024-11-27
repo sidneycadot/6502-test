@@ -65,13 +65,10 @@ _set_irq_vector_address:
 
 _zp_address_is_safe:
 
-                ldx     #0
                 cmp     #1
-                bcs     _zp_safe
                 lda     #0
-                rts
-_zp_safe:
-                lda     #1
+                adc     #0   ; iff A > 1, the carry will be set.
+                ldx     #0
                 rts
 
 _measure_cycles:
