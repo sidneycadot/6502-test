@@ -92,7 +92,7 @@ int main(void)
 {
     int result;
 
-    printf("*** TIC v0.2.3 ***\n");
+    printf("*** TIC v0.2.4 ***\n");
     printf("\n");
 
     result = command_line_loop();
