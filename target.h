@@ -38,7 +38,10 @@ void __fastcall__ pre_every_test_hook(const char * test_description);
 // The 'post_measure_cycles_hook' routine is called immediately following each call to 'measure_cycles'
 // or 'measure_cycles_zp_safe'. It reports success, and the test_count and error_count values updated
 // for the timing measurement that was executed just before.
-void __fastcall__ post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count);
+//
+// If this function returns false, execution will be terminated gracefully.
+// This feature can be used to stop a test run in progress.
+bool __fastcall__ post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count);
 
 // Enable/disable DMA and interrupts, to create a situation where the 6502 timing behaves in a way that
 // allows the 'measure_cycles' and 'measure_cycles_zp_safe' to do their job.

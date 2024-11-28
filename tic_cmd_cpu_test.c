@@ -441,7 +441,7 @@ bool run_instruction_timing_tests(void)
 void tic_cmd_cpu_test(unsigned level)
 {
     const unsigned lookup_table[8] = {1, 3, 5, 15, 17, 51, 85, 255};
-    bool result_ok;
+    bool run_finished;
 
     if (level > 7)
     {
@@ -452,15 +452,23 @@ void tic_cmd_cpu_test(unsigned level)
 
     reset_test_counts();
     pre_big_measurement_block_hook();
-    result_ok = run_instruction_timing_tests();
+    run_finished = run_instruction_timing_tests();
     post_big_measurement_block_hook();
     report_test_counts();
-    if (result_ok)
+
+    if (run_finished)
     {
         printf("ALL TESTS PASSED.\n");
     }
     else
     {
-        printf("TEST FAILED, RUN ABORTED.\n");
+        if (error_count == 0)
+        {
+            printf("TEST STOPPED, USER REQUEST.\n");
+        }
+        else
+        {
+            printf("TEST STOPPED DUE TO ERROR.\n");
+        }
     }
 }

@@ -105,7 +105,7 @@ static void print_test_report(const char * test_description, unsigned test_overh
 bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, bool save_zp_flag, ...)
 {
     unsigned actual_cycles;
-    bool success;
+    bool success, hook_result;
 
     actual_cycles = save_zp_flag ? measure_cycles_zp_safe(entrypoint) : measure_cycles(entrypoint);
     ++test_count;
@@ -117,7 +117,8 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
         ++error_count;
     }
 
-    post_every_measurement_hook(test_description, success, test_count, error_count);
+    // If hook_result is false, the hook requests termination.
+    hook_result = post_every_measurement_hook(test_description, success, test_count, error_count);
 
     if (!success)
     {
@@ -128,5 +129,5 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
         va_end(ap);
     }
 
-    return success;
+    return (success & hook_result);
 }

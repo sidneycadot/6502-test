@@ -9,6 +9,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+extern unsigned long test_count;
+extern unsigned long error_count;
+
 void reset_test_counts(void);
 bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, bool save_zp_flag, ...);
 void report_test_counts(void);

@@ -23,6 +23,7 @@
 #define COLPM0  0xd012
 #define COLPM1  0xd013
 #define COLBK   0xd01a
+#define CONSOL  0xd01f
 #define IRQEN   0xd20e
 #define DMACTL  0xd400
 #define NMIEN   0xd40e
@@ -53,8 +54,8 @@ void pre_big_measurement_block_hook(void)
     POKE(GRAFM, 0x55);
     POKE(COLPM0, 202);
     POKE(COLPM1, 14);
-    progress1 = 47;
-    progress2 = 47;
+    progress1 = 43;
+    progress2 = 43;
 }
 
 void post_big_measurement_block_hook(void)
@@ -75,9 +76,9 @@ void pre_every_test_hook(const char * test_description)
 {
     (void)test_description;
     POKE(HPOSM0, progress1);
-    if (progress1 == 206)
+    if (progress1 == 210)
     {
-        progress1 = 47;
+        progress1 = 43;
     }
     else
     {
@@ -85,20 +86,23 @@ void pre_every_test_hook(const char * test_description)
     }
 }
 
-void post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count)
+bool post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count)
 {
     (void)test_description;
     (void)success;
+    (void)test_count;
     (void)error_count;
     POKE(HPOSM1, progress2);
-    if (progress2 == 206)
+    if (progress2 == 210)
     {
-        progress2 = 47;
+        progress2 = 43;
     }
     else
     {
         ++progress2;
     }
+
+    return PEEK(CONSOL) == 7; // Continue if no buttons have been pushed.
 }
 
 bool zp_address_is_safe(uint8_t address)

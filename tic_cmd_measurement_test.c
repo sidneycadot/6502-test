@@ -57,6 +57,8 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
     pre_big_measurement_block_hook();
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
+        pre_every_test_hook("measurement test");
+
         for (instruction_cycles = min_cycle_count; instruction_cycles <= max_cycle_count; ++instruction_cycles)
         {
             if (instruction_cycles == 1)
