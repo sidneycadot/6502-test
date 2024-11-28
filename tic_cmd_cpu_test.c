@@ -451,9 +451,9 @@ void tic_cmd_cpu_test(unsigned level)
     STEP_SIZE = lookup_table[7 - level];
 
     reset_test_counts();
-    dma_and_interrupts_off();
+    pre_measurements_hook();
     result_ok = run_instruction_timing_tests();
-    dma_and_interrupts_on();
+    post_measurements_hook();
     report_test_counts();
     if (result_ok)
     {

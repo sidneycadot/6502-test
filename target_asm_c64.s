@@ -1,6 +1,6 @@
 
-                .export _dma_and_interrupts_off
-                .export _dma_and_interrupts_on
+                .export _pre_measurements_hook
+                .export _post_measurements_hook
                 .export _set_irq_vector_address
                 .export _zp_address_is_safe
                 .export _measure_cycles
@@ -9,7 +9,7 @@
 
                 .code
 
-_dma_and_interrupts_off:
+_pre_measurements_hook:
 
                 sei                     ; Disable interrupts.
 
@@ -41,7 +41,7 @@ _raster_031_wait:
 
                 rts
 
-_dma_and_interrupts_on:
+_post_measurements_hook:
 
                 lda     #$1b            ; Restore the screen.
                 sta     VIC_CTRL1
@@ -53,7 +53,8 @@ _dma_and_interrupts_on:
 
 _set_irq_vector_address:
 
-                ; Set BRKVec (the IRQ handler address) to AX, and return the old address in AX.
+                ; Set BRKVec, the IRQ handler address for software IRQs caused by the BRK instructions,
+                ; to AX, and return the old address in AX.
 
                 ldy     BRKVec                          ; old vector, LSB
                 sta     BRKVec                          ; new vector, LSB

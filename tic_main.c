@@ -13,6 +13,7 @@
 #include "timing_test_memory.h"
 #include "tic_cmd_measurement_test.h"
 #include "tic_cmd_cpu_test.h"
+#include "target.h"
 
 void tic_cmd_help(void)
 {
@@ -103,10 +104,14 @@ int main(void)
 {
     int result;
 
-    printf("*** TIC v0.2.5 ***\n");
+    program_start_hook();
+
+    printf("*** TIC v0.2.6 ***\n");
     printf("\n");
 
     result = command_line_loop();
+
+    program_end_hook();
 
     return (result == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

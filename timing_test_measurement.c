@@ -112,13 +112,16 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
 
     success = (actual_cycles == test_overhead_cycles + instruction_cycles);
 
-    measurement_live_report(test_description, test_count, success);
+    if (!success)
+    {
+        ++error_count;
+    }
+
+    post_measurement_cycles_hook(test_description, success, test_count, error_count);
 
     if (!success)
     {
         va_list ap;
-
-        ++error_count;
         // Print an error report.
         va_start(ap, save_zp_flag);
         print_test_report(test_description, test_overhead_cycles,instruction_cycles, actual_cycles, ap);

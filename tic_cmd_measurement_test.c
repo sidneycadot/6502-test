@@ -54,7 +54,7 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
     unsigned instruction_cycles, repeat_index;
 
     reset_test_counts();
-    dma_and_interrupts_off();
+    pre_measurements_hook();
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
         for (instruction_cycles = min_cycle_count; instruction_cycles <= max_cycle_count; ++instruction_cycles)
@@ -75,6 +75,6 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
             );
         }
     }
-    dma_and_interrupts_on();
+    post_measurements_hook();
     report_test_counts();
 }
