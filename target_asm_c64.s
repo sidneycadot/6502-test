@@ -1,6 +1,6 @@
 
-                .export _pre_measurements_hook
-                .export _post_measurements_hook
+                .export _pre_big_measurement_block_hook
+                .export _post_big_measurement_block_hook
                 .export _set_irq_vector_address
                 .export _zp_address_is_safe
                 .export _measure_cycles
@@ -9,7 +9,7 @@
 
                 .code
 
-_pre_measurements_hook:
+_pre_big_measurement_block_hook:
 
                 sei                     ; Disable interrupts.
 
@@ -41,7 +41,7 @@ _raster_031_wait:
 
                 rts
 
-_post_measurements_hook:
+_post_big_measurement_block_hook:
 
                 lda     #$1b            ; Restore the screen.
                 sta     VIC_CTRL1

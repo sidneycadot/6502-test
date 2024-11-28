@@ -451,9 +451,9 @@ void tic_cmd_cpu_test(unsigned level)
     STEP_SIZE = lookup_table[7 - level];
 
     reset_test_counts();
-    pre_measurements_hook();
+    pre_big_measurement_block_hook();
     result_ok = run_instruction_timing_tests();
-    post_measurements_hook();
+    post_big_measurement_block_hook();
     report_test_counts();
     if (result_ok)
     {

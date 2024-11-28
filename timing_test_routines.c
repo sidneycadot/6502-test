@@ -46,6 +46,8 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
     unsigned opcode_offset;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -68,6 +70,8 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
     // LOOPS: opcode_offset
     unsigned opcode_offset;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -92,6 +96,8 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
     // LOOPS: opcode_offset
     unsigned opcode_offset;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -126,6 +132,8 @@ bool timing_test_read_immediate_instruction(const char * test_description, uint8
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -158,6 +166,8 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
     unsigned zp_address;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -196,6 +206,8 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -241,6 +253,8 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -285,6 +299,8 @@ bool timing_test_read_abs_instruction(const char * test_description, uint8_t opc
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -320,6 +336,8 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
     unsigned address_offset, reg_x;
     unsigned instruction_cycles, test_overhead_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -362,6 +380,8 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -408,6 +428,8 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
     unsigned zp_ptr_hi_address;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -472,6 +494,8 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
     unsigned zp_ptr_lo_address;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -541,6 +565,8 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -578,6 +604,8 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -623,6 +651,8 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -667,6 +697,8 @@ bool timing_test_write_abs_instruction(const char * test_description, uint8_t op
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -702,6 +734,8 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
     unsigned address_offset, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -744,6 +778,8 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -790,6 +826,8 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
     unsigned zp_ptr_hi_address;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -854,6 +892,8 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
     unsigned zp_ptr_lo_address;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -923,6 +963,8 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -960,6 +1002,8 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1005,6 +1049,8 @@ bool timing_test_read_modify_write_abs_instruction(const char * test_description
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1040,6 +1086,8 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
     unsigned address_offset, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1101,6 +1149,8 @@ static bool timing_test_branch_instruction_taken(const char * test_description, 
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *entry_address;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1164,6 +1214,8 @@ static bool timing_test_branch_instruction_not_taken(const char * test_descripti
     uint8_t *entry_address;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         entry_address = TESTCODE_BASE;
@@ -1215,6 +1267,8 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
 
     char augmented_test_description[40];
 
+    pre_every_test_hook(test_description);
+
     sprintf(augmented_test_description, "%s - taken", test_description);
     if (!timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value))
     {
@@ -1236,6 +1290,8 @@ bool timing_test_jmp_abs_instruction(const char * test_description)
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1265,6 +1321,8 @@ bool timing_test_jmp_indirect_instruction(const char * test_description)
     unsigned opcode_offset, address_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1315,6 +1373,8 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
 
+    pre_every_test_hook(test_description);
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1346,6 +1406,8 @@ bool timing_test_rts_instruction(const char * test_description)
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1383,6 +1445,8 @@ bool timing_test_brk_instruction(const char * test_description)
     uint8_t *opcode_address;
     uint8_t *oldvec;
     bool success;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1427,6 +1491,8 @@ bool timing_test_rti_instruction(const char * test_description)
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {

@@ -54,7 +54,7 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
     unsigned instruction_cycles, repeat_index;
 
     reset_test_counts();
-    pre_measurements_hook();
+    pre_big_measurement_block_hook();
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
         for (instruction_cycles = min_cycle_count; instruction_cycles <= max_cycle_count; ++instruction_cycles)
@@ -75,6 +75,6 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
             );
         }
     }
-    post_measurements_hook();
+    post_big_measurement_block_hook();
     report_test_counts();
 }

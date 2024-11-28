@@ -117,7 +117,7 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
         ++error_count;
     }
 
-    post_measurement_cycles_hook(test_description, success, test_count, error_count);
+    post_every_measurement_hook(test_description, success, test_count, error_count);
 
     if (!success)
     {

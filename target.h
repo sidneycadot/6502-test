@@ -19,23 +19,26 @@
 // Use it to clear the screen, set nice colors, and so on.
 void __fastcall__ program_start_hook(void);
 
+// This will be called once at the end of the program.
+void __fastcall__ program_end_hook(void);
+
 // The 'pre_measurement_hook' routine will be called before zero or more (but typically: dozens
 // or hundreds) timing measurements are made. Use it to create an environment where the
 // measure_cycles() routine can reliably do its work.
 // Typically, this would mean things like disabling interrupts, and disabling video chip DMA.
-void __fastcall__ pre_measurements_hook(void);
+void __fastcall__ pre_big_measurement_block_hook(void);
+
+// This will be a number of measurements have been completed, and no more measurements are forthcoming soom.
+// Use it to undo the actions done in the 'post_measurements_hook' routine.
+void __fastcall__ post_big_measurement_block_hook(void);
+
+// This is called before testing a specific opcode.
+void __fastcall__ pre_every_test_hook(const char * test_description);
 
 // The 'post_measure_cycles_hook' routine is called immediately following each call to 'measure_cycles'
 // or 'measure_cycles_zp_safe'. It reports success, and the test_count and error_count values updated
 // for the timing measurement that was executed just before.
-void __fastcall__ post_measurement_cycles_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count);
-
-// This will be a number of measurements have been completed, and no more measurements are forthcoming soom.
-// Use it to undo the actions done in the 'post_measurements_hook' routine.
-void __fastcall__ post_measurements_hook(void);
-
-// This will be called once at the end of the program.
-void __fastcall__ program_end_hook(void);
+void __fastcall__ post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count);
 
 // Enable/disable DMA and interrupts, to create a situation where the 6502 timing behaves in a way that
 // allows the 'measure_cycles' and 'measure_cycles_zp_safe' to do their job.

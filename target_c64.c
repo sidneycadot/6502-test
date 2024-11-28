@@ -16,7 +16,11 @@ void program_end_hook(void)
 {
 }
 
-void post_measurement_cycles_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count)
+void pre_every_test_hook(const char * test_description)
+{
+}
+
+void post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count)
 {
     (void)test_description;
     (void)success;
