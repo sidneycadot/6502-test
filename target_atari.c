@@ -113,7 +113,7 @@ bool zp_address_is_safe(uint8_t address)
 
 uint8_t * set_irq_vector_address(uint8_t * newvec)
 {
-    uint8_t * oldvec = PEEKW(VIMIRQ);
-    POKEW(VIMIRQ, newvec);
+    uint8_t * oldvec = (uint8_t *)PEEKW(VIMIRQ);
+    POKEW(VIMIRQ, (uint16_t)newvec);
     return oldvec;
 }

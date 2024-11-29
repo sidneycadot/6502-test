@@ -13,6 +13,8 @@
 
 unsigned STEP_SIZE = 85;
 
+#define DEFAULT_RUN_FLAGS (F_STOP_ON_ERROR)
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
 //                                              TRIVIAL SUPPORT ROUTINES                                             //
@@ -57,7 +59,7 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
 
         if (!run_measurement(
             test_description,
-            0, instruction_cycles, opcode_address, false,
+            0, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         )) return false;
@@ -83,7 +85,7 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, false,
+            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         )) return false;
@@ -110,7 +112,7 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, false,
+            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         )) return false;
@@ -149,7 +151,7 @@ bool timing_test_read_immediate_instruction(const char * test_description, uint8
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, false,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "operand", operand,
                 NULL
@@ -189,7 +191,7 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, false,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "zp address", zp_address,
                 NULL
@@ -198,6 +200,7 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
     }
     return true;
 }
+
 
 bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
@@ -233,7 +236,7 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, false,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
@@ -279,7 +282,7 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, false,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "Y register", reg_y,
@@ -319,7 +322,7 @@ bool timing_test_read_abs_instruction(const char * test_description, uint8_t opc
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, false,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "address offset", address_offset,
                 NULL
@@ -361,7 +364,7 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, false,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
@@ -405,7 +408,7 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, false,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "Y register", reg_y,
@@ -471,7 +474,7 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
 
                     if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, true,
+                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp base address", zp_base_address,
                         "X register", reg_x,
@@ -537,7 +540,7 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
 
                     if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, true,
+                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp ptr address", zp_ptr_lo_address,
                         "address offset", address_offset,
@@ -587,7 +590,7 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, true,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "zp address", zp_address,
                 NULL
@@ -631,7 +634,7 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, true,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
@@ -677,7 +680,7 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, true,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "Y register", reg_y,
@@ -717,7 +720,7 @@ bool timing_test_write_abs_instruction(const char * test_description, uint8_t op
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, false,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "address offset", address_offset,
                 NULL
@@ -759,7 +762,7 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, false,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
@@ -803,7 +806,7 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, false,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "Y register", reg_y,
@@ -869,7 +872,7 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
 
                     if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, true,
+                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp base address", zp_base_address,
                         "address offset", address_offset,
@@ -935,7 +938,7 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
 
                 if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, true,
+                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp address", zp_ptr_lo_address,
                         "address offset", address_offset,
@@ -985,7 +988,7 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, true,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "zp address", zp_address,
                 NULL
@@ -1029,7 +1032,7 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, true,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
@@ -1069,7 +1072,7 @@ bool timing_test_read_modify_write_abs_instruction(const char * test_description
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, false,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "address offset", address_offset,
                 NULL
@@ -1111,7 +1114,7 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, false,
+                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
@@ -1186,7 +1189,7 @@ static bool timing_test_branch_instruction_taken(const char * test_description, 
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, entry_address, false,
+                test_overhead_cycles, instruction_cycles, entry_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "operand", operand,
                 NULL
@@ -1242,7 +1245,7 @@ static bool timing_test_branch_instruction_not_taken(const char * test_descripti
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, entry_address, false,
+                test_overhead_cycles, instruction_cycles, entry_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 "operand", operand,
                 NULL
@@ -1307,7 +1310,7 @@ bool timing_test_jmp_abs_instruction(const char * test_description)
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, false,
+            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         )) return false;
@@ -1357,7 +1360,7 @@ bool timing_test_jmp_indirect_instruction(const char * test_description)
 
             if (!run_measurement(
                 test_description,
-                test_overhead_cycles, instruction_cycles, opcode_address, false,
+                test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
                 "opcode offset", opcode_offset,
                 NULL
             )) return false;
@@ -1391,7 +1394,7 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, false,
+            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         )) return false;
@@ -1429,7 +1432,7 @@ bool timing_test_rts_instruction(const char * test_description)
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, false,
+            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         )) return false;
@@ -1444,7 +1447,7 @@ bool timing_test_brk_instruction(const char * test_description)
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
     uint8_t *oldvec;
-    bool success;
+    bool proceed;
 
     pre_every_test_hook(test_description);
 
@@ -1468,16 +1471,16 @@ bool timing_test_brk_instruction(const char * test_description)
 
         oldvec = set_irq_vector_address(opcode_address + 5);
 
-        success = run_measurement(
+        proceed = run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, false,
+            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         );
 
         set_irq_vector_address(oldvec);
 
-        if (!success)
+        if (!proceed)
         {
             return false;
         }
@@ -1513,7 +1516,7 @@ bool timing_test_rti_instruction(const char * test_description)
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, false,
+            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         ))

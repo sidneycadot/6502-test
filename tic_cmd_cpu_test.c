@@ -7,6 +7,7 @@
 
 #include "timing_test_routines.h"
 #include "timing_test_measurement.h"
+#include "timing_test_zeropage_backup.h"
 #include "target.h"
 
 #include "tic_cmd_cpu_test.h"
@@ -441,7 +442,7 @@ bool run_instruction_timing_tests(void)
 void tic_cmd_cpu_test(unsigned level)
 {
     const unsigned lookup_table[8] = {1, 3, 5, 15, 17, 51, 85, 255};
-    bool run_finished;
+    bool run_completed;
 
     if (level > 7)
     {
@@ -452,11 +453,17 @@ void tic_cmd_cpu_test(unsigned level)
 
     reset_test_counts();
     pre_big_measurement_block_hook();
-    run_finished = run_instruction_timing_tests();
+
+    save_zero_page();
+
+    run_completed = run_instruction_timing_tests();
+
+    restore_zero_page();
+
     post_big_measurement_block_hook();
     report_test_counts();
 
-    if (run_finished)
+    if (run_completed)
     {
         printf("ALL TESTS PASSED.\n");
     }
@@ -464,7 +471,7 @@ void tic_cmd_cpu_test(unsigned level)
     {
         if (error_count == 0)
         {
-            printf("TEST STOPPED, USER REQUEST.\n");
+            printf("TEST STOPPED BY USER REQUEST.\n");
         }
         else
         {

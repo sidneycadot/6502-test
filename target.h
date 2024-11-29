@@ -77,14 +77,6 @@ int16_t __fastcall__ measure_cycles(uint8_t * code);
 
 uint8_t * __fastcall__  set_irq_vector_address(uint8_t * newvec);
 
-////////////////////////////////////////////////////////////
-//                                                        //
-//  PROTOTYPES FOR GENERIC TARGET-INDEPENDENT) FUNCTIONS  //
-//                                                        //
-////////////////////////////////////////////////////////////
-
-int16_t __fastcall__ measure_cycles_zp_safe(uint8_t * code);
-
 ///////////////////////////////////////////////////////////
 //                                                       //
 //  CONSTANTS THAT ARE SPECIFIC TO EACH SUPPRTED TARGET  //

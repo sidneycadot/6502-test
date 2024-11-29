@@ -44,17 +44,14 @@ static void generate_code(uint8_t * code, unsigned cycles)
     *code++ = 0x60;                 // RTS             [-]
 }
 
-void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsigned max_cycle_count)
+static bool run_measurement_tests(unsigned repeats, unsigned min_cycle_count, unsigned max_cycle_count)
 {
-    // This command runs a test on the time measurement code itself.
-    // It does this by generating straightforward 6502 code to burn a desired number of instruction
-    // cycles, then executing the 'measure_cycles' routine to verify that the number of cycles measured
-    // is equal to the number of cycles the code was expected to take.
+    // Generate straightforward 6502 code to burn a desired number of instruction cycles, then
+    // execute the 'measure_cycles' routine on the genrated code to verify that the number of cycles
+    // measured is equal to the number of cycles the code was expected to take.
 
     unsigned instruction_cycles, repeat_index;
 
-    reset_test_counts();
-    pre_big_measurement_block_hook();
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
         pre_every_test_hook("measurement test");
@@ -69,14 +66,24 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
 
             generate_code(TESTCODE_BASE, instruction_cycles);
 
-            // Note that we do not bail out in case of errors!
-            run_measurement(
+            // Note that we do not bail out in case of errors.
+            if (!run_measurement(
                 "measurement test",
-                0, instruction_cycles, TESTCODE_BASE, false,
+                0, instruction_cycles, TESTCODE_BASE, F_NONE,
                 NULL
-            );
+            )) return false;
         }
     }
+    return true;
+}
+
+void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsigned max_cycle_count)
+{
+    // This command runs a test on the time measurement code itself.
+
+    reset_test_counts();
+    pre_big_measurement_block_hook();
+    run_measurement_tests(repeats, min_cycle_count, max_cycle_count);
     post_big_measurement_block_hook();
     report_test_counts();
 }

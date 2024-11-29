@@ -102,12 +102,12 @@ static void print_test_report(const char * test_description, unsigned test_overh
 }
 
 
-bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, bool save_zp_flag, ...)
+bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, uint8_t flags, ...)
 {
     unsigned actual_cycles;
     bool success, hook_result;
 
-    actual_cycles = save_zp_flag ? measure_cycles_zp_safe(entrypoint) : measure_cycles(entrypoint);
+    actual_cycles = measure_cycles(entrypoint);
     ++test_count;
 
     success = (actual_cycles == test_overhead_cycles + instruction_cycles);
@@ -124,10 +124,15 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
     {
         va_list ap;
         // Print an error report.
-        va_start(ap, save_zp_flag);
+        va_start(ap, flags);
         print_test_report(test_description, test_overhead_cycles,instruction_cycles, actual_cycles, ap);
         va_end(ap);
+
+        if (flags & F_STOP_ON_ERROR)
+        {
+            return false;
+        }
     }
 
-    return (success & hook_result);
+    return hook_result;
 }
