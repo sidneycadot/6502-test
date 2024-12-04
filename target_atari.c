@@ -31,8 +31,18 @@
 static unsigned progress1; // test types
 static unsigned progress2; // tests
 
+static uint8_t SAVE_LMARGN;
+static uint8_t SAVE_COLOR1;
+static uint8_t SAVE_COLOR2;
+static uint8_t SAVE_COLOR4;
+
 void program_start_hook(void)
 {
+    SAVE_LMARGN = PEEK(LMARGN);
+    SAVE_COLOR1 = PEEK(COLOR1);
+    SAVE_COLOR2 = PEEK(COLOR2);
+    SAVE_COLOR4 = PEEK(COLOR4);
+
     POKE(LMARGN, 0);
     POKE(COLOR1, 14);
     POKE(COLOR2, 116);
@@ -42,6 +52,10 @@ void program_start_hook(void)
 
 void program_end_hook(void)
 {
+    POKE(LMARGN, SAVE_LMARGN);
+    POKE(COLOR1, SAVE_COLOR1);
+    POKE(COLOR2, SAVE_COLOR2);
+    POKE(COLOR4, SAVE_COLOR4);
 }
 
 void pre_big_measurement_block_hook(void)
