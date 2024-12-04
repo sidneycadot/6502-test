@@ -54,7 +54,7 @@ _measure_cycles:
                 sta     RANDOM_T1+1                     ; [4 / 35]
 
                 ; First, push return address from the testcode.
-                ; Once we're in the test code and reach an RTCS, we should return back to the '@return_from_testcode' address.
+                ; Once we're in the test code and reach an RTS, we should return back to the '@return_from_testcode' address.
 
                 lda     #>(@return_from_testcode - 1)   ; [2 / 33]
                 pha                                     ; [3 / 30]
