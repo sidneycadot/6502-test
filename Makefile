@@ -7,16 +7,20 @@ default:
 	@echo
 	@echo "  make atari"
 	@echo "  make c64"
+	@echo "  make sim65"
 	@echo "  make all"
 	@echo
 
-all  : atari c64
+all  : atari c64 sim65
 
 atari :
 	$(MAKE) tic_atari.xex TIC_TARGET=atari TIC_TARGET_UPPERCASE=ATARI TIC_TARGET_EXTENSION=xex
 
 c64 :
 	$(MAKE) tic_c64.prg TIC_TARGET=c64 TIC_TARGET_UPPERCASE=C64 TIC_TARGET_EXTENSION=prg
+
+sim65 :
+	$(MAKE) tic_sim6502.prg TIC_TARGET=sim6502 TIC_TARGET_UPPERCASE=SIM6502 TIC_TARGET_EXTENSION=prg
 
 # A convenience target to facilitate rapid development for the Atari.
 prep-atari : atari
