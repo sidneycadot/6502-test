@@ -1,7 +1,0 @@
-*~
-*.o
-*.xex
-*.prg
-target_atari.s
-target_c64.s
-atari
