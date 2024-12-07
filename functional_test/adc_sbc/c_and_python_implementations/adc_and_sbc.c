@@ -1,6 +1,6 @@
 
 ///////////////////
-// adc_and_sbc.h //
+// adc_and_sbc.c //
 ///////////////////
 
 #include "adc_and_sbc.h"
@@ -49,7 +49,7 @@ static inline struct OpResult sbc_binary_mode(const bool initial_carry_flag, con
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
-//                                                         6502 versions                                                        //
+//                                                         6502-specific versions                                               //
 //                                                                                                                              //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -128,21 +128,9 @@ static inline struct OpResult sbc_6502_decimal_mode(const bool initial_carry_fla
     return result;
 }
 
-struct OpResult adc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
-{
-    return decimal_flag ? adc_6502_decimal_mode(initial_carry_flag, initial_accumulator, operand)
-                        : adc_binary_mode      (initial_carry_flag, initial_accumulator, operand);
-}
-
-struct OpResult sbc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
-{
-    return decimal_flag ? sbc_6502_decimal_mode(initial_carry_flag, initial_accumulator, operand)
-                        : sbc_binary_mode      (initial_carry_flag, initial_accumulator, operand);
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
-//                                                         65C02 versions                                                       //
+//                                                     65C02-specific versions                                                  //
 //                                                                                                                              //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -210,6 +198,24 @@ static inline struct OpResult sbc_65c02_decimal_mode(const bool initial_carry_fl
     result.FlagC = !borrow;
 
     return result;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                              //
+//                                                          Entry Points                                                        //
+//                                                                                                                              //
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct OpResult adc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
+{
+    return decimal_flag ? adc_6502_decimal_mode(initial_carry_flag, initial_accumulator, operand)
+                        : adc_binary_mode      (initial_carry_flag, initial_accumulator, operand);
+}
+
+struct OpResult sbc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
+{
+    return decimal_flag ? sbc_6502_decimal_mode(initial_carry_flag, initial_accumulator, operand)
+                        : sbc_binary_mode      (initial_carry_flag, initial_accumulator, operand);
 }
 
 struct OpResult adc_65c02(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
