@@ -211,13 +211,13 @@ def test_sbc_decimal_mode_65c02(testcases):
     xlo    = xlo % 16
 
     xhi    = iahi - ophi - borrow
+    xhi   -= STRANGE
 
     xn = (xhi & 8) != 0
     xv = ((ia >= 0x80) ^ xn) & (((255-op) >= 0x80) ^ xn)
 
     borrow = xhi >= 0x80
     xhi    = xhi + 10 * borrow
-    xhi   -= STRANGE
     xhi    = xhi % 16
 
     xa    = xhi * 16 + xlo
