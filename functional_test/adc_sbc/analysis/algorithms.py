@@ -7,19 +7,17 @@ testcases = np.load("testcases.npy")
 def getbit(n, bitnum):
     return (n >> bitnum) & 1
 
-def as_signed_int(x):
-    if x >= 0x80:
-        x -= 0x100
-    return x
-
 def adc_binary_6502(initial_carry_flag, initial_accumulator, operand):
     """This implementation reproduces the behavior of the 6502 and 65C02 perfectly."""
+
+    initial_accumulator_negative_flag = getbit(initial_accumulator, 7)
+    operand_negative_flag = getbit(operand, 7)
 
     final_accumulator   = (initial_accumulator + operand + initial_carry_flag) % 256
     final_negative_flag = getbit(final_accumulator, 7)
     final_zero_flag     = int(final_accumulator == 0)
     final_carry_flag    = int((initial_carry_flag + initial_accumulator + operand) > 0xff)
-    final_overflow_flag = int(   (as_signed_int(initial_accumulator) + as_signed_int(operand) + initial_carry_flag) != as_signed_int(final_accumulator)   )
+    final_overflow_flag = (initial_accumulator_negative_flag ^ final_negative_flag) & (operand_negative_flag ^ final_negative_flag)
 
     assert isinstance(final_accumulator, int) and 0 <= final_accumulator <= 255
     assert final_negative_flag in (0, 1)
@@ -54,7 +52,7 @@ def adc_decimal_6502(initial_carry_flag, initial_accumulator, operand):
         #    }                                                   \
         #} else {                                                \
 
-    return adc_binary_6502(initial_carry_flag, initial_accumulator, operand)
+    #return adc_binary_6502(initial_carry_flag, initial_accumulator, operand)
 
     final_accumulator   = None
     final_negative_flag = None
@@ -79,7 +77,7 @@ def sbc_binary_6502(initial_carry_flag, initial_accumulator, operand):
     """This implementation reproduces the behavior of the 6502 and 65C02 perfectly.
     The binary SBC operation is identical to the ADC operation with the operand bitwise inverted.
     """
-    #return sbc_binary_6502(initial_carry_flag, initial_accumulator, 255 - operand)
+    return adc_binary_6502(initial_carry_flag, initial_accumulator, operand ^ 0xff)
 
 def sbc_decimal_6502(initial_carry_flag, initial_accumulator, operand):
     final_accumulator   = None
@@ -121,17 +119,15 @@ for testcase in testcases:
 
     if (processor, operation, decimal_flag) != (1, +1, 1):
         continue
-    #if decimal_flag == 0:
+    #if not(decimal_flag == 1):
     #    continue
 
     func = function_map[(processor, operation, decimal_flag)]
 
-    #print(processor, operation, decimal_flag, initial_carry_flag, initial_accumulator, operand, final_accumulator, final_negative_flag, final_overflow_flag, final_zero_flag, final_carry_flag)
-
     (calc_accumulator, calc_negative_flag, calc_overflow_flag, calc_zero_flag, calc_carry_flag) = func(initial_carry_flag, initial_accumulator, operand)
 
-    #ok = (calc_accumulator, calc_negative_flag, calc_overflow_flag, calc_zero_flag, calc_carry_flag) == (final_accumulator, final_negative_flag, final_overflow_flag, final_zero_flag, final_carry_flag)
-    ok = (calc_carry_flag == final_carry_flag)
+    ok = (calc_accumulator, calc_negative_flag, calc_overflow_flag, calc_zero_flag, calc_carry_flag) == (final_accumulator, final_negative_flag, final_overflow_flag, final_zero_flag, final_carry_flag)
+    #ok = (calc_carry_flag == final_carry_flag)
 
     if not ok:
         print((processor, operation, decimal_flag), "C", initial_carry_flag, "A", initial_accumulator, "OP", operand, "| A", final_accumulator, final_negative_flag, final_overflow_flag, final_zero_flag, final_carry_flag)
@@ -142,12 +138,3 @@ for testcase in testcases:
     count_good += ok
 
 print("count", count, "count_good", count_good)
-
-# 1 1 1 0 0 10 16 0 0 0 0
-
-# 1 1 1 | c 0 a 86 op 234 | 166 0 0 0 1
-#
-# 0000 0000
-# 0000 1010
-# -----------
-# 0001 0000

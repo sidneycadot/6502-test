@@ -40,4 +40,4 @@ testcase_dtype = np.dtype(
 
 testcases = np.array(testcase_list, dtype=testcase_dtype)
 
-#np.save('testcases.npy', testcases)
+np.save('testcases.npy', testcases)
