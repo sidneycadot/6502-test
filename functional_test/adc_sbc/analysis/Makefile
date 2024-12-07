@@ -10,7 +10,7 @@ DATAFILES = adc_sbc_6502.dat adc_sbc_65c02.dat
 default : test_adc_and_sbc $(DATAFILES)
 	./test_adc_and_sbc
 
-show : testcases.npy
+show : testcases.npy $(DATAFILES)
 	./show_testcases.py
 
 $(DATAFILES) : make_reference_files MD5SUM
@@ -25,4 +25,4 @@ testcases.npy : preprocess.py $(DATAFILES)
 	./preprocess.py
 
 clean :
-	$(RM) test_adc_and_sbc testcases.npy *~ $(DATAFILES)
+	$(RM) test_adc_and_sbc make_reference_files testcases.npy *~ $(DATAFILES)
