@@ -204,20 +204,19 @@ def test_sbc_decimal_mode_65c02(testcases):
 
     xlo    = ialo - oplo - borrow
 
-    STRANGE = xlo.astype(np.int8) < -10
-
-    borrow = xlo >= 0x80
+    borrow = (xlo >> 7)
     xlo    = xlo + 10 * borrow
+    xlo_negative = (xlo >> 7)   # xlo still being negative, strangely, influences the high nibble.
     xlo    = xlo % 16
 
     xhi    = iahi - ophi - borrow
-    xhi   -= STRANGE
 
     xn = (xhi & 8) != 0
-    xv = ((ia >= 0x80) ^ xn) & (((255-op) >= 0x80) ^ xn)
+    xv = ((ia >= 0x80) ^ xn) & ((op < 0x80) ^ xn)
 
-    borrow = xhi >= 0x80
+    borrow = (xhi >> 7)
     xhi    = xhi + 10 * borrow
+    xhi   -= xlo_negative
     xhi    = xhi % 16
 
     xa    = xhi * 16 + xlo
