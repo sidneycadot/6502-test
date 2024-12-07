@@ -14,7 +14,7 @@ operations = (
     ("SBC/decimal", -1, 1),
 )
 
-for initial_carry_flag in (0, ):
+for initial_carry_flag in (0, 1):
 
     for (operation_name, operation, decimal_flag) in operations:
 
