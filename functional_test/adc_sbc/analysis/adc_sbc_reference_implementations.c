@@ -14,7 +14,7 @@ struct OpResult
     bool     FlagC;
 };
 
-struct OpResult read_op_result(FILE * fi)
+void read_op_result(FILE * fi, struct OpResult * op_result)
 {
     struct {
         uint8_t A;
@@ -24,15 +24,39 @@ struct OpResult read_op_result(FILE * fi)
     size_t fread_result = fread(&AP, 1, sizeof(AP), fi);
     assert(fread_result == sizeof(AP));
 
-    struct OpResult result;
+    op_result->Accumulator = AP.A;
+    op_result->FlagN = (AP.P & 0x80) != 0;
+    op_result->FlagV = (AP.P & 0x40) != 0;
+    op_result->FlagZ = (AP.P & 0x02) != 0;
+    op_result->FlagC = (AP.P & 0x01) != 0;
+}
 
-    result.Accumulator = AP.A;
-    result.FlagN = (AP.P & 0x80) != 0;
-    result.FlagV = (AP.P & 0x40) != 0;
-    result.FlagZ = (AP.P & 0x02) != 0;
-    result.FlagC = (AP.P & 0x01) != 0;
+struct ReferenceDataEntry
+{
+    struct OpResult adc;
+    struct OpResult sbc;
+};
 
-    return result;
+typedef struct ReferenceDataEntry ReferenceDataArray[2][2][256][256];
+
+void read_reference_data(const char * filename, ReferenceDataArray reference_data)
+{
+    FILE * fi = fopen(filename, "rb");
+    for (unsigned decimal_flag = 0; decimal_flag <= 1; ++decimal_flag)
+    {
+        for (unsigned initial_carry_flag = 0; initial_carry_flag <= 1; ++initial_carry_flag)
+        {
+            for (unsigned initial_accumulator = 0; initial_accumulator <= 0xff; ++initial_accumulator)
+            {
+                for (unsigned operand = 0; operand <= 0xff; ++operand)
+                {
+                    read_op_result(fi, &reference_data[decimal_flag][initial_carry_flag][initial_accumulator][operand].adc);
+                    read_op_result(fi, &reference_data[decimal_flag][initial_carry_flag][initial_accumulator][operand].sbc);
+                }
+            }
+        }
+    }
+    fclose(fi);
 }
 
 bool identical_full(struct OpResult * op1, struct OpResult * op2)
@@ -46,6 +70,16 @@ bool identical_full(struct OpResult * op1, struct OpResult * op2)
 }
 
 bool identical(struct OpResult * op1, struct OpResult * op2)
+{
+    return
+        (op1->Accumulator == op2->Accumulator) &&
+        (op1->FlagN == op2->FlagN) &&
+        (op1->FlagV == op2->FlagV) &&
+        (op1->FlagZ == op2->FlagZ);
+        //(op1->FlagC == op2->FlagC);
+}
+
+bool identical_partial(struct OpResult * op1, struct OpResult * op2)
 {
     return
         (op1->Accumulator) == (op2->Accumulator);
@@ -76,37 +110,36 @@ inline struct OpResult adc_6502_binary_mode(const bool initial_carry_flag, const
 
 inline struct OpResult adc_6502_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    struct OpResult result;
+    // For the 6502 ADC instruction in decimal mode, the Z flag behaves as if we're in binary mode.
+    struct OpResult result = adc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
 
-    // The N, V, and Z flags are identical to the binary-mode result.
+    // For the 6502 ADC instruction in decimal mode, the Accumulator and the N, V, and C flags behave differently.
 
-    unsigned a_lo = initial_accumulator & 15;
-    unsigned a_hi = initial_accumulator >> 4;
+    bool carry = initial_carry_flag;
 
-    unsigned o_lo = operand & 15;
-    unsigned o_hi = operand >> 4;
-
-    unsigned carry = initial_carry_flag;
-
-    unsigned x_lo = (a_lo + o_lo + carry);
-
-    carry = (x_lo >= 10);
-
+    uint8_t low_nibble = carry + (initial_accumulator & 15) + (operand & 15);
+    carry = (low_nibble > 9);
     if (carry)
     {
-        x_lo = (x_lo - 10) & 15;
+        low_nibble -= 10;
     }
+    low_nibble &= 15;
 
-    unsigned x_hi = (a_hi + o_hi + carry);
+    uint8_t high_nibble = carry + (initial_accumulator >> 4) + (operand >> 4);
 
-    x_hi &= 15;
+    // For ADC, the N and V flags are determined based on the high nibble calculated before carry-correction.
+    result.FlagN = (high_nibble & 8) != 0;
+    result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand >= 0x80) ^ result.FlagN);
 
-    struct OpResult binary_result = adc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
+    carry = high_nibble > 9;
+    if (carry)
+    {
+        high_nibble -= 10;
+    }
+    high_nibble &= 15;
 
-    result.Accumulator = (x_hi << 4) | x_lo;
-    result.FlagV = binary_result.FlagV;
-    result.FlagN = binary_result.FlagN;
-    result.FlagZ = binary_result.FlagZ;
+    result.Accumulator = (high_nibble << 4) | low_nibble;
+    result.FlagC = carry;
 
     return result;
 }
@@ -125,15 +158,31 @@ inline struct OpResult sbc_6502_binary_mode(const bool initial_carry_flag, const
 
 inline struct OpResult sbc_6502_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    struct OpResult result;
+    // For the 6502 SBC instruction in decimal mode, the N, V, and Z flags behave as if we're in binary mode.
+    struct OpResult result = sbc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
 
-    // The N, V, and Z flags are identical to the binary-mode result.
+    // For the 6502 SBC instruction in decimal mode, the Accumulator and the C flag behave differently.
 
-    struct OpResult binary_result = sbc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
+    bool carry = initial_carry_flag;
 
-    result.FlagV = binary_result.FlagV;
-    result.FlagN = binary_result.FlagN;
-    result.FlagZ = binary_result.FlagZ;
+    uint8_t low_nibble = (initial_accumulator & 15) + carry + (9 - (operand & 15));
+    carry = (10 <= low_nibble) && (low_nibble <= 25);
+    if (carry)
+    {
+        low_nibble -= 10;
+    }
+    low_nibble &= 15;
+
+    uint8_t high_nibble = (initial_accumulator >> 4) + carry + (9 - (operand >> 4));
+    carry = (10 <= high_nibble) && (high_nibble <= 25);
+    if (carry)
+    {
+        high_nibble -= 10;
+    }
+    high_nibble &= 15;
+
+    result.Accumulator = (high_nibble << 4) | low_nibble;
+    result.FlagC = carry;
 
     return result;
 }
@@ -209,8 +258,8 @@ typedef struct OpResult testfunc(const bool decimal_flag, const bool initial_car
 
 void run_tests_on_file(const char * filename, testfunc adc, testfunc sbc, unsigned * count_tests, unsigned * count_success)
 {
-    FILE * fi = fopen(filename, "rb");
-    assert(fi != NULL);
+    ReferenceDataArray reference_data;
+    read_reference_data(filename, reference_data);
 
     for (unsigned decimal_flag = 0; decimal_flag <= 1; ++decimal_flag)
     {
@@ -220,9 +269,9 @@ void run_tests_on_file(const char * filename, testfunc adc, testfunc sbc, unsign
             {
                 for (unsigned operand = 0; operand <= 255; ++operand)
                 {
-                    struct OpResult adc_reference = read_op_result(fi);
+                    struct OpResult adc_reference = reference_data[decimal_flag][initial_carry_flag][initial_accumulator][operand].adc;
 
-                    bool report = (decimal_flag == 1 && initial_carry_flag == 0 && initial_accumulator == 0x00 && operand == 0x9a);
+                    bool report = (decimal_flag == 1 && initial_carry_flag == 0 && initial_accumulator == 0x00 && operand == 0x7a);
 
                     if (report)
                     {
@@ -259,9 +308,9 @@ void run_tests_on_file(const char * filename, testfunc adc, testfunc sbc, unsign
                         }
                     }
 
-                    struct OpResult sbc_reference = read_op_result(fi);
+                    struct OpResult sbc_reference = reference_data[decimal_flag][initial_carry_flag][initial_accumulator][operand].sbc;
 
-                    if (false) // Test SBC instruction.
+                    if (true) // Test SBC instruction.
                     {
                         struct OpResult sbc_simulator = sbc(decimal_flag, initial_carry_flag, initial_accumulator, operand);
 
@@ -275,8 +324,6 @@ void run_tests_on_file(const char * filename, testfunc adc, testfunc sbc, unsign
             }
         }
     }
-
-    fclose(fi);
 }
 
 int main(void)
