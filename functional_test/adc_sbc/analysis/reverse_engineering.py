@@ -178,76 +178,21 @@ def test_adc_decimal_mode_65c02(testcases):
 
 def test_sbc_decimal_mode_65c02(testcases):
 
-    raise NotImplementedError()
-
-    processor = 2
-    operation = +1
-    decimal_flag = 1
-    selection = (testcases["processor"] == processor) & (testcases["operation"] == operation) & (testcases["decimal_flag"] == decimal_flag)
-    tc = testcases[selection]
-    assert len(tc) == 65536
-
-    ia = tc["initial_accumulator"]
-    ic = tc["initial_carry_flag"]
-    op = tc["operand"]
-    fa = tc["final_accumulator"]
-    fc = tc["final_carry_flag"]
-    fz = tc["final_zero_flag"]
-    fn = tc["final_negative_flag"]
-    fv = tc["final_overflow_flag"]
-
-    ialo = ia % 16
-    oplo = op % 16
-
-    iahi = ia // 16
-    ophi = op // 16
-
-    carry = ic
-
-    xlo   = ialo + carry + oplo
-    carry = xlo > 9
-    xlo   = xlo - 10 * carry
-    xlo   = xlo % 16
-
-    xhi   = iahi + carry + ophi
-    carry = xhi > 9
-    xhi   = xhi - 10 * carry
-    xhi   = xhi % 16
-
-    xa = 16 * xhi + xlo
-    xc = carry
-    xz = (xa == 0)
-    xn = (xa >= 0x80)
-
-    print("ADC-decimal, 65C02:")
-    print("  xa==fa", np.all(xa == fa))
-    print("  xc==fc", np.all(xc == fc))
-    print("  xz==fz", np.all(xz == fz))
-    print("  xn==fn", np.all(xn == fn))
-    print("  xv==fv", np.all(xv == fv))
-    print()
-
-
-def figure_out(testcases):
-
-    # SBC decimal mode 6502, carry is set: check the behavor of the flags.
-
     processor = 2
     operation = -1
     decimal_flag = 1
-    initial_carry_flag = 0
-    selection = (testcases["processor"] == processor) & (testcases["operation"] == operation) & (testcases["decimal_flag"] == decimal_flag)  & (testcases["initial_carry_flag"] == initial_carry_flag)
+    selection = (testcases["processor"] == processor) & (testcases["operation"] == operation) & (testcases["decimal_flag"] == decimal_flag)
     tc = testcases[selection]
-    assert len(tc) == 65536
+    assert len(tc) == 131072
 
     ia = tc["initial_accumulator"]
     ic = tc["initial_carry_flag"]
     op = tc["operand"]
     fa = tc["final_accumulator"]
+    fc = tc["final_carry_flag"]
+    fz = tc["final_zero_flag"]
     fn = tc["final_negative_flag"]
     fv = tc["final_overflow_flag"]
-    fz = tc["final_zero_flag"]
-    fc = tc["final_carry_flag"]
 
     ialo  = ia % 16
     oplo  = op % 16
@@ -267,7 +212,6 @@ def figure_out(testcases):
 
     xhi    = iahi - ophi - borrow
 
-    #print("zz", np.unique(zz))
     xn = (xhi & 8) != 0
     xv = ((ia >= 0x80) ^ xn) & (((255-op) >= 0x80) ^ xn)
 
@@ -290,33 +234,13 @@ def figure_out(testcases):
     print("  xv==fv", np.all(xv == fv))
     print()
 
-    left  = fv
-    right = xv
-
-    print("MISMATCHES:", np.sum(left != right))
-    print("left==right", np.all(left==right))
-
-    left  = left.reshape(256, 256)
-    right = right.reshape(256, 256)
-    diff = (right-left)
-
-    plt.subplot(131)
-    plt.imshow(left, origin="lower")
-    plt.subplot(132)
-    plt.imshow(right, origin="lower")
-    plt.subplot(133)
-    plt.imshow(diff, origin="lower")
-
-    plt.show()
-
 
 def main():
     testcases = np.load("testcases.npy")
-    print(testcases.shape, testcases.dtype)
-    #test_adc_decimal_mode_6502(testcases)
-    #test_sbc_decimal_mode_6502(testcases)
-    #test_adc_decimal_mode_65c02(testcases)
-    figure_out(testcases)
+    test_adc_decimal_mode_6502(testcases)
+    test_sbc_decimal_mode_6502(testcases)
+    test_adc_decimal_mode_65c02(testcases)
+    test_sbc_decimal_mode_65c02(testcases)
 
 if __name__ == "__main__":
     main()
