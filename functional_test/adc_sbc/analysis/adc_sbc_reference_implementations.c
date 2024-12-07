@@ -59,7 +59,8 @@ void read_reference_data(const char * filename, ReferenceDataArray reference_dat
     fclose(fi);
 }
 
-bool identical_full(struct OpResult * op1, struct OpResult * op2)
+
+bool identical(struct OpResult * op1, struct OpResult * op2)
 {
     return
         (op1->Accumulator == op2->Accumulator) &&
@@ -69,21 +70,6 @@ bool identical_full(struct OpResult * op1, struct OpResult * op2)
         (op1->FlagC == op2->FlagC);
 }
 
-bool identical(struct OpResult * op1, struct OpResult * op2)
-{
-    return
-        (op1->Accumulator == op2->Accumulator) &&
-        (op1->FlagN == op2->FlagN) &&
-        (op1->FlagV == op2->FlagV) &&
-        (op1->FlagZ == op2->FlagZ);
-        //(op1->FlagC == op2->FlagC);
-}
-
-bool identical_partial(struct OpResult * op1, struct OpResult * op2)
-{
-    return
-        (op1->Accumulator) == (op2->Accumulator);
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
@@ -110,33 +96,36 @@ inline struct OpResult adc_6502_binary_mode(const bool initial_carry_flag, const
 
 inline struct OpResult adc_6502_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
+    struct OpResult result;
+
+    const bool initial_accumulator_negative = (initial_accumulator & 0x80) != 0;
+    const bool operand_negative = (operand & 0x80) != 0;
+
     // For the 6502 ADC instruction in decimal mode, the Z flag behaves as if we're in binary mode.
-    struct OpResult result = adc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
+
+    const uint8_t binary_result = (initial_carry_flag + initial_accumulator + operand);
+    result.FlagZ = (binary_result == 0);
 
     // For the 6502 ADC instruction in decimal mode, the Accumulator and the N, V, and C flags behave differently.
 
     bool carry = initial_carry_flag;
 
-    uint8_t low_nibble = carry + (initial_accumulator & 15) + (operand & 15);
-    carry = (low_nibble > 9);
-    if (carry)
+    uint8_t low_nibble = (initial_accumulator & 15) + (operand & 15) + carry;
+    if ((carry = low_nibble > 9))
     {
-        low_nibble -= 10;
+        low_nibble = (low_nibble - 10) & 15;
     }
-    low_nibble &= 15;
 
-    uint8_t high_nibble = carry + (initial_accumulator >> 4) + (operand >> 4);
+    uint8_t high_nibble = (initial_accumulator >> 4) + (operand >> 4) + carry;
 
     // For ADC, the N and V flags are determined based on the high nibble calculated before carry-correction.
     result.FlagN = (high_nibble & 8) != 0;
-    result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand >= 0x80) ^ result.FlagN);
+    result.FlagV = (initial_accumulator_negative ^ result.FlagN) & (operand_negative ^ result.FlagN);
 
-    carry = high_nibble > 9;
-    if (carry)
+    if ((carry = high_nibble > 9))
     {
-        high_nibble -= 10;
+        high_nibble = (high_nibble - 10) & 15;
     }
-    high_nibble &= 15;
 
     result.Accumulator = (high_nibble << 4) | low_nibble;
     result.FlagC = carry;
@@ -150,39 +139,58 @@ struct OpResult adc_6502(const bool decimal_flag, const bool initial_carry_flag,
                         : adc_6502_binary_mode (initial_carry_flag, initial_accumulator, operand);
 }
 
-
 inline struct OpResult sbc_6502_binary_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    return adc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand ^ 0xff);
+    // SBC in binary mode is identical to the ADC in binary mode with the operand inverted.
+
+    struct OpResult result;
+
+    const bool initial_accumulator_negative = (initial_accumulator & 0x80) != 0;
+    const bool operand_nonnegative = (operand & 0x80) == 0;
+
+    const bool borrow = !initial_carry_flag;
+
+    result.Accumulator = initial_accumulator  - operand - borrow;
+    result.FlagN = (result.Accumulator & 0x80) != 0;
+    result.FlagV = (initial_accumulator_negative ^ result.FlagN) & (operand_nonnegative ^ result.FlagN);
+    result.FlagZ = result.Accumulator == 0;
+    result.FlagC = initial_accumulator >= operand + borrow;
+
+    return result;
 }
 
 inline struct OpResult sbc_6502_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
+    struct OpResult result;
+
     // For the 6502 SBC instruction in decimal mode, the N, V, and Z flags behave as if we're in binary mode.
-    struct OpResult result = sbc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
+
+    const bool initial_accumulator_negative = (initial_accumulator & 0x80) != 0;
+    const bool operand_nonnegative = (operand & 0x80) == 0;
+
+    bool borrow = !initial_carry_flag;
+
+    const uint8_t binary_result = initial_accumulator  - operand - borrow;
+    result.FlagN = (binary_result & 0x80) != 0;
+    result.FlagV = (initial_accumulator_negative ^ result.FlagN) & (operand_nonnegative ^ result.FlagN);
+    result.FlagZ = (binary_result == 0);
 
     // For the 6502 SBC instruction in decimal mode, the Accumulator and the C flag behave differently.
 
-    bool carry = initial_carry_flag;
-
-    uint8_t low_nibble = (initial_accumulator & 15) + carry + (9 - (operand & 15));
-    carry = (10 <= low_nibble) && (low_nibble <= 25);
-    if (carry)
+    uint8_t low_nibble = (initial_accumulator & 15) - (operand & 15) - borrow;
+    if ((borrow = ((low_nibble & 0x80) != 0)))
     {
-        low_nibble -= 10;
+        low_nibble = (low_nibble + 10) & 15;
     }
-    low_nibble &= 15;
 
-    uint8_t high_nibble = (initial_accumulator >> 4) + carry + (9 - (operand >> 4));
-    carry = (10 <= high_nibble) && (high_nibble <= 25);
-    if (carry)
+    uint8_t high_nibble = (initial_accumulator >> 4) - (operand >> 4) - borrow;
+    if ((borrow = ((high_nibble & 0x80) != 0)))
     {
-        high_nibble -= 10;
+        high_nibble = (high_nibble + 10) & 15;
     }
-    high_nibble &= 15;
 
     result.Accumulator = (high_nibble << 4) | low_nibble;
-    result.FlagC = carry;
+    result.FlagC = !borrow;
 
     return result;
 }
@@ -193,10 +201,15 @@ struct OpResult sbc_6502(const bool decimal_flag, const bool initial_carry_flag,
                         : sbc_6502_binary_mode (initial_carry_flag, initial_accumulator, operand);
 }
 
-////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                              //
+//                                                         65C02 versions                                                       //
+//                                                                                                                              //
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 inline struct OpResult adc_65c02_binary_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
+    // The behavior in binary mode is identical to the behavior of the 6502.
     return adc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
 }
 
@@ -226,6 +239,7 @@ struct OpResult adc_65c02(const bool decimal_flag, const bool initial_carry_flag
 
 inline struct OpResult sbc_65c02_binary_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
+    // The behavior in binary mode is identical to the behavior of the 6502.
     return sbc_6502_binary_mode(initial_carry_flag, initial_accumulator, operand);
 }
 

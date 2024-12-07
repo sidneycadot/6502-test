@@ -98,20 +98,21 @@ if True:  # SBC in decimal mode on the 6502.
     iahi  = ia // 16
     ophi  = op // 16
 
-    carry = ic
+    borrow = 1 - ic
 
-    xlo   = ialo + carry + (9 - oplo)
-    carry = (xlo - 10) <= 127
-    xlo   = xlo - 10 * carry
-    xlo   = xlo % 16
+    xlo    = ialo - oplo - borrow
+    borrow = (xlo >= 0x80)
+    xlo    = xlo + 10 * borrow
+    xlo    = xlo % 16
 
-    xhi   = iahi + carry + (9 - ophi)
-    carry = (xhi - 10) <= 127
-    xhi   = xhi - 10 * carry
-    xhi   = xhi % 16
+    xhi    = iahi - ophi - borrow
+    borrow = (xhi >= 0x80)
+    xhi    = xhi + 10 * borrow
+    xhi    = xhi % 16
 
     xa    = 16 * xhi + xlo
-    xc    = carry
+
+    xc    = 1 - borrow
 
     print("SBC-decimal, 6502:")
     print("  xa==fa", np.all(xa == fa))
@@ -268,7 +269,7 @@ if False:
 
     plt.show()
 
-if True:
+if False:
     # SBC decimal mode 6502, carry is set: check the behavor of the flags.
 
     processor = 1
