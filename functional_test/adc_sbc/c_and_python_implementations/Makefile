@@ -30,4 +30,4 @@ testcases.npy : preprocess.py $(DATAFILES)
 	./preprocess.py
 
 clean :
-	$(RM) 6502_adc_sbc make_reference_files testcases.npy *.o *~ $(DATAFILES)
+	$(RM) test_6502_adc_sbc make_reference_files testcases.npy *.o *~ $(DATAFILES)
