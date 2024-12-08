@@ -1,9 +1,7 @@
-test_adc_and_sbc
+test_6502_adc_sbc
 make_reference_files
 
-adc_and_sbc.o
-make_reference_files.o
-test_adc_and_sbc.o
+*.o
 
 adc_sbc_6502.dat
 adc_sbc_65c02.dat

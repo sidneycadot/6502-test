@@ -1,25 +1,23 @@
 
-////////////////////////
-// test_adc_and_sbc.c //
-////////////////////////
+/////////////////////////
+// test_6502_adc_sbc.c //
+/////////////////////////
 
-// This program reads reference data from file that describes the behavior of the ADC and SBC instructions for both
-// the 6502 and the 65C02 processors, and verifies the implementations provided by the "adc_and_sbc.c" code precisely
-// reproduce the behavior recorded in those files.
+// This program reads reference data from files that describes the behavior of the ADC and SBC instructions for both
+// the 6502 and the 65C02 processors, and verifies that the implementations provided by the "adc_and_sbc.c" code
+// precisely reproduce the behavior recorded in those files.
 //
-// The reference files should ideally be produced on hardware (not an emulator) to ensure that we're precisely recording
-// the behavior of the ADC and SBC instructions.
+// The original reference files should be produced on hardware (not an emulator) to ensure that they precisely record
+// the behavior of the ADC and SBC instructions of the processor.
 //
-// Such reference files were recorded on an Atari 800 XL (with a SALLY 6502 processor) and a Neo6502 development board
-// (with a WDC 65C02 processor). The file MD5SUM in this repository contains a hash of those "gold standard" files, and
-// we can re-generate them (now that we know our C implementation reproduces them perfectly, by running this program)
-// by running the "make_reference_files" program.
+// Such reference files were recorded on an Atari 800 XL (with a "SALLY" 6502 processor) and a Neo6502 development
+// board (with a WDC 65C02 processor). The file MD5SUM in this repository contains a hash of those "gold standard"
+// files.
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
 
-#include "adc_and_sbc.h"
+#include "6502_adc_sbc.h"
 
 typedef AddSubResult testfunc(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand);
 

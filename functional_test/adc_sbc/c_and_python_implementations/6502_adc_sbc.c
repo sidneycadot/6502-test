@@ -1,15 +1,15 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                         //
-//                                      adc_and_sbc.c                                      //
+//                                      65c02_adc_sbc.c                                    //
 //                                                                                         //
 //  Hardware-verified implementations of the 6502 and 65C02 "ADC" and "SBC" instructions.  //
 //                                                                                         //
-//  Implemented in Dec 2024 by Sidney Cadot. Use this code in whatever way you like.       //
+//  Implemented in December 2024 by Sidney Cadot. Use this code in whatever way you like.  //
 //                                                                                         //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "adc_and_sbc.h"
+#include "6502_adc_sbc.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
@@ -21,12 +21,9 @@ static inline AddSubResult adc_binary_mode(const bool initial_carry_flag, const 
 {
     AddSubResult result;
 
-    const bool initial_accumulator_negative = (initial_accumulator >= 0x80);
-    const bool operand_negative = (operand >= 0x80);
-
-    result.Accumulator = (initial_carry_flag + initial_accumulator + operand);
-    result.FlagN = (result.Accumulator >= 0x80);
-    result.FlagV = (initial_accumulator_negative ^ result.FlagN) & (operand_negative ^ result.FlagN);
+    result.Accumulator = initial_carry_flag + initial_accumulator + operand;
+    result.FlagN = result.Accumulator >= 0x80;
+    result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand >= 0x80) ^ result.FlagN);
     result.FlagZ = result.Accumulator == 0;
     result.FlagC = (initial_carry_flag + initial_accumulator + operand) >= 0x100;
 
@@ -39,14 +36,11 @@ static inline AddSubResult sbc_binary_mode(const bool initial_carry_flag, const 
 
     AddSubResult result;
 
-    const bool initial_accumulator_negative = (initial_accumulator >= 0x80);
-    const bool operand_nonnegative = (operand < 0x80);
-
     const bool borrow = !initial_carry_flag;
 
     result.Accumulator = initial_accumulator  - operand - borrow;
-    result.FlagN = (result.Accumulator & 0x80) != 0;
-    result.FlagV = (initial_accumulator_negative ^ result.FlagN) & (operand_nonnegative ^ result.FlagN);
+    result.FlagN = result.Accumulator >= 0x80;
+    result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand < 0x80) ^ result.FlagN);
     result.FlagZ = result.Accumulator == 0;
     result.FlagC = initial_accumulator >= operand + borrow;
 
@@ -55,16 +49,13 @@ static inline AddSubResult sbc_binary_mode(const bool initial_carry_flag, const 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
-//                                                         6502-specific versions                                               //
+//                                    Decimal mode: 6502-specific versions of the ADC and SBC instructions                      //
 //                                                                                                                              //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static inline AddSubResult adc_6502_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
     AddSubResult result;
-
-    const bool initial_accumulator_negative = (initial_accumulator & 0x80) != 0;
-    const bool operand_negative = (operand & 0x80) != 0;
 
     // For the 6502 ADC instruction in decimal mode, the Z flag behaves as if we're in binary mode.
 
@@ -85,7 +76,7 @@ static inline AddSubResult adc_6502_decimal_mode(const bool initial_carry_flag, 
 
     // For ADC, the N and V flags are determined based on the high nibble calculated before carry-correction.
     result.FlagN = (high_nibble & 8) != 0;
-    result.FlagV = (initial_accumulator_negative ^ result.FlagN) & (operand_negative ^ result.FlagN);
+    result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand >= 0x80) ^ result.FlagN);
 
     if ((carry = high_nibble > 9))
     {
@@ -104,26 +95,23 @@ static inline AddSubResult sbc_6502_decimal_mode(const bool initial_carry_flag, 
 
     // For the 6502 SBC instruction in decimal mode, the N, V, and Z flags behave as if we're in binary mode.
 
-    const bool initial_accumulator_negative = (initial_accumulator & 0x80) != 0;
-    const bool operand_nonnegative = (operand & 0x80) == 0;
-
     bool borrow = !initial_carry_flag;
 
     const uint8_t binary_result = initial_accumulator  - operand - borrow;
-    result.FlagN = (binary_result & 0x80) != 0;
-    result.FlagV = (initial_accumulator_negative ^ result.FlagN) & (operand_nonnegative ^ result.FlagN);
+    result.FlagN = (binary_result >= 0x80);
+    result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand < 0x80) ^ result.FlagN);
     result.FlagZ = (binary_result == 0);
 
     // For the 6502 SBC instruction in decimal mode, the Accumulator and the C flag behave differently.
 
     uint8_t low_nibble = (initial_accumulator & 15) - (operand & 15) - borrow;
-    if ((borrow = ((low_nibble & 0x80) != 0)))
+    if ((borrow = low_nibble >= 0x80))
     {
         low_nibble = (low_nibble + 10) & 15;
     }
 
     uint8_t high_nibble = (initial_accumulator >> 4) - (operand >> 4) - borrow;
-    if ((borrow = ((high_nibble & 0x80) != 0)))
+    if ((borrow = high_nibble >= 0x80))
     {
         high_nibble = (high_nibble + 10) & 15;
     }
@@ -136,7 +124,7 @@ static inline AddSubResult sbc_6502_decimal_mode(const bool initial_carry_flag, 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
-//                                                     65C02-specific versions                                                  //
+//                                    Decimal mode: 65C02-specific versions of the ADC and SBC instructions                     //
 //                                                                                                                              //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -208,30 +196,26 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
-//                                                          Entry Points                                                        //
+//                                    Entry points to ADC/SBC implementations for the 6502 and 65C02                            //
 //                                                                                                                              //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 AddSubResult adc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    return decimal_flag ? adc_6502_decimal_mode(initial_carry_flag, initial_accumulator, operand)
-                        : adc_binary_mode      (initial_carry_flag, initial_accumulator, operand);
+    return (decimal_flag ? adc_6502_decimal_mode : adc_binary_mode)(initial_carry_flag, initial_accumulator, operand);
 }
 
 AddSubResult sbc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    return decimal_flag ? sbc_6502_decimal_mode(initial_carry_flag, initial_accumulator, operand)
-                        : sbc_binary_mode      (initial_carry_flag, initial_accumulator, operand);
+    return (decimal_flag ? sbc_6502_decimal_mode : sbc_binary_mode)(initial_carry_flag, initial_accumulator, operand);
 }
 
 AddSubResult adc_65c02(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    return decimal_flag ? adc_65c02_decimal_mode(initial_carry_flag, initial_accumulator, operand)
-                        : adc_binary_mode       (initial_carry_flag, initial_accumulator, operand);
+    return (decimal_flag ? adc_65c02_decimal_mode : adc_binary_mode)(initial_carry_flag, initial_accumulator, operand);
 }
 
 AddSubResult sbc_65c02(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    return decimal_flag ? sbc_65c02_decimal_mode(initial_carry_flag, initial_accumulator, operand)
-                        : sbc_binary_mode       (initial_carry_flag, initial_accumulator, operand);
+    return (decimal_flag ? sbc_65c02_decimal_mode : sbc_binary_mode)(initial_carry_flag, initial_accumulator, operand);
 }

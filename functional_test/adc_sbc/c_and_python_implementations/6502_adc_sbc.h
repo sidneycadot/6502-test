@@ -1,11 +1,11 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                         //
-//                                      adc_and_sbc.h                                      //
+//                                      6502_adc_sbc.h                                     //
 //                                                                                         //
 //  Hardware-verified implementations of the 6502 and 65C02 "ADC" and "SBC" instructions.  //
 //                                                                                         //
-//  Implemented in Dec 2024 by Sidney Cadot. Use this code in whatever way you like.       //
+//  Implemented in December 2024 by Sidney Cadot. Use this code in whatever way you like.  //
 //                                                                                         //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
