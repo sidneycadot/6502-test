@@ -3,9 +3,9 @@
 // make_reference_files.c //
 ////////////////////////////
 
-// This progrem generates the same 6502 and 65C02 test reference files that can also be generated on
-// real hardware. This is possible since our re-implementations of the ADC and SBC routines for the
-// 6502 and 65C02 are functionally indistinguishable from their hardware counterparts.
+// This progrem generates the same 6502 and 65C02 reference files that can also be generated on real hardware.
+// This is possible since our re-implementations of the ADC and SBC routines for the 6502 and 65C02 are
+// functionally identical to their hardware counterparts.
 
 #include <stdio.h>
 #include <assert.h>
@@ -14,11 +14,10 @@
 
 static void write_result(FILE * fo, AddSubResult * result, unsigned decimal_flag)
 {
-    // For the status register, assume that the processor's I (Interrupt Disable) flag is zero.
+    // For the status register, assume that the processor's I (Interrupt Disable) flag (bit 4) is zero.
     const uint8_t status_register = (result->FlagN << 7) | (result->FlagV << 6) | (1 << 5) | (1 << 4) | (decimal_flag << 3) | (0 << 2) | (result->FlagZ << 1) | (result->FlagC << 0);
     fputc(result->Accumulator, fo);
     fputc(status_register, fo);
-
 }
 
 typedef AddSubResult testfunc(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand);

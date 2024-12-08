@@ -1,21 +1,29 @@
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                         //
-//                                      65c02_adc_sbc.c                                    //
-//                                                                                         //
-//  Hardware-verified implementations of the 6502 and 65C02 "ADC" and "SBC" instructions.  //
-//                                                                                         //
-//  Implemented in December 2024 by Sidney Cadot. Use this code in whatever way you like.  //
-//                                                                                         //
-/////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                               //
+//                                         6502_adc_sbc.c                                        //
+//                                                                                               //
+//     Hardware-verified implementations of the 6502 and 65C02 "ADC" and "SBC" instructions.     //
+//     Implemented in December 2024 by Sidney Cadot. Use this code in whatever way you like.     //
+//                                                                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "6502_adc_sbc.h"
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                              //
-//                                           Binary mode: 6502 and 65C02 versions are identical                                 //
-//                                                                                                                              //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                               //
+//                      Binary mode: 6502 and 65C02 versions are identical.                      //
+//                                                                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// These are the implementations of ADC and SBC operation in binary mode.
+// The behavior in binary mode is nice and there very clear interpretations of how the accumulator
+// and all four affected flags (N/V/Z/C) should behave.
+//
+// The 6502 and the 65C02 implement this behavior identically.
+//
+// An interesting fact is that the SBC operation behaves precisely identical to an ADC operation
+// with the operand's bits inverted, and vice versa.
 
 static inline AddSubResult adc_binary_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
@@ -32,7 +40,6 @@ static inline AddSubResult adc_binary_mode(const bool initial_carry_flag, const 
 
 static inline AddSubResult sbc_binary_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    // Note: SBC in binary mode is identical to ADC in binary mode with the operand inverted, and vice versa.
 
     AddSubResult result;
 
@@ -47,11 +54,17 @@ static inline AddSubResult sbc_binary_mode(const bool initial_carry_flag, const 
     return result;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                              //
-//                                    Decimal mode: 6502-specific versions of the ADC and SBC instructions                      //
-//                                                                                                                              //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                               //
+//             Decimal mode: 6502-specific versions of the ADC and SBC instructions.             //
+//                                                                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// These two routines reproduce the ADC and SBC behavior of a hardware 6502, even when the
+// accumulator and/or the operand are not valid BCD (binary coded decimal) values.
+//
+// The behavior is quite clunky, and there is an assymmetry in the way ADC and SBC handle the
+// flags.
 
 static inline AddSubResult adc_6502_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
@@ -124,11 +137,14 @@ static inline AddSubResult sbc_6502_decimal_mode(const bool initial_carry_flag, 
     return result;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                              //
-//                                    Decimal mode: 65C02-specific versions of the ADC and SBC instructions                     //
-//                                                                                                                              //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                               //
+//             Decimal mode: 65C02-specific versions of the ADC and SBC instructions.            //
+//                                                                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// These two routines reproduce the ADC and SBC behavior of a hardware 65C02, even when the
+// accumulator and/or the operand are not valid BCD (binary coded decimal) values.
 
 static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
@@ -196,11 +212,11 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
     return result;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                              //
-//                                    Entry points to ADC/SBC implementations for the 6502 and 65C02                            //
-//                                                                                                                              //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                               //
+//                Entry points to ADC/SBC implementations for the 6502 and 65C02.                //
+//                                                                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 AddSubResult adc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
