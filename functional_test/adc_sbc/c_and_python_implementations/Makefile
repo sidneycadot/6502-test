@@ -17,12 +17,16 @@ $(DATAFILES) : make_reference_files MD5SUM
 	./make_reference_files
 	md5sum -c MD5SUM
 
-make_reference_files : make_reference_files.c adc_and_sbc.c adc_and_sbc.h
+make_reference_files : make_reference_files.o adc_and_sbc.o
 
-test_adc_and_sbc : test_adc_and_sbc.c adc_and_sbc.c adc_and_sbc.h
+test_adc_and_sbc : test_adc_and_sbc.o adc_and_sbc.o
+
+test_adc_and_sbc.o : test_adc_and_sbc.c adc_and_sbc.h
+
+adc_and_sbc.o : adc_and_sbc.c adc_and_sbc.h
 
 testcases.npy : preprocess.py $(DATAFILES)
 	./preprocess.py
 
 clean :
-	$(RM) test_adc_and_sbc make_reference_files testcases.npy *~ $(DATAFILES)
+	$(RM) test_adc_and_sbc make_reference_files testcases.npy *.o *~ $(DATAFILES)

@@ -1,3 +1,11 @@
 test_adc_and_sbc
 make_reference_files
+
+adc_and_sbc.o
+make_reference_files.o
+test_adc_and_sbc.o
+
+adc_sbc_6502.dat
+adc_sbc_65c02.dat
+
 testcases.npy
