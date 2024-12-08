@@ -32,7 +32,7 @@ static inline AddSubResult adc_binary_mode(const bool initial_carry_flag, const 
 
 static inline AddSubResult sbc_binary_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
-    // SBC in binary mode is identical to the ADC in binary mode with the operand inverted.
+    // Note: SBC in binary mode is identical to ADC in binary mode with the operand inverted, and vice versa.
 
     AddSubResult result;
 
@@ -74,7 +74,9 @@ static inline AddSubResult adc_6502_decimal_mode(const bool initial_carry_flag, 
 
     uint8_t high_nibble = (initial_accumulator >> 4) + (operand >> 4) + carry;
 
-    // For ADC, the N and V flags are determined based on the high nibble calculated before carry-correction.
+    // For the 6502 ADC instruction in decimal mode, the N and V flags are
+    // based on the high nibble before carry-correction.
+
     result.FlagN = (high_nibble & 8) != 0;
     result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand >= 0x80) ^ result.FlagN);
 
@@ -93,7 +95,7 @@ static inline AddSubResult sbc_6502_decimal_mode(const bool initial_carry_flag, 
 {
     AddSubResult result;
 
-    // For the 6502 SBC instruction in decimal mode, the N, V, and Z flags behave as if we're in binary mode.
+    // For the 6502 SBC instruction in decimal mode, the N, V, and Z flags behave as in binary mode.
 
     bool borrow = !initial_carry_flag;
 
