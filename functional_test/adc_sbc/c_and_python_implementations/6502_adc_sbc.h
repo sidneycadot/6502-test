@@ -9,8 +9,8 @@
 //                                                                                         //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef ADC_AND_SBC_H
-#define ADC_AND_SBC_H
+#ifndef DEFINED_6502_ADC_SBC_H
+#define DEFINED_6502_ADC_SBC_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -25,7 +25,7 @@ typedef struct {
 
 // 6502 versions of ADC and SBC.
 // Verified to produce bitwise identical results to a hardware 6502 for all inputs.
-// Verification was done using an Atari 800XL, which has a SALLY 6502 chip.
+// Verification was done using an Atari 800XL, which has a "SALLY" 6502 chip.
 
 AddSubResult adc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand);
 AddSubResult sbc_6502(const bool decimal_flag, const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand);

@@ -13,7 +13,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                              //
-//                                           Binary mode: 6502 & 65C02 versions are identical                                   //
+//                                           Binary mode: 6502 and 65C02 versions are identical                                 //
 //                                                                                                                              //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,7 +25,7 @@ static inline AddSubResult adc_binary_mode(const bool initial_carry_flag, const 
     result.FlagN = result.Accumulator >= 0x80;
     result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand >= 0x80) ^ result.FlagN);
     result.FlagZ = result.Accumulator == 0;
-    result.FlagC = (initial_carry_flag + initial_accumulator + operand) >= 0x100;
+    result.FlagC = initial_carry_flag + initial_accumulator + operand >= 0x100;
 
     return result;
 }
@@ -143,7 +143,7 @@ static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag,
 
     uint8_t high_nibble = (initial_accumulator >> 4) + (operand  >> 4) + carry;
 
-    uint8_t xn = (high_nibble & 8) != 0; // Used for Overflow flag.
+    const bool PrematureFlagN = (high_nibble & 8) != 0; // Used for Overflow flag.
 
     if ((carry = high_nibble > 9))
     {
@@ -153,7 +153,7 @@ static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag,
 
     result.Accumulator = (high_nibble << 4) | low_nibble;
     result.FlagN = (result.Accumulator >= 0x80);
-    result.FlagV = ((initial_accumulator >= 0x80) ^ xn) & ((operand >= 0x80) ^ xn);
+    result.FlagV = ((initial_accumulator >= 0x80) ^ PrematureFlagN) & ((operand >= 0x80) ^ PrematureFlagN);
     result.FlagZ = (result.Accumulator == 0x00);
     result.FlagC = carry;
 
@@ -176,7 +176,7 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
     low_nibble &= 15;
 
     uint8_t high_nibble = (initial_accumulator >> 4) - (operand >> 4) - borrow;
-    const bool high_nibble_msb = (high_nibble & 0x08) != 0; // Used for the Overflow flag later on.
+    const bool PrematureFlagN = (high_nibble & 8) != 0;
 
     if ((borrow = (high_nibble >= 0x80)))
     {
@@ -187,7 +187,7 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
 
     result.Accumulator = (high_nibble << 4) | low_nibble;
     result.FlagN = (result.Accumulator >= 0x80);
-    result.FlagV = ((initial_accumulator >= 0x80) ^ high_nibble_msb) & ((operand < 0x80) ^ high_nibble_msb);
+    result.FlagV = ((initial_accumulator >= 0x80) ^ PrematureFlagN) & ((operand < 0x80) ^ PrematureFlagN);
     result.FlagZ = (result.Accumulator == 0x00);
     result.FlagC = !borrow;
 
