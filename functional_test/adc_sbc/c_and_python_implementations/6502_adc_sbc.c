@@ -16,10 +16,13 @@
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// These are the implementations of ADC and SBC operation in binary mode.
+// These functions replicate the behavior of the ADC and SBC instructions in binary mode.
 //
-// The ADC/SBC behavior in binary mode is clear in terms of how the accumulator and all four CPU
-// flags (N/V/Z/C) should behave. The 6502 and the 65C02 implement this behavior identically.
+// The behavior of the ADC and SBC instructions in binary mode is clear and well-defined.
+// In contrast with the somewhat fuzzy semantics of decimal mode, it is clear what values
+// the accumulator and the CPU flags (N/V/Z/C) should take on for all possible inputs.
+//
+// The 6502 and the 65C02 implement this behavior correctly and identically.
 //
 // An interesting fact is that the SBC operation behaves precisely like an ADC operation with just
 // the operand's bits inverted, and vice versa.
@@ -62,8 +65,8 @@ static inline AddSubResult sbc_binary_mode(const bool initial_carry_flag, const 
 // These two routines reproduce the ADC and SBC behavior of a hardware 6502, even when the
 // accumulator and/or the operand are not valid BCD (binary coded decimal) values.
 //
-// For both ADC and SBC, the way the C flag is used and updated is correct in case the accumulator
-// and operand are valid BCD values on entry.
+// For both the ADC and SBC instructions, the way the accumulator and the carry (C) flag are used
+// and updated is correct in case the accumulator and operand are valid BCD values upon entry.
 //
 // The behavior of the N, V, and Z flags is weird. The Z flag is determined as if the calculation
 // were performed in binary mode. The same is true for the N and V flags in case of the SBC
@@ -149,6 +152,15 @@ static inline AddSubResult sbc_6502_decimal_mode(const bool initial_carry_flag, 
 
 // These two routines reproduce the ADC and SBC behavior of a hardware 65C02, even when the
 // accumulator and/or the operand are not valid BCD (binary coded decimal) values.
+//
+// For both the ADC and SBC instructions, the way the accumulator and the carry (C) flag are used
+// and updated is correct in case the accumulator and operand are valid BCD values upon entry.
+//
+// The value of the N and Z flags simply corresponds to the value of the accumulator at the end
+// of execution of the ADC or SBC instruction: they indicate if the most significant bit of the
+// accumulator is set (N flag), and whether the accumulator is zero (Z flag).
+//
+// The value of the overflow (V) flag is weird, and defies a simple description.
 
 static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
