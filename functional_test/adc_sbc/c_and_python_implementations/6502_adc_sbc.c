@@ -17,13 +17,12 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // These are the implementations of ADC and SBC operation in binary mode.
-// The behavior in binary mode is nice and there very clear interpretations of how the accumulator
-// and all four affected flags (N/V/Z/C) should behave.
 //
-// The 6502 and the 65C02 implement this behavior identically.
+// The ADC/SBC behavior in binary mode is clear in terms of how the accumulator and all four CPU
+// flags (N/V/Z/C) should behave. The 6502 and the 65C02 implement this behavior identically.
 //
-// An interesting fact is that the SBC operation behaves precisely identical to an ADC operation
-// with the operand's bits inverted, and vice versa.
+// An interesting fact is that the SBC operation behaves precisely like an ADC operation with just
+// the operand's bits inverted, and vice versa.
 
 static inline AddSubResult adc_binary_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
@@ -63,8 +62,13 @@ static inline AddSubResult sbc_binary_mode(const bool initial_carry_flag, const 
 // These two routines reproduce the ADC and SBC behavior of a hardware 6502, even when the
 // accumulator and/or the operand are not valid BCD (binary coded decimal) values.
 //
-// The behavior is quite clunky, and there is an assymmetry in the way ADC and SBC handle the
-// flags.
+// For both ADC and SBC, the way the C flag is used and updated is correct in case the accumulator
+// and operand are valid BCD values on entry.
+//
+// The behavior of the N, V, and Z flags is weird. The Z flag is determined as if the calculation
+// were performed in binary mode. The same is true for the N and V flags in case of the SBC
+// instruction. In contrast, for the ADC instruction, the N and V flags are determined based on an
+// intermediate value of the high nibble, and their behavior defies simple description.
 
 static inline AddSubResult adc_6502_decimal_mode(const bool initial_carry_flag, const uint8_t initial_accumulator, const uint8_t operand)
 {
@@ -161,7 +165,7 @@ static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag,
 
     uint8_t high_nibble = (initial_accumulator >> 4) + (operand  >> 4) + carry;
 
-    const bool PrematureFlagN = (high_nibble & 8) != 0; // Used for Overflow flag.
+    const bool PrematureFlagN = (high_nibble & 8) != 0;
 
     if ((carry = high_nibble > 9))
     {
@@ -194,6 +198,7 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
     low_nibble &= 15;
 
     uint8_t high_nibble = (initial_accumulator >> 4) - (operand >> 4) - borrow;
+
     const bool PrematureFlagN = (high_nibble & 8) != 0;
 
     if ((borrow = (high_nibble >= 0x80)))
