@@ -384,7 +384,57 @@ bool timing_test_brk_and_rti_instructions(void)
         timing_test_rti_instruction("RTI");
 }
 
-bool run_instruction_timing_tests(void)
+bool timing_test_6502_illegal_instructions(void)
+{
+    // 256 opcodes are possible.
+    // 151 are legal, leaving 105 instructions with "officially undefined" behavior:
+    //
+    // * 12 instructions are "JAM" instructions, crashing the 6502.
+    // * 27 variants of "NOP":
+    //      - 6 instructions are single-byte "NOP".
+    //      - 5 instructions are two-byte "NOP #immediate".
+    //      - 3 instructions are two-byte "NOP zpage".
+    //      - 1 instruction is a three-byte "NOP abs".
+    //      - 6 instructions are two-byte "NOP zpage,x".
+    //      - 6 instructions are three-byte "NOP abs,x".
+    // * 66 "other" instructions.
+
+    return
+        timing_test_single_byte_instruction_sequence("Illegal NOP (0x1a)", 0x1a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP (0x3a)", 0x3a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP (0x5a)", 0x5a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP (0x7a)", 0x7a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP (0xda)", 0xda, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP (0xfa)", 0xfa, 2) &&
+        //
+        timing_test_read_immediate_instruction("Illegal NOP #imm (0x80)", 0x80) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm (0x82)", 0x82) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm (0x89)", 0x89) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm (0xc2)", 0xc2) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm (0xe2)", 0xe2) &&
+        //
+        timing_test_read_zpage_instruction("Illegal NOP zpage (0x04)", 0x04) &&
+        timing_test_read_zpage_instruction("Illegal NOP zpage (0x44)", 0x44) &&
+        timing_test_read_zpage_instruction("Illegal NOP zpage (0x64)", 0x64) &&
+        //
+        timing_test_read_abs_instruction("Illegal NOP abs (0x0x)", 0x0c) &&
+        //
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x14)", 0x14) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x34)", 0x34) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x54)", 0x54) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x74)", 0x74) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0xd4)", 0xd4) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0xf4)", 0xf4) &&
+        //
+        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x1c)", 0x1c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x3c)", 0x3c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x5c)", 0x5c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x7c)", 0x7c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP zpage (0xdc)", 0xdc) &&
+        timing_test_read_abs_x_instruction("Illegal NOP zpage (0xfc)", 0xfc);
+}
+
+bool run_6502_instruction_timing_tests(void)
 {
     return
         // Test the timing of the 2 single-byte stack-pointer transfer instructions.
@@ -436,7 +486,8 @@ bool run_instruction_timing_tests(void)
         timing_test_branch_instructions()                    && // 8 instructions.
         timing_test_jmp_instructions()                       && // 2 instructions.
         timing_test_jsr_and_rts_instructions()               && // 2 instructions.
-        timing_test_brk_and_rti_instructions();
+        timing_test_brk_and_rti_instructions()               && // 2 instructions
+        timing_test_6502_illegal_instructions();
 }
 
 void tic_cmd_cpu_test(unsigned level)
@@ -456,7 +507,7 @@ void tic_cmd_cpu_test(unsigned level)
 
     save_zero_page();
 
-    run_completed = run_instruction_timing_tests();
+    run_completed = run_6502_instruction_timing_tests();
 
     restore_zero_page();
 
