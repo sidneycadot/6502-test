@@ -39,6 +39,7 @@ bool timing_test_read_zpage_y_instruction         (const char * test_description
 bool timing_test_read_abs_instruction             (const char * test_description, uint8_t opcode);
 bool timing_test_read_abs_x_instruction           (const char * test_description, uint8_t opcode);
 bool timing_test_read_abs_y_instruction           (const char * test_description, uint8_t opcode);
+bool timing_test_read_abs_y_instruction_save_sp   (const char * test_description, uint8_t opcode);
 bool timing_test_read_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode);
 bool timing_test_read_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode);
 
@@ -50,15 +51,19 @@ bool timing_test_write_zpage_y_instruction         (const char * test_descriptio
 bool timing_test_write_abs_instruction             (const char * test_description, uint8_t opcode);
 bool timing_test_write_abs_x_instruction           (const char * test_description, uint8_t opcode);
 bool timing_test_write_abs_y_instruction           (const char * test_description, uint8_t opcode);
+bool timing_test_write_abs_y_instruction_save_sp   (const char * test_description, uint8_t opcode);
 bool timing_test_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode);
 bool timing_test_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode);
 
 // Timing tests for read-modify-write instructions.
 
-bool timing_test_read_modify_write_zpage_instruction  (const char * test_description, uint8_t opcode);
-bool timing_test_read_modify_write_zpage_x_instruction(const char * test_description, uint8_t opcode);
-bool timing_test_read_modify_write_abs_instruction    (const char * test_description, uint8_t opcode);
-bool timing_test_read_modify_write_abs_x_instruction  (const char * test_description, uint8_t opcode);
+bool timing_test_read_modify_write_zpage_instruction           (const char * test_description, uint8_t opcode);
+bool timing_test_read_modify_write_zpage_x_instruction         (const char * test_description, uint8_t opcode);
+bool timing_test_read_modify_write_abs_instruction             (const char * test_description, uint8_t opcode);
+bool timing_test_read_modify_write_abs_x_instruction           (const char * test_description, uint8_t opcode);
+bool timing_test_read_modify_write_abs_y_instruction           (const char * test_description, uint8_t opcode);
+bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode);
+bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode);
 
 // Timing tests for branch, jump, and interrupt-related instructions.
 

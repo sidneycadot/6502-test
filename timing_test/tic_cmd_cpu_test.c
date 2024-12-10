@@ -388,50 +388,178 @@ bool timing_test_6502_illegal_instructions(void)
 {
     // 256 opcodes are possible.
     // 151 are legal, leaving 105 instructions with "officially undefined" behavior:
-    //
-    // * 12 instructions are "JAM" instructions, crashing the 6502.
-    // * 27 variants of "NOP":
-    //      - 6 instructions are single-byte "NOP".
-    //      - 5 instructions are two-byte "NOP #immediate".
-    //      - 3 instructions are two-byte "NOP zpage".
-    //      - 1 instruction is a three-byte "NOP abs".
-    //      - 6 instructions are two-byte "NOP zpage,x".
-    //      - 6 instructions are three-byte "NOP abs,x".
-    // * 66 "other" instructions.
+    // 12 instructions are "JAM" instructions, crashing the 6502.
+    // This leaves 93 instructions that are tested for timing below.
+
+    // See the NMOS 6510 Unintended Opcodes ("NoMoreSecrets") document (Google for it).
 
     return
-        timing_test_single_byte_instruction_sequence("Illegal NOP (0x1a)", 0x1a, 2) &&
-        timing_test_single_byte_instruction_sequence("Illegal NOP (0x3a)", 0x3a, 2) &&
-        timing_test_single_byte_instruction_sequence("Illegal NOP (0x5a)", 0x5a, 2) &&
-        timing_test_single_byte_instruction_sequence("Illegal NOP (0x7a)", 0x7a, 2) &&
-        timing_test_single_byte_instruction_sequence("Illegal NOP (0xda)", 0xda, 2) &&
-        timing_test_single_byte_instruction_sequence("Illegal NOP (0xfa)", 0xfa, 2) &&
         //
-        timing_test_read_immediate_instruction("Illegal NOP #imm (0x80)", 0x80) &&
-        timing_test_read_immediate_instruction("Illegal NOP #imm (0x82)", 0x82) &&
-        timing_test_read_immediate_instruction("Illegal NOP #imm (0x89)", 0x89) &&
-        timing_test_read_immediate_instruction("Illegal NOP #imm (0xc2)", 0xc2) &&
-        timing_test_read_immediate_instruction("Illegal NOP #imm (0xe2)", 0xe2) &&
+        // SLO (7 instructions)
         //
-        timing_test_read_zpage_instruction("Illegal NOP zpage (0x04)", 0x04) &&
-        timing_test_read_zpage_instruction("Illegal NOP zpage (0x44)", 0x44) &&
-        timing_test_read_zpage_instruction("Illegal NOP zpage (0x64)", 0x64) &&
+        timing_test_read_modify_write_zpage_instruction           ("Illegal SLO zpage"     " (0x07)", 0x07) &&
+        timing_test_read_modify_write_zpage_x_instruction         ("Illegal SLO zpage,x"   " (0x17)", 0x17) &&
+        timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal SLO (zpage,x)" " (0x03)", 0x03) &&
+        timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal SLO (zpage),y" " (0x13)", 0x13) &&
+        timing_test_read_modify_write_abs_instruction             ("Illegal SLO abs"       " (0x0f)", 0x0f) &&
+        timing_test_read_modify_write_abs_x_instruction           ("Illegal SLO abs,x"     " (0x1f)", 0x1f) &&
+        timing_test_read_modify_write_abs_y_instruction           ("Illegal SLO abs,y"     " (0x1b)", 0x1b) &&
         //
-        timing_test_read_abs_instruction("Illegal NOP abs (0x0x)", 0x0c) &&
+        // RLA (7 instructions)
         //
-        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x14)", 0x14) &&
-        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x34)", 0x34) &&
-        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x54)", 0x54) &&
-        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0x74)", 0x74) &&
-        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0xd4)", 0xd4) &&
-        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x (0xf4)", 0xf4) &&
+        timing_test_read_modify_write_zpage_instruction           ("Illegal RLA zpage"     " (0x27)", 0x27) &&
+        timing_test_read_modify_write_zpage_x_instruction         ("Illegal RLA zpage,x"   " (0x37)", 0x37) &&
+        timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal RLA (zpage,x)" " (0x23)", 0x23) &&
+        timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal RLA (zpage),y" " (0x33)", 0x33) &&
+        timing_test_read_modify_write_abs_instruction             ("Illegal RLA abs"       " (0x2f)", 0x2f) &&
+        timing_test_read_modify_write_abs_x_instruction           ("Illegal RLA abs,x"     " (0x3f)", 0x3f) &&
+        timing_test_read_modify_write_abs_y_instruction           ("Illegal RLA abs,y"     " (0x3b)", 0x3b) &&
         //
-        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x1c)", 0x1c) &&
-        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x3c)", 0x3c) &&
-        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x5c)", 0x5c) &&
-        timing_test_read_abs_x_instruction("Illegal NOP zpage (0x7c)", 0x7c) &&
-        timing_test_read_abs_x_instruction("Illegal NOP zpage (0xdc)", 0xdc) &&
-        timing_test_read_abs_x_instruction("Illegal NOP zpage (0xfc)", 0xfc);
+        // SRE (7 instructions)
+        //
+        timing_test_read_modify_write_zpage_instruction           ("Illegal SRE zpage"     " (0x47)", 0x47) &&
+        timing_test_read_modify_write_zpage_x_instruction         ("Illegal SRE zpage,x"   " (0x57)", 0x57) &&
+        timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal SRE (zpage,x)" " (0x43)", 0x43) &&
+        timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal SRE (zpage),y" " (0x53)", 0x53) &&
+        timing_test_read_modify_write_abs_instruction             ("Illegal SRE abs"       " (0x4f)", 0x4f) &&
+        timing_test_read_modify_write_abs_x_instruction           ("Illegal SRE abs,x"     " (0x5f)", 0x5f) &&
+        timing_test_read_modify_write_abs_y_instruction           ("Illegal SRE abs,y"     " (0x5b)", 0x5b) &&
+        //
+        // RRA (7 instructions)
+        //
+        timing_test_read_modify_write_zpage_instruction           ("Illegal RRA zpage"     " (0x67)", 0x67) &&
+        timing_test_read_modify_write_zpage_x_instruction         ("Illegal RRA zpage,x"   " (0x77)", 0x77) &&
+        timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal RRA (zpage,x)" " (0x63)", 0x63) &&
+        timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal RRA (zpage),y" " (0x73)", 0x73) &&
+        timing_test_read_modify_write_abs_instruction             ("Illegal RRA abs"       " (0x6f)", 0x6f) &&
+        timing_test_read_modify_write_abs_x_instruction           ("Illegal RRA abs,x"     " (0x7f)", 0x7f) &&
+        timing_test_read_modify_write_abs_y_instruction           ("Illegal RRA abs,y"     " (0x7b)", 0x7b) &&
+        //
+        // SAX (4 instructions)
+        //
+        timing_test_write_zpage_instruction           ("Illegal SAX zpage"     " (0x87)", 0x87) &&
+        timing_test_write_zpage_y_instruction         ("Illegal SAX zpage,y"   " (0x97)", 0x97) &&
+        timing_test_write_zpage_x_indirect_instruction("Illegal SAX (zpage,x)" " (0x83)", 0x83) &&
+        timing_test_write_abs_instruction             ("Illegal SAX abs"       " (0x8f)", 0x8f) &&
+        //
+        // LAX (6 instructions)
+        //
+        timing_test_read_zpage_instruction            ("Illegal LAX zpage"     " (0xa7)", 0xa7) &&
+        timing_test_read_zpage_y_instruction          ("Illegal LAX zpage,y"   " (0xb7)", 0xb7) &&
+        timing_test_read_zpage_x_indirect_instruction ("Illegal LAX (zpage,x)" " (0xa3)", 0xa3) &&
+        timing_test_read_zpage_indirect_y_instruction ("Illegal LAX (zpage),y" " (0xb3)", 0xb3) &&
+        timing_test_read_abs_instruction              ("Illegal LAX abs"       " (0xaf)", 0xaf) &&
+        timing_test_read_abs_y_instruction            ("Illegal LAX abs,y"     " (0xbf)", 0xbf) &&
+        //
+        // DCP (7 instructions)
+        //
+        timing_test_read_modify_write_zpage_instruction            ("Illegal DCP zpage"     " (0xc7)", 0xc7) &&
+        timing_test_read_modify_write_zpage_x_instruction          ("Illegal DCP zpage,x"   " (0xd7)", 0xd7) &&
+        timing_test_read_modify_write_zpage_x_indirect_instruction ("Illegal DCP (zpage,x)" " (0xc3)", 0xc3) &&
+        timing_test_read_modify_write_zpage_indirect_y_instruction ("Illegal DCP (zpage),y" " (0xd3)", 0xd3) &&
+        timing_test_read_modify_write_abs_instruction              ("Illegal DCP abs"       " (0xcf)", 0xcf) &&
+        timing_test_read_modify_write_abs_x_instruction            ("Illegal DCP abs,x"     " (0xdf)", 0xdf) &&
+        timing_test_read_modify_write_abs_y_instruction            ("Illegal DCP abs,y"     " (0xdb)", 0xdb) &&
+        //
+        // ISC (7 instructions)
+        //
+        timing_test_read_modify_write_zpage_instruction            ("Illegal ISC zpage"     " (0xe7)", 0xe7) &&
+        timing_test_read_modify_write_zpage_x_instruction          ("Illegal ISC zpage,x"   " (0xf7)", 0xf7) &&
+        timing_test_read_modify_write_zpage_x_indirect_instruction ("Illegal ISC (zpage,x)" " (0xe3)", 0xe3) &&
+        timing_test_read_modify_write_zpage_indirect_y_instruction ("Illegal ISC (zpage),y" " (0xf3)", 0xf3) &&
+        timing_test_read_modify_write_abs_instruction              ("Illegal ISC abs"       " (0xef)", 0xef) &&
+        timing_test_read_modify_write_abs_x_instruction            ("Illegal ISC abs,x"     " (0xff)", 0xff) &&
+        timing_test_read_modify_write_abs_y_instruction            ("Illegal ISC abs,y"     " (0xfb)", 0xfb) &&
+        //
+        // ANC (2 instructions)
+        //
+        timing_test_read_immediate_instruction("Illegal ANC #imm" " (0x0b)", 0x0b) &&
+        timing_test_read_immediate_instruction("Illegal ANC #imm" " (0x2b)", 0x2b) &&
+        //
+        // ALR (1 instruction)
+        //
+        timing_test_read_immediate_instruction("Illegal ALR #imm" " (0x4b)", 0x4b) &&
+        //
+        // ARR (1 instruction)
+        //
+        timing_test_read_immediate_instruction("Illegal ARR #imm" " (0x6b)", 0x6b) &&
+        //
+        // SBX (1 instruction)
+        //
+        timing_test_read_immediate_instruction("Illegal SBX #imm" " (0xcb)", 0xcb) &&
+        //
+        // SBC-illegal (1 instruction)
+        //
+        timing_test_read_immediate_instruction("Illegal SBC #imm" " (0xeb)", 0xeb) &&
+        //
+        // LAS (1 instruction)
+        //
+        timing_test_read_abs_y_instruction_save_sp("Illegal LAS abs,y" " (0xbb)", 0xbb) &&
+        //
+        // NOP (27 instructions)
+        //
+        timing_test_single_byte_instruction_sequence("Illegal NOP" " (0x1a)", 0x1a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP" " (0x3a)", 0x3a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP" " (0x5a)", 0x5a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP" " (0x7a)", 0x7a, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP" " (0xda)", 0xda, 2) &&
+        timing_test_single_byte_instruction_sequence("Illegal NOP" " (0xfa)", 0xfa, 2) &&
+        //
+        timing_test_read_immediate_instruction("Illegal NOP #imm"  " (0x80)", 0x80) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm"  " (0x82)", 0x82) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm"  " (0x89)", 0x89) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm"  " (0xc2)", 0xc2) &&
+        timing_test_read_immediate_instruction("Illegal NOP #imm"  " (0xe2)", 0xe2) &&
+        //
+        timing_test_read_zpage_instruction("Illegal NOP zpage"     " (0x04)", 0x04) &&
+        timing_test_read_zpage_instruction("Illegal NOP zpage"     " (0x44)", 0x44) &&
+        timing_test_read_zpage_instruction("Illegal NOP zpage"     " (0x64)", 0x64) &&
+        //
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x" " (0x14)", 0x14) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x" " (0x34)", 0x34) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x" " (0x54)", 0x54) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x" " (0x74)", 0x74) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x" " (0xd4)", 0xd4) &&
+        timing_test_read_zpage_x_instruction("Illegal NOP zpage,x" " (0xf4)", 0xf4) &&
+        //
+        timing_test_read_abs_instruction("Illegal NOP abs"         " (0x0c)", 0x0c) &&
+        //
+        timing_test_read_abs_x_instruction("Illegal NOP abs,x"     " (0x1c)", 0x1c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP abs,x"     " (0x3c)", 0x3c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP abs,x"     " (0x5c)", 0x5c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP abs,x"     " (0x7c)", 0x7c) &&
+        timing_test_read_abs_x_instruction("Illegal NOP abs,x"     " (0xdc)", 0xdc) &&
+        timing_test_read_abs_x_instruction("Illegal NOP abs,x"     " (0xfc)", 0xfc) &&
+        //
+        // 12 JAM instructions omitted: 0x02, 0x12, 0x22, 0x32, 0x42, 0x54, 0x62, 0x72, 0x92, 0xb2, 0xd2, 0xf2.
+        //
+        // SHA (2 instructions)
+        //
+        // Note: the SHA instructions bug out the Altirra simulator, and they also cause issues on a real Atari.
+        // TODO: figure this out.
+        //
+        // timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),y" " (0x93)", 0x93)
+        // timing_test_write_abs_y_instruction           ("Illegal SHA abs,y"     " (0x9f)", 0x9f)
+        //
+        // SHX (1 instruction)
+        //
+        timing_test_write_abs_y_instruction           ("Illegal SHX abs,y"     " (0x9e)", 0x9e) &&
+        //
+        // SHY (1 instruction)
+        //
+        timing_test_write_abs_x_instruction           ("Illegal SHY abs,x"     " (0x9c)", 0x9c) &&
+        //
+        // TAS abs,y (1 instruction).
+        //
+        timing_test_write_abs_y_instruction_save_sp   ("Illegal TAS abs,y"     " (0x9b)", 0x9b) &&
+        //
+        // ANE (1 instruction)
+        //
+        timing_test_read_immediate_instruction        ("Illegal ANE #imm"      " (0x8b)", 0x8b) &&
+        //
+        // LAX (1 instruction)
+        //
+        timing_test_read_immediate_instruction        ("Illegal LAX #imm"      " (0xab)", 0xab);
 }
 
 bool run_6502_instruction_timing_tests(void)
@@ -486,7 +614,8 @@ bool run_6502_instruction_timing_tests(void)
         timing_test_branch_instructions()                    && // 8 instructions.
         timing_test_jmp_instructions()                       && // 2 instructions.
         timing_test_jsr_and_rts_instructions()               && // 2 instructions.
-        timing_test_brk_and_rti_instructions()               && // 2 instructions
+        timing_test_brk_and_rti_instructions()               && // 2 instructions.
+        // Test the 93 of the 105 "illegal" instructions (all excluding JAM)).
         timing_test_6502_illegal_instructions();
 }
 

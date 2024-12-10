@@ -106,7 +106,7 @@ int main(void)
 
     program_start_hook();
 
-    printf("*** TIC v0.2.6 ***\n");
+    printf("*** TIC v0.3.0 ***\n");
     printf("\n");
 
     result = command_line_loop();

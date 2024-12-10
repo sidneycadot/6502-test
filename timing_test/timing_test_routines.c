@@ -225,18 +225,18 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
                     continue;
                 }
 
-                opcode_address[0] = 0xa2;       // LDX #imm         [2]
-                opcode_address[1] = reg_x;      //
-                opcode_address[2] = opcode;     // OPC zp_adress    [4]
-                opcode_address[3] = zp_address; //
-                opcode_address[4] = 0x60;       // RTS              [-]
+                opcode_address[-2] = 0xa2;       // LDX #imm         [2]
+                opcode_address[-1] = reg_x;      //
+                opcode_address[ 0] = opcode;     // OPC zp_adress    [4]
+                opcode_address[ 1] = zp_address; //
+                opcode_address[ 2] = 0x60;       // RTS              [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
@@ -271,18 +271,18 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
                     continue;
                 }
 
-                opcode_address[0] = 0xa0;       // LDY #imm           [2]
-                opcode_address[1] = reg_y;      //
-                opcode_address[2] = opcode;     // OPC zp_address     [4]
-                opcode_address[3] = zp_address; //
-                opcode_address[4] = 0x60;       // RTS                [-]
+                opcode_address[-2] = 0xa0;       // LDY #imm           [2]
+                opcode_address[-1] = reg_y;      //
+                opcode_address[ 0] = opcode;     // OPC zp_address     [4]
+                opcode_address[ 1] = zp_address; //
+                opcode_address[ 2] = 0x60;       // RTS                [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "Y register", reg_y,
@@ -352,20 +352,20 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
 
             for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
-                opcode_address[0] = 0xa2;               // LDX #imm             [2]
-                opcode_address[1] = reg_x;              //
-                opcode_address[2] = opcode;             // OPC base_address,X   [4 or 5]
-                opcode_address[3] = lsb(base_address);  //
-                opcode_address[4] = msb(base_address);  //
-                opcode_address[5] = 0x60;               // RTS                  [-]
+                opcode_address[-2] = 0xa2;               // LDX #imm             [2]
+                opcode_address[-1] = reg_x;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,X   [4 or 5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0x60;               // RTS                  [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 4 + different_pages(base_address, base_address + reg_x);
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
-                    "opcode offset", opcode_offset,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
+                    "opcode offset", opcode_offset - 2,
                     "address offset", address_offset,
                     "X register", reg_x,
                     NULL
@@ -396,19 +396,71 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
 
             for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
             {
-                opcode_address[0] = 0xa0;               // LDY #imm             [2]
-                opcode_address[1] = reg_y;              //
-                opcode_address[2] = opcode;             // OPC base_address,Y   [4 or 5]
-                opcode_address[3] = lsb(base_address);  //
-                opcode_address[4] = msb(base_address);  //
-                opcode_address[5] = 0x60;               // RTS                  [-]
+                opcode_address[-2] = 0xa0;               // LDY #imm             [2]
+                opcode_address[-1] = reg_y;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [4 or 5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0x60;               // RTS                  [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 4 + different_pages(base_address, base_address + reg_y);
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
+                    "opcode offset", opcode_offset,
+                    "address offset", address_offset,
+                    "Y register", reg_y,
+                    NULL
+                )) return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, uint8_t opcode)
+{
+    // LOOPS: opcode_offset, address_offset, reg_y
+    unsigned opcode_offset;
+    unsigned address_offset, reg_y;
+    unsigned test_overhead_cycles, instruction_cycles;
+    uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
+        {
+            uint8_t * base_address = TESTCODE_BASE + address_offset;
+
+            for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
+            {
+                opcode_address[-6] = 0xba;               // TSX          [2]
+                opcode_address[-5] = 0x8e;               // STX save_sp  [4]
+                opcode_address[-4] = lsb(opcode_address + 8); //
+                opcode_address[-3] = msb(opcode_address + 8); //
+                opcode_address[-2] = 0xa0;               // LDY #imm     [2]
+                opcode_address[-1] = reg_y;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [4 or 5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0xae;               // LDX save_sp  [4]
+                opcode_address[ 4] = lsb(opcode_address + 8); //
+                opcode_address[ 5] = msb(opcode_address + 8); //
+                opcode_address[ 6] = 0x9a;               // TXS          [2]
+                opcode_address[ 7] = 0x60;               // RTS          [-]
+
+                test_overhead_cycles = 2 + 4 + 2 + 4 + 2;
+                instruction_cycles = 4 + different_pages(base_address, base_address + reg_y);
+
+                if (!run_measurement(
+                    test_description,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 6, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "Y register", reg_y,
@@ -455,26 +507,26 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
                 {
                     uint8_t * abs_address = TESTCODE_BASE + address_offset;
 
-                    opcode_address[ 0] = 0xa2;              // LDX #<abs_address     [2]
-                    opcode_address[ 1] = lsb(abs_address);  //
-                    opcode_address[ 2] = 0x86;              // STX zp_ptr_lo_address [3]
-                    opcode_address[ 3] = zp_ptr_lo_address; //
-                    opcode_address[ 4] = 0xa2;              // LDX #>abs_address     [2]
-                    opcode_address[ 5] = msb(abs_address);  //
-                    opcode_address[ 6] = 0x86;              // STX zp_ptr_hi_address [3]
-                    opcode_address[ 7] = zp_ptr_hi_address; //
-                    opcode_address[ 8] = 0xa2;              // LDX #reg_x            [2]
-                    opcode_address[ 9] = reg_x;             //
-                    opcode_address[10] = opcode;            // OPC (zpage, X)        [6]
-                    opcode_address[11] = zp_base_address;   //
-                    opcode_address[12] = 0x60;              // RTS                   [-]
+                    opcode_address[-10] = 0xa2;              // LDX #<abs_address     [2]
+                    opcode_address[ -9] = lsb(abs_address);  //
+                    opcode_address[ -8] = 0x86;              // STX zp_ptr_lo_address [3]
+                    opcode_address[ -7] = zp_ptr_lo_address; //
+                    opcode_address[ -6] = 0xa2;              // LDX #>abs_address     [2]
+                    opcode_address[ -5] = msb(abs_address);  //
+                    opcode_address[ -4] = 0x86;              // STX zp_ptr_hi_address [3]
+                    opcode_address[ -3] = zp_ptr_hi_address; //
+                    opcode_address[ -2] = 0xa2;              // LDX #reg_x            [2]
+                    opcode_address[ -1] = reg_x;             //
+                    opcode_address[  0] = opcode;            // OPC (zpage, X)        [6]
+                    opcode_address[  1] = zp_base_address;   //
+                    opcode_address[  2] = 0x60;              // RTS                   [-]
 
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 6;
 
                     if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                        test_overhead_cycles, instruction_cycles, opcode_address - 10, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp base address", zp_base_address,
                         "X register", reg_x,
@@ -521,26 +573,26 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
                 {
                     uint8_t * effective_address = base_address + reg_y;
 
-                    opcode_address[ 0] = 0xa0;              // LDY #<base_address    [2]
-                    opcode_address[ 1] = lsb(base_address); //
-                    opcode_address[ 2] = 0x84;              // STY zp_ptr_lo_address [3]
-                    opcode_address[ 3] = zp_ptr_lo_address; //
-                    opcode_address[ 4] = 0xa0;              // LDY #>base_address    [2]
-                    opcode_address[ 5] = msb(base_address); //
-                    opcode_address[ 6] = 0x84;              // STY zp_ptr_hi_address [3]
-                    opcode_address[ 7] = zp_ptr_hi_address; //
-                    opcode_address[ 8] = 0xa0;              // LDY #reg_y            [2]
-                    opcode_address[ 9] = reg_y;             //
-                    opcode_address[10] = opcode;            // OPC (zpage), Y        [5 or 6]
-                    opcode_address[11] = zp_ptr_lo_address; //
-                    opcode_address[12] = 0x60;              // RTS                   [-]
+                    opcode_address[-10] = 0xa0;              // LDY #<base_address    [2]
+                    opcode_address[ -9] = lsb(base_address); //
+                    opcode_address[ -8] = 0x84;              // STY zp_ptr_lo_address [3]
+                    opcode_address[ -7] = zp_ptr_lo_address; //
+                    opcode_address[ -6] = 0xa0;              // LDY #>base_address    [2]
+                    opcode_address[ -5] = msb(base_address); //
+                    opcode_address[ -4] = 0x84;              // STY zp_ptr_hi_address [3]
+                    opcode_address[ -3] = zp_ptr_hi_address; //
+                    opcode_address[ -2] = 0xa0;              // LDY #reg_y            [2]
+                    opcode_address[ -1] = reg_y;             //
+                    opcode_address[  0] = opcode;            // OPC (zpage), Y        [5 or 6]
+                    opcode_address[  1] = zp_ptr_lo_address; //
+                    opcode_address[  2] = 0x60;              // RTS                   [-]
 
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 5 + different_pages(base_address, effective_address);
 
                     if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                        test_overhead_cycles, instruction_cycles, opcode_address - 10, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp ptr address", zp_ptr_lo_address,
                         "address offset", address_offset,
@@ -623,18 +675,18 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
                     continue;
                 }
 
-                opcode_address[0] = 0xa2;       // LDX #imm             [2]
-                opcode_address[1] = reg_x;      //
-                opcode_address[2] = opcode;     // OPC zp_address,X     [4]
-                opcode_address[3] = zp_address; //
-                opcode_address[4] = 0x60;       // RTS                  [1]
+                opcode_address[-2] = 0xa2;       // LDX #imm             [2]
+                opcode_address[-1] = reg_x;      //
+                opcode_address[ 0] = opcode;     // OPC zp_address,X     [4]
+                opcode_address[ 1] = zp_address; //
+                opcode_address[ 2] = 0x60;       // RTS                  [1]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
@@ -669,18 +721,18 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
                     continue;
                 }
 
-                opcode_address[0] = 0xa0;       // LDY #imm          [2]
-                opcode_address[1] = reg_y;      //
-                opcode_address[2] = opcode;     // OPC zp_address,Y  [4]
-                opcode_address[3] = zp_address; //
-                opcode_address[4] = 0x60;       // RTS               [-]
+                opcode_address[-2] = 0xa0;       // LDY #imm          [2]
+                opcode_address[-1] = reg_y;      //
+                opcode_address[ 0] = opcode;     // OPC zp_address,Y  [4]
+                opcode_address[ 1] = zp_address; //
+                opcode_address[ 2] = 0x60;       // RTS               [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 4;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "Y register", reg_y,
@@ -750,19 +802,19 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
 
             for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
-                opcode_address[0] = 0xa2;               // LDX #imm             [2]
-                opcode_address[1] = reg_x;              //
-                opcode_address[2] = opcode;             // OPC base_address,X   [5]
-                opcode_address[3] = lsb(base_address);  //
-                opcode_address[4] = msb(base_address);  //
-                opcode_address[5] = 0x60;               // RTS                  [-]
+                opcode_address[-2] = 0xa2;               // LDX #imm             [2]
+                opcode_address[-1] = reg_x;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,X   [5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0x60;               // RTS                  [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 5;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
@@ -794,19 +846,71 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
 
             for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
             {
-                opcode_address[0] = 0xa0;               // LDY #imm             [2]
-                opcode_address[1] = reg_y;              //
-                opcode_address[2] = opcode;             // OPC base_address,Y   [5]
-                opcode_address[3] = lsb(base_address);  //
-                opcode_address[4] = msb(base_address);  //
-                opcode_address[5] = 0x60;               // RTS                  [-]
+                opcode_address[-2] = 0xa0;               // LDY #imm             [2]
+                opcode_address[-1] = reg_y;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0x60;               // RTS                  [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 5;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
+                    "opcode offset", opcode_offset,
+                    "address offset", address_offset,
+                    "Y register", reg_y,
+                    NULL
+                )) return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, uint8_t opcode)
+{
+    // LOOPS: opcode_offset, address_offset, reg_y
+    unsigned opcode_offset;
+    unsigned address_offset, reg_y;
+    unsigned test_overhead_cycles, instruction_cycles;
+    uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
+        {
+            uint8_t * base_address = TESTCODE_BASE + address_offset;
+
+            for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
+            {
+                opcode_address[-6] = 0xba;               // TSX          [2]
+                opcode_address[-5] = 0x8e;               // STX save_sp  [4]
+                opcode_address[-4] = lsb(opcode_address + 8); //
+                opcode_address[-3] = msb(opcode_address + 8); //
+                opcode_address[-2] = 0xa0;               // LDY #imm     [2]
+                opcode_address[-1] = reg_y;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0xae;               // LDX save_sp  [4]
+                opcode_address[ 4] = lsb(opcode_address + 8); //
+                opcode_address[ 5] = msb(opcode_address + 8); //
+                opcode_address[ 6] = 0x9a;               // TXS          [2]
+                opcode_address[ 7] = 0x60;               // RTS          [-]
+
+                test_overhead_cycles = 2 + 4 + 2 + 4 + 2;
+                instruction_cycles = 5;
+
+                if (!run_measurement(
+                    test_description,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 6, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "Y register", reg_y,
@@ -853,26 +957,26 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
                 {
                     uint8_t * abs_address = TESTCODE_BASE + address_offset;
 
-                    opcode_address[ 0] = 0xa2;              // LDX #<abs_address     [2]
-                    opcode_address[ 1] = lsb(abs_address);  //
-                    opcode_address[ 2] = 0x86;              // STX zp_ptr_lo_address [3]
-                    opcode_address[ 3] = zp_ptr_lo_address; //
-                    opcode_address[ 4] = 0xa2;              // LDX #>abs_address     [2]
-                    opcode_address[ 5] = msb(abs_address);  //
-                    opcode_address[ 6] = 0x86;              // STX zp_ptr_hi_address [3]
-                    opcode_address[ 7] = zp_ptr_hi_address; //
-                    opcode_address[ 8] = 0xa2;              // LDX #reg_x            [2]
-                    opcode_address[ 9] = reg_x;             //
-                    opcode_address[10] = opcode;            // OPC (zpage, X)        [6]
-                    opcode_address[11] = zp_base_address;   //
-                    opcode_address[12] = 0x60;              // RTS                   [-]
+                    opcode_address[-10] = 0xa2;              // LDX #<abs_address     [2]
+                    opcode_address[ -9] = lsb(abs_address);  //
+                    opcode_address[ -8] = 0x86;              // STX zp_ptr_lo_address [3]
+                    opcode_address[ -7] = zp_ptr_lo_address; //
+                    opcode_address[ -6] = 0xa2;              // LDX #>abs_address     [2]
+                    opcode_address[ -5] = msb(abs_address);  //
+                    opcode_address[ -4] = 0x86;              // STX zp_ptr_hi_address [3]
+                    opcode_address[ -3] = zp_ptr_hi_address; //
+                    opcode_address[ -2] = 0xa2;              // LDX #reg_x            [2]
+                    opcode_address[ -1] = reg_x;             //
+                    opcode_address[  0] = opcode;            // OPC (zpage, X)        [6]
+                    opcode_address[  1] = zp_base_address;   //
+                    opcode_address[  2] = 0x60;              // RTS                   [-]
 
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 6;
 
                     if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                        test_overhead_cycles, instruction_cycles, opcode_address - 10, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp base address", zp_base_address,
                         "address offset", address_offset,
@@ -919,26 +1023,26 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
                 {
                     uint8_t * effective_address = base_address + reg_y;
 
-                    opcode_address[ 0] = 0xa0;              // LDY #<base_address    [2]
-                    opcode_address[ 1] = lsb(base_address); //
-                    opcode_address[ 2] = 0x84;              // STY zp_ptr_lo_address [3]
-                    opcode_address[ 3] = zp_ptr_lo_address; //
-                    opcode_address[ 4] = 0xa0;              // LDY #>base_address    [2]
-                    opcode_address[ 5] = msb(base_address); //
-                    opcode_address[ 6] = 0x84;              // STY zp_ptr_hi_address [3]
-                    opcode_address[ 7] = zp_ptr_hi_address; //
-                    opcode_address[ 8] = 0xa0;              // LDY #reg_y            [2]
-                    opcode_address[ 9] = reg_y;             //
-                    opcode_address[10] = opcode;            // OPC (zpage), Y        [5 or 6]
-                    opcode_address[11] = zp_ptr_lo_address; //
-                    opcode_address[12] = 0x60;              // RTS                   [-]
+                    opcode_address[-10] = 0xa0;              // LDY #<base_address    [2]
+                    opcode_address[ -9] = lsb(base_address); //
+                    opcode_address[ -8] = 0x84;              // STY zp_ptr_lo_address [3]
+                    opcode_address[ -7] = zp_ptr_lo_address; //
+                    opcode_address[ -6] = 0xa0;              // LDY #>base_address    [2]
+                    opcode_address[ -5] = msb(base_address); //
+                    opcode_address[ -4] = 0x84;              // STY zp_ptr_hi_address [3]
+                    opcode_address[ -3] = zp_ptr_hi_address; //
+                    opcode_address[ -2] = 0xa0;              // LDY #reg_y            [2]
+                    opcode_address[ -1] = reg_y;             //
+                    opcode_address[  0] = opcode;            // OPC (zpage), Y        [5 or 6]
+                    opcode_address[  1] = zp_ptr_lo_address; //
+                    opcode_address[  2] = 0x60;              // RTS                   [-]
 
                     test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                     instruction_cycles = 6;
 
                 if (!run_measurement(
                         test_description,
-                        test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                        test_overhead_cycles, instruction_cycles, opcode_address - 10, DEFAULT_RUN_FLAGS,
                         "opcode offset", opcode_offset,
                         "zp address", zp_ptr_lo_address,
                         "address offset", address_offset,
@@ -1021,18 +1125,18 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
                     continue;
                 }
 
-                opcode_address[0] = 0xa2;       // LDX #imm            [2]
-                opcode_address[1] = reg_x;      //
-                opcode_address[2] = opcode;     // OPC zp_address,X    [6]
-                opcode_address[3] = zp_address; //
-                opcode_address[4] = 0x60;       // RTS                 [-]
+                opcode_address[-2] = 0xa2;       // LDX #imm            [2]
+                opcode_address[-1] = reg_x;      //
+                opcode_address[ 0] = opcode;     // OPC zp_address,X    [6]
+                opcode_address[ 1] = zp_address; //
+                opcode_address[ 2] = 0x60;       // RTS                 [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 6;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "zp address", zp_address,
                     "X register", reg_x,
@@ -1102,24 +1206,202 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
 
             for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
             {
-                opcode_address[0] = 0xa2;               // LDX #imm             [2]
-                opcode_address[1] = reg_x;              //
-                opcode_address[2] = opcode;             // OPC base_address,X   [7]
-                opcode_address[3] = lsb(base_address);  //
-                opcode_address[4] = msb(base_address);  //
-                opcode_address[5] = 0x60;               // RTS                  [-]
+                opcode_address[-2] = 0xa2;               // LDX #imm             [2]
+                opcode_address[-1] = reg_x;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,X   [7]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0x60;               // RTS                  [-]
 
                 test_overhead_cycles = 2;
                 instruction_cycles = 7;
 
                 if (!run_measurement(
                     test_description,
-                    test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
                     "opcode offset", opcode_offset,
                     "address offset", address_offset,
                     "X register", reg_x,
                     NULL
                 )) return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool timing_test_read_modify_write_abs_y_instruction(const char * test_description, uint8_t opcode)
+{
+    // LOOPS: opcode_offset, address_offset, reg_y
+    unsigned opcode_offset;
+    unsigned address_offset, reg_y;
+    unsigned test_overhead_cycles, instruction_cycles;
+    uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
+        {
+            uint8_t * base_address = TESTCODE_BASE + address_offset;
+
+            for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
+            {
+                opcode_address[-2] = 0xa0;               // LDY #imm             [2]
+                opcode_address[-1] = reg_y;              //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [7]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = 0x60;               // RTS                  [-]
+
+                test_overhead_cycles = 2;
+                instruction_cycles = 7;
+
+                if (!run_measurement(
+                    test_description,
+                    test_overhead_cycles, instruction_cycles, opcode_address - 2, DEFAULT_RUN_FLAGS,
+                    "opcode offset", opcode_offset,
+                    "address offset", address_offset,
+                    "Y register", reg_y,
+                    NULL
+                )) return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
+{
+    // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
+    unsigned opcode_offset;
+    unsigned zp_base_address;
+    unsigned reg_x;
+    unsigned address_offset;
+    unsigned zp_ptr_lo_address;
+    unsigned zp_ptr_hi_address;
+    unsigned test_overhead_cycles, instruction_cycles;
+    uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (zp_base_address = 0; zp_base_address <= 0xff; zp_base_address += STEP_SIZE)
+        {
+            for (reg_x = 0; reg_x <= 0xff; reg_x += STEP_SIZE)
+            {
+                // (zp_ptr_lo, zp_ptr_hi) will be the actual pointer used for indirection.
+                zp_ptr_lo_address = (zp_base_address + reg_x + 0) & 0xff;
+                zp_ptr_hi_address = (zp_base_address + reg_x + 1) & 0xff;
+
+                if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
+                {
+                    continue;
+                }
+
+                for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
+                {
+                    uint8_t * abs_address = TESTCODE_BASE + address_offset;
+
+                    opcode_address[-10] = 0xa2;              // LDX #<abs_address     [2]
+                    opcode_address[ -9] = lsb(abs_address);  //
+                    opcode_address[ -8] = 0x86;              // STX zp_ptr_lo_address [3]
+                    opcode_address[ -7] = zp_ptr_lo_address; //
+                    opcode_address[ -6] = 0xa2;              // LDX #>abs_address     [2]
+                    opcode_address[ -5] = msb(abs_address);  //
+                    opcode_address[ -4] = 0x86;              // STX zp_ptr_hi_address [3]
+                    opcode_address[ -3] = zp_ptr_hi_address; //
+                    opcode_address[ -2] = 0xa2;              // LDX #reg_x            [2]
+                    opcode_address[ -1] = reg_x;             //
+                    opcode_address[  0] = opcode;            // OPC (zpage, X)        [6]
+                    opcode_address[  1] = zp_base_address;   //
+                    opcode_address[  2] = 0x60;              // RTS                   [-]
+
+                    test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
+                    instruction_cycles = 8;
+
+                    if (!run_measurement(
+                        test_description,
+                        test_overhead_cycles, instruction_cycles, opcode_address - 10, DEFAULT_RUN_FLAGS,
+                        "opcode offset", opcode_offset,
+                        "zp base address", zp_base_address,
+                        "address offset", address_offset,
+                        "X register", reg_x,
+                        NULL
+                    )) return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
+{
+    // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
+    unsigned opcode_offset;
+    unsigned address_offset;
+    unsigned reg_y;
+    unsigned zp_ptr_lo_address;
+    unsigned test_overhead_cycles, instruction_cycles;
+    uint8_t *opcode_address;
+
+    pre_every_test_hook(test_description);
+
+    for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + opcode_offset;
+
+        for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
+        {
+            unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) & 0xff;
+
+            if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
+            {
+                continue;
+            }
+
+            for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
+            {
+                uint8_t * base_address = TESTCODE_BASE + address_offset;
+
+                for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
+                {
+                    uint8_t * effective_address = base_address + reg_y;
+
+                    opcode_address[-10] = 0xa0;              // LDY #<base_address    [2]
+                    opcode_address[ -9] = lsb(base_address); //
+                    opcode_address[ -8] = 0x84;              // STY zp_ptr_lo_address [3]
+                    opcode_address[ -7] = zp_ptr_lo_address; //
+                    opcode_address[ -6] = 0xa0;              // LDY #>base_address    [2]
+                    opcode_address[ -5] = msb(base_address); //
+                    opcode_address[ -4] = 0x84;              // STY zp_ptr_hi_address [3]
+                    opcode_address[ -3] = zp_ptr_hi_address; //
+                    opcode_address[ -2] = 0xa0;              // LDY #reg_y            [2]
+                    opcode_address[ -1] = reg_y;             //
+                    opcode_address[  0] = opcode;            // OPC (zpage), Y        [5 or 6]
+                    opcode_address[  1] = zp_ptr_lo_address; //
+                    opcode_address[  2] = 0x60;              // RTS                   [-]
+
+                    test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
+                    instruction_cycles = 8;
+
+                if (!run_measurement(
+                        test_description,
+                        test_overhead_cycles, instruction_cycles, opcode_address - 10, DEFAULT_RUN_FLAGS,
+                        "opcode offset", opcode_offset,
+                        "zp address", zp_ptr_lo_address,
+                        "address offset", address_offset,
+                        "Y register", reg_y,
+                        NULL
+                    )) return false;
+                }
             }
         }
     }
@@ -1402,7 +1684,6 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
     return true;
 }
 
-
 bool timing_test_rts_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
@@ -1419,20 +1700,20 @@ bool timing_test_rts_instruction(const char * test_description)
         // Note: the RTS is both used as the instruction-under-test, and as the RTS back to
         // the measurement routine.
 
-        opcode_address[0] = 0xa9;                      // LDA #>(rts_address - 1)   [2]
-        opcode_address[1] = msb(opcode_address + 5);   //
-        opcode_address[2] = 0x48;                      // PHA                       [3]
-        opcode_address[3] = 0xa9;                      // LDA #<(rts_address - 1)   [2]
-        opcode_address[4] = lsb(opcode_address + 5);   //
-        opcode_address[5] = 0x48;                      // PHA                       [3]
-        opcode_address[6] = 0x60;                      // RTS                       [6]
+        opcode_address[-6] = 0xa9;                      // LDA #>(rts_address - 1)   [2]
+        opcode_address[-5] = msb(opcode_address - 1);   //
+        opcode_address[-4] = 0x48;                      // PHA                       [3]
+        opcode_address[-3] = 0xa9;                      // LDA #<(rts_address - 1)   [2]
+        opcode_address[-2] = lsb(opcode_address - 1);   //
+        opcode_address[-1] = 0x48;                      // PHA                       [3]
+        opcode_address[ 0] = 0x60;                      // RTS                       [6]
 
         test_overhead_cycles = 2 + 3 + 2 + 3;
         instruction_cycles   = 6;
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+            test_overhead_cycles, instruction_cycles, opcode_address - 6, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         )) return false;
@@ -1455,25 +1736,25 @@ bool timing_test_brk_instruction(const char * test_description)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        opcode_address[0] = 0xba;                      // TSX          [2]
-        opcode_address[1] = 0x8e;                      // STX save_sp  [4]
-        opcode_address[2] = lsb(TESTCODE_BASE);        //
-        opcode_address[3] = msb(TESTCODE_BASE);        //
-        opcode_address[4] = 0x00;                      // BRK          [7]
-        opcode_address[5] = 0xae;                      // LDX save_sp  [4]
-        opcode_address[6] = lsb(TESTCODE_BASE);        //
-        opcode_address[7] = msb(TESTCODE_BASE);        //
-        opcode_address[8] = 0x9a;                      // TXS          [2]
-        opcode_address[9] = 0x60;                      // RTS          [-]
+        opcode_address[-4] = 0xba;                      // TSX          [2]
+        opcode_address[-3] = 0x8e;                      // STX save_sp  [4]
+        opcode_address[-2] = lsb(opcode_address+6);     //
+        opcode_address[-1] = msb(opcode_address+6);     //
+        opcode_address[ 0] = 0x00;                      // BRK          [7]
+        opcode_address[ 1] = 0xae;                      // LDX save_sp  [4] The BRK ends up here.
+        opcode_address[ 2] = lsb(opcode_address+6);     //
+        opcode_address[ 3] = msb(opcode_address+6);     //
+        opcode_address[ 4] = 0x9a;                      // TXS          [2]
+        opcode_address[ 5] = 0x60;                      // RTS          [-]
 
         test_overhead_cycles = 2 + 4 + TARGET_SPECIFIC_IRQ_OVERHEAD + 4 + 2;
         instruction_cycles   = 7;
 
-        oldvec = set_irq_vector_address(opcode_address + 5);
+        oldvec = set_irq_vector_address(opcode_address + 1);
 
         proceed = run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+            test_overhead_cycles, instruction_cycles, opcode_address - 4, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         );
@@ -1501,22 +1782,22 @@ bool timing_test_rti_instruction(const char * test_description)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
 
-        opcode_address[0] = 0xa9;                      // LDA #>rts_address     [2]
-        opcode_address[1] = msb(opcode_address + 8);   //
-        opcode_address[2] = 0x48;                      // PHA                   [3]
-        opcode_address[3] = 0xa9;                      // LDA #<rts_address     [2]
-        opcode_address[4] = lsb(opcode_address + 8);   //
-        opcode_address[5] = 0x48;                      // PHA                   [3]
-        opcode_address[6] = 0x08;                      // PHP                   [3]
-        opcode_address[7] = 0x40;                      // RTI                   [6]
-        opcode_address[8] = 0x60;                      // RTS                   [-]
+        opcode_address[-7] = 0xa9;                      // LDA #>rts_address     [2]
+        opcode_address[-6] = msb(opcode_address + 1);   //
+        opcode_address[-5] = 0x48;                      // PHA                   [3]
+        opcode_address[-4] = 0xa9;                      // LDA #<rts_address     [2]
+        opcode_address[-3] = lsb(opcode_address + 1);   //
+        opcode_address[-2] = 0x48;                      // PHA                   [3]
+        opcode_address[-1] = 0x08;                      // PHP                   [3]
+        opcode_address[ 0] = 0x40;                      // RTI                   [6]
+        opcode_address[ 1] = 0x60;                      // RTS                   [-]
 
         test_overhead_cycles = 2 + 3 + 2 + 3 + 3;
         instruction_cycles   = 6;
 
         if (!run_measurement(
             test_description,
-            test_overhead_cycles, instruction_cycles, opcode_address, DEFAULT_RUN_FLAGS,
+            test_overhead_cycles, instruction_cycles, opcode_address - 7, DEFAULT_RUN_FLAGS,
             "opcode offset", opcode_offset,
             NULL
         ))

@@ -1,0 +1,13 @@
+*.o
+*~
+atari
+
+target_atari.s
+target_c64.s
+target_asm_sim6502.s
+
+tic_atari.xex
+tic_c64.prg
+tic_sim6502.prg
+
+
