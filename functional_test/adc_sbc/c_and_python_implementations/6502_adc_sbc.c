@@ -31,11 +31,11 @@ static inline AddSubResult adc_binary_mode(const bool initial_carry_flag, const 
 {
     AddSubResult result;
 
-    result.Accumulator = initial_carry_flag + initial_accumulator + operand;
+    result.Accumulator = initial_accumulator + operand + initial_carry_flag;
     result.FlagN = result.Accumulator >= 0x80;
     result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand >= 0x80) ^ result.FlagN);
     result.FlagZ = result.Accumulator == 0;
-    result.FlagC = initial_carry_flag + initial_accumulator + operand >= 0x100;
+    result.FlagC = initial_accumulator + operand + initial_carry_flag >= 0x100;
 
     return result;
 }
@@ -79,7 +79,7 @@ static inline AddSubResult adc_6502_decimal_mode(const bool initial_carry_flag, 
 
     // For the 6502 ADC instruction in decimal mode, the Z flag behaves as if we're in binary mode.
 
-    const uint8_t binary_result = (initial_carry_flag + initial_accumulator + operand);
+    const uint8_t binary_result = (initial_accumulator + operand + initial_carry_flag);
     result.FlagZ = (binary_result == 0);
 
     // For the 6502 ADC instruction in decimal mode, the Accumulator and the N, V, and C flags behave differently.
@@ -120,9 +120,9 @@ static inline AddSubResult sbc_6502_decimal_mode(const bool initial_carry_flag, 
     bool borrow = !initial_carry_flag;
 
     const uint8_t binary_result = initial_accumulator  - operand - borrow;
-    result.FlagN = (binary_result >= 0x80);
+    result.FlagN = binary_result >= 0x80;
     result.FlagV = ((initial_accumulator >= 0x80) ^ result.FlagN) & ((operand < 0x80) ^ result.FlagN);
-    result.FlagZ = (binary_result == 0);
+    result.FlagZ = binary_result == 0;
 
     // For the 6502 SBC instruction in decimal mode, the Accumulator and the C flag behave differently.
 
@@ -171,9 +171,8 @@ static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag,
     uint8_t low_nibble = (initial_accumulator & 15) + (operand  & 15) + carry;
     if ((carry = low_nibble > 9))
     {
-        low_nibble -= 10;
+        low_nibble = (low_nibble - 10) & 15;
     }
-    low_nibble &= 15;
 
     uint8_t high_nibble = (initial_accumulator >> 4) + (operand  >> 4) + carry;
 
@@ -181,9 +180,8 @@ static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag,
 
     if ((carry = high_nibble > 9))
     {
-        high_nibble -= 10;
+        high_nibble = (high_nibble - 10) & 15;
     }
-    high_nibble &= 15;
 
     result.Accumulator = (high_nibble << 4) | low_nibble;
     result.FlagN = (result.Accumulator >= 0x80);
@@ -201,7 +199,7 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
     bool borrow = !initial_carry_flag;
 
     uint8_t low_nibble = (initial_accumulator & 15) - (operand & 15) - borrow;
-    if ((borrow = (low_nibble >= 0x80)))
+    if ((borrow = low_nibble >= 0x80))
     {
         low_nibble += 10;
     }
@@ -213,7 +211,7 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
 
     const bool PrematureFlagN = (high_nibble & 8) != 0;
 
-    if ((borrow = (high_nibble >= 0x80)))
+    if ((borrow = high_nibble >= 0x80))
     {
         high_nibble += 10;
     }
