@@ -6,6 +6,15 @@
 // This progrem generates the same 6502 and 65C02 reference files that can also be generated on real hardware.
 // This is possible since our re-implementations of the ADC and SBC routines for the 6502 and 65C02 are
 // functionally identical to their hardware counterparts.
+//
+// The MD5 hashes of the files generated are:
+//
+// 1011503fc61dcfce94dff8d11256200a  adc_sbc_6502.dat
+// dcf9102f6b165b42edcc1f5ee8af7584  adc_sbc_65c02.dat
+//
+// These MD5 hashes are also stored in the MD5SUM file in this directory. This makes it possible to check
+// if the generated files are accurate md execyting 'md5sum -c MD5SUM' on the command line, after running
+// this program.
 
 #include <stdio.h>
 #include <assert.h>
