@@ -2,12 +2,12 @@
         .export _measure_cycles_wrapper
         .import _measure_cycles
 
-        .import _num_zpage_preserve
-        .import _zpage_preserve
+        .import _num_zpage_preserve     ; defined in 'timing_test_measurement.c
+        .import _zpage_preserve         ; defined in 'timing_test_measurement.c
 
                 .bss
 
-zpage_copy:     .res 2          ; Save any zero-page values that need preserving here.
+zpage_copy:     .res 2          ; Save any zero-page values (up to two) that need preserving here.
 
                 .code
 
@@ -32,7 +32,7 @@ _measure_cycles_wrapper:
                 tax
                 pla
 
-                jsr     _measure_cycles
+                jsr     _measure_cycles         ; Call the target-specific measurement routine.
 
                 pha
                 txa

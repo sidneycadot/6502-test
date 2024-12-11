@@ -537,8 +537,8 @@ bool timing_test_6502_illegal_instructions(void)
         //
         // SHA (2 variants)
         //
-        // Note: the SHA instructions bug out the Altirra simulator, and they also cause issues on a real Atari.
-        // TODO: figure this out.
+        // Note: the SHA/SHX/SHY instructions bug out the Altirra simulator, and they also cause
+        // issues on a real Atari. TODO: figure this out.
         //
         // Replacing these tests with documented instructions makes the problems go away,
         // suggesting the issue is really in the SHA instructions themselves, i.e:
@@ -548,17 +548,16 @@ bool timing_test_6502_illegal_instructions(void)
         //    STA (zpage,Y)    0x99   instead of what we want to test:     SHX abs,Y        0x9e
         //    STA abs,X        0x9d   instead of what we want to test:     SHY abs,X        0x9c
         //
-        // timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x91) &&  // Should be 0x93 to test SHA.  -- DUBIOUS
-        //
-        // timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x99) &&  // Should be 0x9f to test SHA.  -- DUBIOUS
+        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x91) && // Should be 0x93 to test SHA.  -- DUBIOUS
+        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x99) && // Should be 0x9f to test SHA.  -- DUBIOUS
         //
         // Illegal SHX instruction (1 variant)
         //
-        // timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x99) &&  // Should be 0x9e to test SHA.  -- DUBIOUS
+        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x99) && // Should be 0x9e to test SHX.  -- DUBIOUS
         //
         // Illegal SHY instruction (1 variant)
         //
-        // timing_test_write_abs_x_instruction          ("Illegal SHY abs,X"     " (0x9c)", 0x9d) &&  // Should be 0x9c to test SHA.  -- DUBIOUS
+        timing_test_write_abs_x_instruction          ("Illegal SHY abs,X"      " (0x9c)", 0x9d) && // Should be 0x9c to test SHY.  -- DUBIOUS
         //
         // Illegal TAS instruction (1 variant).
         //
@@ -584,10 +583,10 @@ bool timing_test_hard_6502_illegal_instructions(void)
     //    STA abs,X        0x9d   instead of what we want to test:     SHY abs,X        0x9c
 
     return
-        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&  // Should be 0x93 to test SHA.  -- DUBIOUS
-        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&  // Should be 0x9f to test SHA.  -- DUBIOUS
-        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x9e) &&  // Should be 0x9e to test SHA.  -- DUBIOUS
-        timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"     " (0x9c)", 0x9c);    // Should be 0x9c to test SHA.  -- DUBIOUS
+        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&  // Should be 0x93 to test SHA.
+        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&  // Should be 0x9f to test SHA.
+        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x9e) &&  // Should be 0x9e to test SHX.
+        timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"     " (0x9c)", 0x9c);    // Should be 0x9c to test SHY.
 }
 
 bool run_6502_instruction_timing_tests(void)
@@ -663,8 +662,8 @@ void tic_cmd_cpu_test(unsigned level)
     reset_test_counts();
     pre_big_measurement_block_hook();
 
-    //run_completed = run_6502_instruction_timing_tests();
-    run_completed = timing_test_hard_6502_illegal_instructions();
+    run_completed = run_6502_instruction_timing_tests();
+    //run_completed = timing_test_hard_6502_illegal_instructions();
 
     post_big_measurement_block_hook();
     report_test_counts();
