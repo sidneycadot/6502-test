@@ -196,7 +196,7 @@ static inline AddSubResult adc_65c02_decimal_mode(const bool initial_carry_flag,
 
     const bool PrematureFlagN = (high_nibble & 8) != 0;
 
-    if ((carry = high_nibble > 9))
+    if ((carry = (high_nibble > 9)))
     {
         high_nibble = (high_nibble - 10) & 15;
     }
@@ -221,7 +221,7 @@ static inline AddSubResult sbc_65c02_decimal_mode(const bool initial_carry_flag,
     {
         low_nibble += 10;
     }
-    // low_nibble still being negative here, strangely, influences the high nibble.
+    // The low_nibble still being negative here, strangely, influences the high nibble.
     const bool low_nibble_still_negative = (low_nibble >= 0x80);
     low_nibble &= 15;
 
