@@ -40,9 +40,9 @@ TIC_OBJS := tic_main_${TIC_TARGET}.o                    \
             tic_cmd_cpu_test_${TIC_TARGET}.o            \
             timing_test_routines_${TIC_TARGET}.o        \
             timing_test_measurement_${TIC_TARGET}.o     \
-            timing_test_zeropage_backup_${TIC_TARGET}.o \
             timing_test_memory_${TIC_TARGET}.o          \
             target_asm_${TIC_TARGET}.o                  \
+            target_asm_generic_${TIC_TARGET}.o          \
             target_${TIC_TARGET}.o
 
 # Link the final executable.

@@ -66,9 +66,16 @@ _set_irq_vector_address:
 
 _zp_address_is_safe:
 
-                cmp     #1
+                ; Note: this routine must be written in such a way that it can be called from C, but also from
+                ; assembly language while restoring the zero page, with the ZP still (partially) garbled!
+                ;
+                ; Hence, for full control, we implement it in assembly language.
+                ;
+                ; On the C64, any ZP address other than 0 and 1 is safe.
+
+                cmp     #1      ; iff A > 1, the carry will be set.
                 lda     #0
-                adc     #0   ; iff A > 1, the carry will be set.
+                adc     #0      ; A is now equal to (address > 1).
                 ldx     #0
                 rts
 

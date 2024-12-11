@@ -54,6 +54,8 @@ bool __fastcall__ zp_address_is_safe(uint8_t address);
 // Measure the number of cycles that a code fragment will take, up to (but not including) a final RTS.
 int16_t __fastcall__ measure_cycles(uint8_t * code);
 
+int16_t __fastcall__ measure_cycles_wrapper(uint8_t * code);
+
 // Code and constants to implement the BRK timing test.
 //
 // The BRK instruction will vector through the IRQ vector at (0xfffe, 0xffff).

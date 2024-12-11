@@ -17,6 +17,15 @@ unsigned STEP_SIZE = 85;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
+//                                                 ZPAGE PRESERVATION                                                //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint8_t num_zpage_preserve; // How many zero-pages addresses should the test preserve?
+uint8_t zpage_preserve[2]; // zero page addresses to preserve (0, 1, or 2).
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
 //                                              TRIVIAL SUPPORT ROUTINES                                             //
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,6 +59,8 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -74,6 +85,8 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -100,6 +113,8 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -136,6 +151,8 @@ bool timing_test_read_immediate_instruction(const char * test_description, uint8
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -171,6 +188,8 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -201,7 +220,6 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
     return true;
 }
 
-
 bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_x
@@ -211,6 +229,8 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -258,6 +278,8 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -304,6 +326,8 @@ bool timing_test_read_abs_instruction(const char * test_description, uint8_t opc
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -341,6 +365,8 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -386,6 +412,8 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -430,6 +458,8 @@ bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, u
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -440,20 +470,20 @@ bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, u
 
             for (reg_y = 0; reg_y <= 0xff; reg_y += STEP_SIZE)
             {
-                opcode_address[-6] = 0xba;               // TSX          [2]
-                opcode_address[-5] = 0x8e;               // STX save_sp  [4]
+                opcode_address[-6] = 0xba;                    // TSX          [2]
+                opcode_address[-5] = 0x8e;                    // STX save_sp  [4]
                 opcode_address[-4] = lsb(opcode_address + 8); //
                 opcode_address[-3] = msb(opcode_address + 8); //
-                opcode_address[-2] = 0xa0;               // LDY #imm     [2]
-                opcode_address[-1] = reg_y;              //
-                opcode_address[ 0] = opcode;             // OPC base_address,Y   [4 or 5]
-                opcode_address[ 1] = lsb(base_address);  //
-                opcode_address[ 2] = msb(base_address);  //
-                opcode_address[ 3] = 0xae;               // LDX save_sp  [4]
+                opcode_address[-2] = 0xa0;                    // LDY #imm     [2]
+                opcode_address[-1] = reg_y;                   //
+                opcode_address[ 0] = opcode;                  // OPC base_address,Y   [4 or 5]
+                opcode_address[ 1] = lsb(base_address);       //
+                opcode_address[ 2] = msb(base_address);       //
+                opcode_address[ 3] = 0xae;                    // LDX save_sp  [4]
                 opcode_address[ 4] = lsb(opcode_address + 8); //
                 opcode_address[ 5] = msb(opcode_address + 8); //
-                opcode_address[ 6] = 0x9a;               // TXS          [2]
-                opcode_address[ 7] = 0x60;               // RTS          [-]
+                opcode_address[ 6] = 0x9a;                    // TXS          [2]
+                opcode_address[ 7] = 0x60;                    // RTS          [-]
 
                 test_overhead_cycles = 2 + 4 + 2 + 4 + 2;
                 instruction_cycles = 4 + different_pages(base_address, base_address + reg_y);
@@ -486,6 +516,8 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 2; // This test *DOES* not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -502,6 +534,9 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
                 {
                     continue;
                 }
+
+                zpage_preserve[0] = zp_ptr_lo_address;
+                zpage_preserve[1] = zp_ptr_hi_address;
 
                 for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
                 {
@@ -552,6 +587,8 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -564,6 +601,9 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
             {
                 continue;
             }
+
+            zpage_preserve[0] = zp_ptr_lo_address;
+            zpage_preserve[1] = zp_ptr_hi_address;
 
             for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
             {
@@ -622,6 +662,8 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -632,6 +674,8 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
             {
                 continue;
             }
+
+            zpage_preserve[0] = zp_address;
 
             opcode_address[0] = opcode;     // OPC zp_address   [3]
             opcode_address[1] = zp_address; //
@@ -662,6 +706,8 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -674,6 +720,8 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
                 {
                     continue;
                 }
+
+                zpage_preserve[0] = zp_address + reg_x;
 
                 opcode_address[-2] = 0xa2;       // LDX #imm             [2]
                 opcode_address[-1] = reg_x;      //
@@ -708,6 +756,8 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -720,6 +770,8 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
                 {
                     continue;
                 }
+
+                zpage_preserve[0] = zp_address + reg_y;
 
                 opcode_address[-2] = 0xa0;       // LDY #imm          [2]
                 opcode_address[-1] = reg_y;      //
@@ -753,6 +805,8 @@ bool timing_test_write_abs_instruction(const char * test_description, uint8_t op
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -791,6 +845,8 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -836,6 +892,8 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -879,6 +937,8 @@ bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, 
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -936,6 +996,8 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -947,6 +1009,9 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
                 // (zp_ptr_lo, zp_ptr_hi) will be the actual pointer used for indirection.
                 zp_ptr_lo_address = (zp_base_address + reg_x + 0) & 0xff;
                 zp_ptr_hi_address = (zp_base_address + reg_x + 1) & 0xff;
+
+                zpage_preserve[0] = zp_ptr_lo_address;
+                zpage_preserve[1] = zp_ptr_hi_address;
 
                 if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
                 {
@@ -1002,6 +1067,8 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1009,6 +1076,9 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
         for (zp_ptr_lo_address = 0; zp_ptr_lo_address <= 0xff; zp_ptr_lo_address += STEP_SIZE)
         {
             unsigned zp_ptr_hi_address = (zp_ptr_lo_address + 1) & 0xff;
+
+            zpage_preserve[0] = zp_ptr_lo_address;
+            zpage_preserve[1] = zp_ptr_hi_address;
 
             if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
             {
@@ -1072,6 +1142,8 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1082,6 +1154,8 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
             {
                 continue;
             }
+
+            zpage_preserve[0] = zp_address;
 
             opcode_address[0] = opcode;     // OPC zp_address      [5]
             opcode_address[1] = zp_address; //
@@ -1112,6 +1186,8 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1124,6 +1200,8 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
                 {
                     continue;
                 }
+
+                zpage_preserve[0] = zp_address + reg_x;
 
                 opcode_address[-2] = 0xa2;       // LDX #imm            [2]
                 opcode_address[-1] = reg_x;      //
@@ -1157,6 +1235,8 @@ bool timing_test_read_modify_write_abs_instruction(const char * test_description
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1195,6 +1275,8 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1239,6 +1321,8 @@ bool timing_test_read_modify_write_abs_y_instruction(const char * test_descripti
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1288,6 +1372,8 @@ bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * tes
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1299,6 +1385,9 @@ bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * tes
                 // (zp_ptr_lo, zp_ptr_hi) will be the actual pointer used for indirection.
                 zp_ptr_lo_address = (zp_base_address + reg_x + 0) & 0xff;
                 zp_ptr_hi_address = (zp_base_address + reg_x + 1) & 0xff;
+
+                zpage_preserve[0] = zp_ptr_lo_address;
+                zpage_preserve[1] = zp_ptr_hi_address;
 
                 if (!zp_address_is_safe(zp_ptr_lo_address) || !zp_address_is_safe(zp_ptr_hi_address))
                 {
@@ -1354,6 +1443,8 @@ bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * tes
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1366,6 +1457,9 @@ bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * tes
             {
                 continue;
             }
+
+            zpage_preserve[0] = zp_ptr_lo_address;
+            zpage_preserve[1] = zp_ptr_hi_address;
 
             for (address_offset = 0; address_offset <= 0xff; address_offset += STEP_SIZE)
             {
@@ -1437,6 +1531,8 @@ static bool timing_test_branch_instruction_taken(const char * test_description, 
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         entry_address = TESTCODE_BASE;
@@ -1501,6 +1597,8 @@ static bool timing_test_branch_instruction_not_taken(const char * test_descripti
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         entry_address = TESTCODE_BASE;
@@ -1552,8 +1650,6 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
 
     char augmented_test_description[40];
 
-    pre_every_test_hook(test_description);
-
     sprintf(augmented_test_description, "%s - taken", test_description);
     if (!timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value))
     {
@@ -1577,6 +1673,8 @@ bool timing_test_jmp_abs_instruction(const char * test_description)
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1608,6 +1706,8 @@ bool timing_test_jmp_indirect_instruction(const char * test_description)
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1660,6 +1760,8 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
 
     pre_every_test_hook(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
         opcode_address = TESTCODE_ANCHOR + opcode_offset;
@@ -1692,6 +1794,8 @@ bool timing_test_rts_instruction(const char * test_description)
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1731,6 +1835,8 @@ bool timing_test_brk_instruction(const char * test_description)
     bool proceed;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -1777,6 +1883,8 @@ bool timing_test_rti_instruction(const char * test_description)
     uint8_t *opcode_address;
 
     pre_every_test_hook(test_description);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
