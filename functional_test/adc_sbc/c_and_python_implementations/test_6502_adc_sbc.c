@@ -23,8 +23,7 @@ typedef AddSubResult testfunc(const bool decimal_flag, const bool initial_carry_
 
 static void read_op_result(FILE * fi, AddSubResult * result)
 {
-    // The test case result are stored in the file as two
-    // bytes.
+    // The test case result are stored in the file as two bytes.
     // The first one is the content of the Accumulator register (A) after the ADB/SBC operation.
     // The second one is the content of the Status register (P) after the ADC/SBC operation.
 
@@ -84,9 +83,10 @@ static bool identical(AddSubResult * r1, AddSubResult * r2)
 static void run_tests_on_file(const char * filename, testfunc adc, testfunc sbc, unsigned * count_tests, unsigned * count_errors)
 {
     ReferenceDataArray reference_data;
-    read_reference_data(filename, reference_data);
 
     printf("Running ADC/SBC behavior tests against hardware behavior reference file: %s ...\n", filename);
+
+    read_reference_data(filename, reference_data);
 
     for (unsigned decimal_flag = 0; decimal_flag <= 1; ++decimal_flag)
     {
