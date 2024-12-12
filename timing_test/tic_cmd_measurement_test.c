@@ -3,7 +3,6 @@
 // tic_cmd_measurement_test.c //
 ////////////////////////////////
 
-#include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -44,19 +43,25 @@ static void generate_code(uint8_t * code, unsigned cycles)
     *code++ = 0x60;                 // RTS             [-]
 }
 
-static bool run_measurement_tests(unsigned repeats, unsigned min_cycle_count, unsigned max_cycle_count)
+static bool run_measurement_tests(unsigned repeats, uint8_t min_cycle_count, uint8_t max_cycle_count)
 {
     // Generate straightforward 6502 code to burn a desired number of instruction cycles, then
     // execute the 'measure_cycles' routine on the genrated code to verify that the number of cycles
     // measured is equal to the number of cycles the code was expected to take.
 
-    unsigned instruction_cycles, repeat_index;
+    unsigned repeat_index;
+
+    extern uint8_t par1;
+    extern uint8_t test_overhead_cycles;
+    extern uint8_t instruction_cycles;
+
+    test_overhead_cycles = 0;
 
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
         pre_every_test_hook("measurement test");
 
-        for (instruction_cycles = min_cycle_count; instruction_cycles <= max_cycle_count; ++instruction_cycles)
+        for (par1 = min_cycle_count; par1 <= max_cycle_count; ++par1)
         {
             if (instruction_cycles == 1)
             {
@@ -65,19 +70,17 @@ static bool run_measurement_tests(unsigned repeats, unsigned min_cycle_count, un
             }
 
             generate_code(TESTCODE_BASE, instruction_cycles);
+            instruction_cycles = par1;
 
             // Note that we do not bail out in case of errors.
-            if (!run_measurement(
-                "measurement test",
-                0, instruction_cycles, TESTCODE_BASE, F_NONE,
-                NULL
-            )) return false;
+            if (!run_measurement("measurement test", TESTCODE_BASE, F_NONE, Par1))
+                return false;
         }
     }
     return true;
 }
 
-void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsigned max_cycle_count)
+void tic_cmd_measurement_test(unsigned repeats, uint8_t min_cycle_count, uint8_t max_cycle_count)
 {
     // This command runs a test on the time measurement code itself.
 

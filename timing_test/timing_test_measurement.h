@@ -23,7 +23,7 @@ typedef enum {
 } LoopSpec;
 
 void reset_test_counts(void);
-bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, uint8_t flags, LoopSpec loopspec);
+bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_t flags, LoopSpec loopspec);
 void report_test_counts(void);
 
 #endif

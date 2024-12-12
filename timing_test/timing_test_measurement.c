@@ -45,6 +45,8 @@ void print_label_hex_value_pair(const char * prefix, const char * label, unsigne
 
 static void print_test_report(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, unsigned actual_cycles, LoopSpec loopspec)
 {
+    (void)loopspec;
+
     printf("ERROR REPORT FOR \"%s\":\n", test_description);
 
     print_label_value_pair("  ", "test count"           , test_count           , 20);
@@ -56,8 +58,11 @@ static void print_test_report(const char * test_description, unsigned test_overh
 }
 
 
-bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, uint8_t flags, LoopSpec loopspec)
+bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_t flags, LoopSpec loopspec)
 {
+    extern uint8_t test_overhead_cycles;
+    extern uint8_t instruction_cycles;
+
     unsigned actual_cycles;
     bool success, hook_result;
 

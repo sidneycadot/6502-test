@@ -24,12 +24,10 @@ extern unsigned STEP_SIZE;
 
 // Timing tests for one, two, and three-byte instruction sequences.
 
-bool timing_test_single_byte_instruction_sequence (const char * test_description, uint8_t b1,
-                                                     unsigned instruction_cycles);
-bool timing_test_two_byte_instruction_sequence    (const char * test_description, uint8_t b1, uint8_t b2,
-                                                     unsigned test_overhead_cycles, unsigned instruction_cycles);
-bool timing_test_three_byte_instruction_sequence  (const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3,
-                                                     unsigned test_overhead_cycles, unsigned instruction_cycles);
+bool timing_test_single_byte_instruction_sequence (const char * test_description, uint8_t b1                                                        , uint8_t instruction_cycles_p);
+bool timing_test_two_byte_instruction_sequence    (const char * test_description, uint8_t b1, uint8_t b2            , uint8_t test_overhead_cycles_p, uint8_t instruction_cycles_p);
+bool timing_test_three_byte_instruction_sequence  (const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t test_overhead_cycles_p, uint8_t instruction_cycles_p);
+
 // Timing tests for read-instructions.
 
 bool timing_test_read_immediate_instruction       (const char * test_description, uint8_t opcode);
