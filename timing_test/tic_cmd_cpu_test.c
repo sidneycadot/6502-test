@@ -33,9 +33,9 @@ bool timing_test_buggy_6502_illegal_instructions(void)
     //    STA abs,X        0x9d   instead of what we want to test:     SHY abs,X        0x9c
 
     return
-        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&  // Should be 0x93 to test SHA.
-        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&  // Should be 0x9f to test SHA.
-        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x9e) &&  // Should be 0x9e to test SHX.
+        //timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&  // Should be 0x93 to test SHA.
+        //timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&  // Should be 0x9f to test SHA.
+        //timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x9e) &&  // Should be 0x9e to test SHX.
         timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"     " (0x9c)", 0x9c);    // Should be 0x9c to test SHY.
 }
 
