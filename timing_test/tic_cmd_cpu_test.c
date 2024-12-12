@@ -7,7 +7,6 @@
 
 #include "timing_test_routines.h"
 #include "timing_test_measurement.h"
-#include "timing_test_zeropage_backup.h"
 #include "target.h"
 
 #include "tic_cmd_cpu_test.h"
