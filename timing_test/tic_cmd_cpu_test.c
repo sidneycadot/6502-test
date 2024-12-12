@@ -662,7 +662,7 @@ bool run_6502_instruction_timing_tests(void)
         timing_test_read_modify_write_abs_x_instructions()   && // 6 instructions
         // Test the timing of the 14 branch, jump, jsr, and interrupt related instructions.
         timing_test_branch_instructions()                    && // 8 instructions.
-        timing_test_jmp_instructions()                       && // 2 instructions.
+        timing_test_jmp_instructions()                       &&// 2 instructions.
         timing_test_jsr_and_rts_instructions()               && // 2 instructions.
         timing_test_brk_and_rti_instructions()               && // 2 instructions.
         // Test 93 of the 105 "illegal" instructions (all excluding the 12 JAM instructions).
@@ -685,8 +685,8 @@ void tic_cmd_cpu_test(unsigned level)
     reset_test_counts();
     pre_big_measurement_block_hook();
 
-    run_completed = run_6502_instruction_timing_tests();
-    //run_completed = timing_test_buggy_6502_illegal_instructions();
+    //run_completed = run_6502_instruction_timing_tests();
+    run_completed = timing_test_buggy_6502_illegal_instructions();
 
     post_big_measurement_block_hook();
     report_test_counts();

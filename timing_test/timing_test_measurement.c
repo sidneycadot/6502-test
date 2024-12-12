@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdarg.h>
 #include <string.h>
 #include <peekpoke.h>
 
@@ -44,65 +43,20 @@ void print_label_hex_value_pair(const char * prefix, const char * label, unsigne
     printf(" : 0x%02x\n", value);
 }
 
-static void print_test_report(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, unsigned actual_cycles, va_list pass1)
+static void print_test_report(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, unsigned actual_cycles, LoopSpec loopspec)
 {
-    unsigned max_label_length = 20; // Length of "test overhead cycles".
-
-    va_list pass2;
-
-    va_copy(pass2, pass1);
-
     printf("ERROR REPORT FOR \"%s\":\n", test_description);
 
-    // The first loop finds the maximum label length.
-
-    for (;;)
-    {
-        char * label = va_arg(pass1, char *);
-
-        if (label == NULL)
-        {
-            break;
-        }
-
-        if (strlen(label) > max_label_length)
-        {
-            max_label_length = strlen(label);
-        }
-
-        // Skip over the value.
-        va_arg(pass1, unsigned);
-    }
-
-    print_label_value_pair("  ", "test count"           , test_count           , max_label_length);
-    print_label_value_pair("  ", "test overhead cycles" , test_overhead_cycles , max_label_length);
-    print_label_value_pair("  ", "instruction cycles"   , instruction_cycles   , max_label_length);
-    print_label_value_pair("  ", "actual cycles"        , actual_cycles        , max_label_length);
-
-    for (;;)
-    {
-        char * label;
-        unsigned value;
-
-        label = va_arg(pass2, char *);
-
-        if (label == NULL)
-        {
-            break;
-        }
-
-        value = va_arg(pass2, unsigned);
-
-        print_label_hex_value_pair("  ", label, value, max_label_length);
-    }
-
-    va_end(pass2);
+    print_label_value_pair("  ", "test count"           , test_count           , 20);
+    print_label_value_pair("  ", "test overhead cycles" , test_overhead_cycles , 20);
+    print_label_value_pair("  ", "instruction cycles"   , instruction_cycles   , 20);
+    print_label_value_pair("  ", "actual cycles"        , actual_cycles        , 20);
 
     printf("END OF ERROR REPORT\n\n");
 }
 
 
-bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, uint8_t flags, ...)
+bool run_measurement(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, uint8_t * entrypoint, uint8_t flags, LoopSpec loopspec)
 {
     unsigned actual_cycles;
     bool success, hook_result;
@@ -123,11 +77,7 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
 
     if (!success)
     {
-        va_list ap;
-        // Print an error report.
-        va_start(ap, flags);
-        print_test_report(test_description, test_overhead_cycles,instruction_cycles, actual_cycles, ap);
-        va_end(ap);
+        print_test_report(test_description, test_overhead_cycles,instruction_cycles, actual_cycles, loopspec);
 
         if (flags & F_STOP_ON_ERROR)
         {

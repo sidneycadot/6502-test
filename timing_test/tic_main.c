@@ -21,12 +21,6 @@ void tic_cmd_help(void)
     printf("\n");
     printf("> msm <nreps> <min_c> <max_c>\n");
     printf("\n");
-    printf("  Test measurement functionality.\n");
-    printf("\n");
-    printf("  * nreps: number of repeats\n");
-    printf("  * min_c: min number of cycles to test\n");
-    printf("  * max_c: max number of cycles to test\n");
-    printf("\n");
     printf("> cpu <level>\n");
     printf("\n");
     printf("  Test timing of 6502 instructions.\n");
