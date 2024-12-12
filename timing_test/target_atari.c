@@ -119,15 +119,16 @@ bool post_every_measurement_hook(const char * test_description, bool success, un
     return PEEK(CONSOL) == 7; // Continue if no buttons have been pushed.
 }
 
-bool zp_address_is_safe(uint8_t address)
-{
-    (void)address;
-    return true; // On the atari, all zero-page addresses are freely usable.
-}
 
 uint8_t * set_irq_vector_address(uint8_t * newvec)
 {
     uint8_t * oldvec = (uint8_t *)PEEKW(VIMIRQ);
     POKEW(VIMIRQ, (uint16_t)newvec);
     return oldvec;
+}
+
+bool zp_address_is_safe(uint8_t zp_address)
+{
+    (void)zp_address;
+    return true;
 }

@@ -107,7 +107,8 @@ bool run_measurement(const char * test_description, unsigned test_overhead_cycle
     unsigned actual_cycles;
     bool success, hook_result;
 
-    actual_cycles = measure_cycles(entrypoint);
+    actual_cycles = measure_cycles_wrapper(entrypoint);
+
     ++test_count;
 
     success = (actual_cycles == test_overhead_cycles + instruction_cycles);
