@@ -76,7 +76,7 @@ bool timing_test_single_byte_two_cycle_implied_instructions(void)
 
 bool timing_test_read_immediate_instructions(void)
 {
-    // The 11 immediate-mode instructions all take 2 cycles.
+    // The 11 read-immediate instructions take 2 cycles.
 
     return
         timing_test_read_immediate_instruction("LDY #imm", 0xa0) &&
@@ -95,7 +95,7 @@ bool timing_test_read_immediate_instructions(void)
 
 bool timing_test_read_zpage_instructions(void)
 {
-    // The 12 read-from-zero-page instructions all take 3 cycles.
+    // The 12 read-from-zero-page instructions take 3 cycles.
 
     return
         timing_test_read_zpage_instruction("BIT zpage", 0x24) &&
@@ -115,7 +115,7 @@ bool timing_test_read_zpage_instructions(void)
 
 bool timing_test_read_zpage_x_instructions(void)
 {
-    // The 8 read-from-zero-page-with-x-indexing instructions all take 4 cycles.
+    // The 8 read-from-zero-page-with-x-indexing instructions take 4 cycles.
 
     return
         timing_test_read_zpage_x_instruction("LDY zpage,X", 0xb4) &&
@@ -131,7 +131,7 @@ bool timing_test_read_zpage_x_instructions(void)
 
 bool timing_test_read_zpage_y_instructions(void)
 {
-    // The 1 read-from-zero-page-with-y-indexing instruction takes 4 cycles.
+    // The single read-from-zero-page-with-y-indexing instruction takes 4 cycles.
 
     return
         timing_test_read_zpage_y_instruction("LDX zpage,Y", 0xb6);
@@ -139,7 +139,7 @@ bool timing_test_read_zpage_y_instructions(void)
 
 bool timing_test_read_abs_instructions(void)
 {
-    // The 12 read-from-absolute-address instructions all take 4 cycles.
+    // The 12 read-from-absolute-address instructions take 4 cycles.
 
     return
         timing_test_read_abs_instruction("BIT abs", 0x2c) &&
@@ -195,7 +195,7 @@ bool timing_test_read_abs_y_instructions(void)
 
 bool timing_test_read_zpage_x_indirect_instructions(void)
 {
-    // The 7 write-to-zero-page instructions all take 6 cycles.
+    // The 7 write-to-zero-page instructions take 6 cycles.
 
     return
         timing_test_read_zpage_x_indirect_instruction("ORA (zpage,X)", 0x01) &&
@@ -209,7 +209,7 @@ bool timing_test_read_zpage_x_indirect_instructions(void)
 
 bool timing_test_read_zpage_indirect_y_instructions(void)
 {
-    // The 7 write-to-zero-page instructions all take 6 cycles.
+    // The 7 write-to-zero-page instructions take 6 cycles.
 
     return
         timing_test_read_zpage_indirect_y_instruction("ORA (zpage),Y", 0x11) &&
@@ -223,7 +223,7 @@ bool timing_test_read_zpage_indirect_y_instructions(void)
 
 bool timing_test_write_zpage_instructions(void)
 {
-    // The 3 write-to-zero-page instructions all take 3 cycles.
+    // The 3 write-to-zero-page instructions take 3 cycles.
 
     return
         timing_test_write_zpage_instruction("STA zpage", 0x85) &&
@@ -233,7 +233,7 @@ bool timing_test_write_zpage_instructions(void)
 
 bool timing_test_write_zpage_x_instructions(void)
 {
-    // The 3 write-to-zero-page-with-x-indexing instructions all take 4 cycles.
+    // The 3 write-to-zero-page-with-x-indexing instructions take 4 cycles.
 
     return
         timing_test_write_zpage_x_instruction("STA zpage,X", 0x95) &&
@@ -242,7 +242,7 @@ bool timing_test_write_zpage_x_instructions(void)
 
 bool timing_test_write_zpage_y_instructions(void)
 {
-    // The 3 write-to-zero-page-with-y-indexing instructions all take 4 cycles.
+    // The 3 write-to-zero-page-with-y-indexing instructions take 4 cycles.
 
     return
         timing_test_write_zpage_y_instruction("STX zpage,Y", 0x96);
@@ -250,7 +250,7 @@ bool timing_test_write_zpage_y_instructions(void)
 
 bool timing_test_write_abs_instructions(void)
 {
-    // The 3 write-to-absolute-address instructions all take 4 cycles.
+    // The 3 write-to-absolute-address instructions take 4 cycles.
 
     return
         timing_test_write_abs_instruction("STA abs", 0x8d) &&
@@ -260,7 +260,7 @@ bool timing_test_write_abs_instructions(void)
 
 bool timing_test_write_abs_x_instructions(void)
 {
-    // The 1 write-to-absolute-address-with-x-indexing instructions all take 5 cycles.
+    // The single write-to-absolute-address-with-x-indexing instruction takes 5 cycles.
 
     return
         timing_test_write_abs_x_instruction("STA abs,X", 0x9d);
@@ -268,7 +268,7 @@ bool timing_test_write_abs_x_instructions(void)
 
 bool timing_test_write_abs_y_instructions(void)
 {
-    // The 1 write-to-absolute-address-with-y-indexing instructions all take 5 cycles.
+    // The single write-to-absolute-address-with-y-indexing instruction takes 5 cycles.
 
     return
         timing_test_write_abs_y_instruction("STA abs,Y", 0x99);
@@ -276,7 +276,7 @@ bool timing_test_write_abs_y_instructions(void)
 
 bool timing_test_write_zpage_x_indirect_instructions(void)
 {
-    // The 1 write-to-zero-page instructions takes 6 cycles.
+    // The single write-to-zero-page-with-x-indexing instruction takes 6 cycles.
 
     return
         timing_test_write_zpage_x_indirect_instruction("STA (zpage,X)", 0x81);
@@ -284,7 +284,7 @@ bool timing_test_write_zpage_x_indirect_instructions(void)
 
 bool timing_test_write_zpage_indirect_y_instructions(void)
 {
-    // The 1 write-to-zero-page instructions takes 6 cycles.
+    // The single write-to-zero-page-indirect-with-y-indexing instruction takes 6 cycles.
 
     return
         timing_test_write_zpage_indirect_y_instruction("STA (zpage),Y", 0x91);
@@ -292,7 +292,7 @@ bool timing_test_write_zpage_indirect_y_instructions(void)
 
 bool timing_test_read_modify_write_zpage_instructions(void)
 {
-    // The 6 read-modify-write-to-zero-page instructions all take 5 cycles.
+    // The 6 read-modify-write-to-zero-page instructions take 5 cycles.
 
     return
         timing_test_read_modify_write_zpage_instruction("ASL zpage", 0x06) &&
@@ -305,7 +305,7 @@ bool timing_test_read_modify_write_zpage_instructions(void)
 
 bool timing_test_read_modify_write_zpage_x_instructions(void)
 {
-    // The 6 read-modify-write-to-zero-page instructions all take 6 cycles.
+    // The 6 read-modify-write-to-zero-page-with-x-indexing instructions take 6 cycles.
 
     return
         timing_test_read_modify_write_zpage_x_instruction("ASL zpage,X", 0x16) &&
@@ -318,7 +318,7 @@ bool timing_test_read_modify_write_zpage_x_instructions(void)
 
 bool timing_test_read_modify_write_abs_instructions(void)
 {
-    // The 6 read-modify-write-to-absolute-address instructions all take 6 cycles.
+    // The 6 read-modify-write-to-absolute-address instructions take 6 cycles.
 
     return
         timing_test_read_modify_write_abs_instruction("ASL abs", 0x0e) &&
@@ -331,7 +331,7 @@ bool timing_test_read_modify_write_abs_instructions(void)
 
 bool timing_test_read_modify_write_abs_x_instructions(void)
 {
-    // The 6 read-modify-write-to-absolute-address instructions all take 7 cycles.
+    // The 6 read-modify-write-to-absolute-address-with-x-indexing instructions take 7 cycles.
 
     return
         timing_test_read_modify_write_abs_x_instruction("ASL abs,X", 0x1e) &&
@@ -345,7 +345,7 @@ bool timing_test_read_modify_write_abs_x_instructions(void)
 bool timing_test_branch_instructions(void)
 {
     // The 8 branch instructions take 2 cycles if the branch is not taken,
-    // and 3/4 cycles if the branch is taken.
+    // and 3 or 4 cycles if the branch is taken.
     return
         timing_test_branch_instruction("BPL rel", 0x10, 0) && // Branch if N=0.
         timing_test_branch_instruction("BMI rel", 0x30, 1) && // Branch if N=1.
@@ -359,10 +359,8 @@ bool timing_test_branch_instructions(void)
 
 bool timing_test_jmp_instructions(void)
 {
-    // The 8 branch instructions take 2 cycles if the branch is not taken,
-    // and 3/4 cycles if the branch is taken.
- 
-    // JMP abs takes 3 cycles; JMP (ind) takes 5 cycles.
+    // The single jump-to-absolute-address instruction takes 3 cycles.
+    // The single jump-to-indirect-address instruction takes 5 cycles.
     return
         timing_test_jmp_abs_instruction("JMP abs") &&
         timing_test_jmp_indirect_instruction("JMP (ind)");
@@ -370,7 +368,7 @@ bool timing_test_jmp_instructions(void)
 
 bool timing_test_jsr_and_rts_instructions(void)
 {
-    // JSR and RTS both take 6 cycles.
+    // The JSR and RTS instructions both take 6 cycles.
     return
         timing_test_jsr_abs_instruction("JSR abs") &&
         timing_test_rts_instruction("RTS");
@@ -386,12 +384,23 @@ bool timing_test_brk_and_rti_instructions(void)
 
 bool timing_test_6502_illegal_instructions(void)
 {
-    // 256 opcodes are possible.
-    // 151 are legal, leaving 105 instructions with "officially undefined" behavior:
-    // 12 instructions are "JAM" instructions, crashing the 6502.
-    // This leaves 93 instructions that are tested for timing below.
-
-    // See the NMOS 6510 Unintended Opcodes ("NoMoreSecrets") document (Google for it, version >= 0.98).
+    // The 6502 has 256 potential opcodes.
+    //
+    // 151 of these are defined, leaving 105 opcodes with undefined behavior,
+    //   i.e. behavior that is not defined by the manufacturer.
+    //
+    // 12 of these undefined opcodes are "JAM" pseudo-instructions that jam the
+    // 6502's internal state machine, thus stalling the 6502 until it is reset.
+    //
+    // This leaves 93 undefined opcodes with undefined behavior.
+    // Even though their behavior is not defined by the manufacturer, a lot
+    // is known about what happens when the 6502 encounters such opcodes.
+    //
+    // The NMOS 6510 Unintended Opcodes ("NoMoreSecrets") document collects all
+    // known information about these opcodes. It can be downloaded from the URL
+    // given below:
+    //
+    // https://csdb.dk/release/download.php?id=292274
 
     return
         //
@@ -496,7 +505,7 @@ bool timing_test_6502_illegal_instructions(void)
         //
         timing_test_read_abs_y_instruction_save_sp("Illegal LAS abs,Y" " (0xbb)", 0xbb) &&
         //
-        // Illegal NOP instruction (27 variant)
+        // Illegal NOP instruction (27 variants)
         //
         timing_test_single_byte_instruction_sequence("Illegal NOP" " (0x1a)", 0x1a, 2) &&
         timing_test_single_byte_instruction_sequence("Illegal NOP" " (0x3a)", 0x3a, 2) &&
@@ -530,35 +539,39 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_abs_x_instruction("Illegal NOP abs,X"     " (0x7c)", 0x7c) &&
         timing_test_read_abs_x_instruction("Illegal NOP abs,X"     " (0xdc)", 0xdc) &&
         timing_test_read_abs_x_instruction("Illegal NOP abs,X"     " (0xfc)", 0xfc) &&
-        //
+
         // Illegal JAM instruction (12 variants). These are not tested.
         //
         //     0x02, 0x12, 0x22, 0x32, 0x42, 0x54, 0x62, 0x72, 0x92, 0xb2, 0xd2, 0xf2.
+
+        // *** SHA/SHX/SHY instructions ***
         //
-        // SHA (2 variants)
+        // Testing the SHA/SHX/SHY instructions somehow triggers undefined in the test program.
+        // This happens both on the Altirra simulator and on a real Atari.
+        // The crash is not currently understood.
         //
-        // Note: the SHA/SHX/SHY instructions bug out the Altirra simulator, and they also cause
-        // issues on a real Atari. TODO: figure this out.
+        // This could either be caused by a real side-effect of these undocumented instructions,
+        // or it could indicate a bug in the test program.
         //
-        // Replacing these tests with documented instructions makes the problems go away,
-        // suggesting the issue is really in the SHA instructions themselves, i.e:
+        // If we replace the SHA/SHX/SHY opcodes with documented opcodes that should behave
+        // the same in terms of memory access and timing, the crash behavior is not seen.
         //
-        //    STA (zpage,Y)    0x91   instead of what we want to test:     SHA (zpage,Y)    0x93
-        //    STA abs,Y        0x99   instead of what we want to test:     SHA abs,Y        0x9f
-        //    STA (zpage,Y)    0x99   instead of what we want to test:     SHX abs,Y        0x9e
-        //    STA abs,X        0x9d   instead of what we want to test:     SHY abs,X        0x9c
+        // For now, we skip these four opcodes. If you want to test/debug them, use the
+        // 'timing_test_buggy_6502_illegal_instructions' routine defined below.
         //
-        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x91) && // Should be 0x93 to test SHA.  -- DUBIOUS
-        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x99) && // Should be 0x9f to test SHA.  -- DUBIOUS
+        // Illegal SHA instruction (2 variants)
+        //
+        // timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&
+        // timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&
         //
         // Illegal SHX instruction (1 variant)
         //
-        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x99) && // Should be 0x9e to test SHX.  -- DUBIOUS
+        // timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x9e) &&
         //
         // Illegal SHY instruction (1 variant)
         //
-        timing_test_write_abs_x_instruction          ("Illegal SHY abs,X"      " (0x9c)", 0x9d) && // Should be 0x9c to test SHY.  -- DUBIOUS
-        //
+        // timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"     " (0x9c)", 0x9c) &&
+
         // Illegal TAS instruction (1 variant).
         //
         timing_test_write_abs_y_instruction_save_sp   ("Illegal TAS abs,Y"     " (0x9b)", 0x9b) &&
@@ -572,10 +585,21 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_immediate_instruction        ("Illegal LAX #imm"      " (0xab)", 0xab);
 }
 
-bool timing_test_hard_6502_illegal_instructions(void)
+bool timing_test_buggy_6502_illegal_instructions(void)
 {
-    // Replacing these tests with documented instructions makes the problems go away,
-    // suggesting the issue is really in the SHA instructions themselves, i.e:
+    // *** SHA/SHX/SHY instructions ***
+    //
+    // Testing the SHA/SHX/SHY instructions somehow triggers undefined in the test program.
+    // This happens both on the Altirra simulator and on a real Atari.
+    // The crash is not currently understood.
+    //
+    // This could either be caused by a real side-effect of these undocumented instructions,
+    // or it could indicate a bug in the test program.
+    //
+    // If we replace the SHA/SHX/SHY opcodes with documented opcodes that should behave
+    // the same in terms of memory access and timing, the crash behavior is not seen.
+    //
+    // Replacements used:
     //
     //    STA (zpage,Y)    0x91   instead of what we want to test:     SHA (zpage,Y)    0x93
     //    STA abs,Y        0x99   instead of what we want to test:     SHA abs,Y        0x9f
@@ -642,7 +666,7 @@ bool run_6502_instruction_timing_tests(void)
         timing_test_jmp_instructions()                       && // 2 instructions.
         timing_test_jsr_and_rts_instructions()               && // 2 instructions.
         timing_test_brk_and_rti_instructions()               && // 2 instructions.
-        // Test the 93 of the 105 "illegal" instructions (all excluding the 12 JAM instructions).
+        // Test 93 of the 105 "illegal" instructions (all excluding the 12 JAM instructions).
         timing_test_6502_illegal_instructions();
 }
 
@@ -663,7 +687,7 @@ void tic_cmd_cpu_test(unsigned level)
     pre_big_measurement_block_hook();
 
     run_completed = run_6502_instruction_timing_tests();
-    //run_completed = timing_test_hard_6502_illegal_instructions();
+    //run_completed = timing_test_buggy_6502_illegal_instructions();
 
     post_big_measurement_block_hook();
     report_test_counts();

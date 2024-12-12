@@ -22,7 +22,7 @@ unsigned STEP_SIZE = 85;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t num_zpage_preserve; // How many zero-pages addresses should the test preserve?
-uint8_t zpage_preserve[2]; // zero page addresses to preserve (0, 1, or 2).
+uint8_t zpage_preserve[2];  // Zero page addresses to preserve while the test executes (0, 1, or 2 values).
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
@@ -47,7 +47,7 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
-//                                                  PREPROCESSOR SYMBOLS                                             //
+//                                          PREPROCESSOR SYMBOLS FOR 6502 OPCODES                                    //
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -66,7 +66,7 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 #define STY_ZP   0x84
 #define STX_ZP   0x86
 #define STX_ABS  0x8e
-#define OPX_TXS  0x9a
+#define OPC_TXS  0x9a
 #define LDY_IMM  0xa0
 #define LDX_IMM  0xa2
 #define LDA_IMM  0xa9
@@ -82,6 +82,7 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 bool timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t opc, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     uint8_t *opcode_address;
 
@@ -109,6 +110,7 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
 bool timing_test_two_byte_instruction_sequence(const char * test_description, uint8_t opc1, uint8_t opc2, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     uint8_t *opcode_address;
 
@@ -137,6 +139,7 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
 bool timing_test_three_byte_instruction_sequence(const char * test_description, uint8_t opc1, uint8_t opc2, uint8_t opc3, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     uint8_t *opcode_address;
 
@@ -172,6 +175,7 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
 bool timing_test_read_immediate_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, operand
+
     unsigned opcode_offset;
     unsigned operand;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -209,6 +213,7 @@ bool timing_test_read_immediate_instruction(const char * test_description, uint8
 bool timing_test_read_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address
+
     unsigned opcode_offset;
     unsigned zp_address;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -251,6 +256,7 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
 bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_x
+
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -299,6 +305,7 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
 bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_y
+
     unsigned opcode_offset;
     unsigned zp_address, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -347,6 +354,7 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
 bool timing_test_read_abs_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset
+
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -387,6 +395,7 @@ bool timing_test_read_abs_instruction(const char * test_description, uint8_t opc
 bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_x
+
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
     unsigned instruction_cycles, test_overhead_cycles;
@@ -433,6 +442,7 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
 bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -479,6 +489,7 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
 bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -510,7 +521,7 @@ bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, u
                 opcode_address[ 3] = LDX_ABS;                 // LDX save_sp  [4]
                 opcode_address[ 4] = lsb(opcode_address + 8); //
                 opcode_address[ 5] = msb(opcode_address + 8); //
-                opcode_address[ 6] = OPX_TXS;                 // TXS          [2]
+                opcode_address[ 6] = OPC_TXS;                 // TXS          [2]
                 opcode_address[ 7] = OPC_RTS;                 // RTS          [-]
 
                 test_overhead_cycles = 2 + 4 + 2 + 4 + 2;
@@ -533,6 +544,7 @@ bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, u
 bool timing_test_read_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
+
     unsigned opcode_offset;
     unsigned zp_base_address;
     unsigned reg_x;
@@ -544,7 +556,7 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
 
     pre_every_test_hook(test_description);
 
-    num_zpage_preserve = 2; // This test *DOES* not require zero page address preservation.
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
 
     for (opcode_offset = 0; opcode_offset <= 0xff; opcode_offset += STEP_SIZE)
     {
@@ -606,6 +618,7 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
 bool timing_test_read_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned reg_y;
@@ -683,6 +696,7 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
 bool timing_test_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address
+
     unsigned opcode_offset;
     unsigned zp_address;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -727,6 +741,7 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
 bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_x
+
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -777,6 +792,7 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
 bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_y
+
     unsigned opcode_offset;
     unsigned zp_address, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -827,6 +843,7 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
 bool timing_test_write_abs_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset
+
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -867,6 +884,7 @@ bool timing_test_write_abs_instruction(const char * test_description, uint8_t op
 bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_x
+
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -913,6 +931,7 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
 bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -959,6 +978,7 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
 bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -990,7 +1010,7 @@ bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, 
                 opcode_address[ 3] = LDX_ABS;                 // LDX save_sp  [4]
                 opcode_address[ 4] = lsb(opcode_address + 8); //
                 opcode_address[ 5] = msb(opcode_address + 8); //
-                opcode_address[ 6] = OPX_TXS;                 // TXS          [2]
+                opcode_address[ 6] = OPC_TXS;                 // TXS          [2]
                 opcode_address[ 7] = OPC_RTS;                 // RTS          [-]
 
                 test_overhead_cycles = 2 + 4 + 2 + 4 + 2;
@@ -1013,6 +1033,7 @@ bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, 
 bool timing_test_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
+
     unsigned opcode_offset;
     unsigned zp_base_address;
     unsigned reg_x;
@@ -1086,6 +1107,7 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
 bool timing_test_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned reg_y;
@@ -1163,6 +1185,7 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
 bool timing_test_read_modify_write_zpage_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address
+
     unsigned opcode_offset;
     unsigned zp_address;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -1207,6 +1230,7 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
 bool timing_test_read_modify_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_address, reg_x
+
     unsigned opcode_offset;
     unsigned zp_address, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -1257,6 +1281,7 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
 bool timing_test_read_modify_write_abs_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset
+
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -1297,6 +1322,7 @@ bool timing_test_read_modify_write_abs_instruction(const char * test_description
 bool timing_test_read_modify_write_abs_x_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_x
+
     unsigned opcode_offset;
     unsigned address_offset, reg_x;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -1343,6 +1369,7 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
 bool timing_test_read_modify_write_abs_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset, reg_y;
     unsigned test_overhead_cycles, instruction_cycles;
@@ -1389,6 +1416,7 @@ bool timing_test_read_modify_write_abs_y_instruction(const char * test_descripti
 bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_base_address, reg_x, address_offset
+
     unsigned opcode_offset;
     unsigned zp_base_address;
     unsigned reg_x;
@@ -1462,6 +1490,7 @@ bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * tes
 bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
 {
     // LOOPS: opcode_offset, zp_ptr_lo_address, address_offset, reg_y
+
     unsigned opcode_offset;
     unsigned address_offset;
     unsigned reg_y;
@@ -1539,6 +1568,7 @@ bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * tes
 static bool timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
     // LOOPS: opcode_offset, operand
+
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
     // is in a state that lead to the branch being taken.
     //
@@ -1608,6 +1638,7 @@ static bool timing_test_branch_instruction_taken(const char * test_description, 
 static bool timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
 {
     // LOOPS: opcode_offset, operand
+
     // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
     // is in a state that lead to the branch *NOT* being taken.
     //
@@ -1696,6 +1727,7 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
 bool timing_test_jmp_abs_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
@@ -1729,6 +1761,7 @@ bool timing_test_jmp_abs_instruction(const char * test_description)
 bool timing_test_jmp_indirect_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset, address_offset
+
     unsigned opcode_offset, address_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
@@ -1782,6 +1815,7 @@ bool timing_test_jmp_indirect_instruction(const char * test_description)
 bool timing_test_jsr_abs_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
@@ -1817,6 +1851,7 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
 bool timing_test_rts_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
@@ -1856,6 +1891,7 @@ bool timing_test_rts_instruction(const char * test_description)
 bool timing_test_brk_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
@@ -1878,7 +1914,7 @@ bool timing_test_brk_instruction(const char * test_description)
         opcode_address[ 1] = LDX_ABS;               // LDX save_sp  [4] The BRK ends up here.
         opcode_address[ 2] = lsb(opcode_address+6); //
         opcode_address[ 3] = msb(opcode_address+6); //
-        opcode_address[ 4] = OPX_TXS;               // TXS          [2]
+        opcode_address[ 4] = OPC_TXS;               // TXS          [2]
         opcode_address[ 5] = OPC_RTS;               // RTS          [-]
 
         test_overhead_cycles = 2 + 4 + TARGET_SPECIFIC_IRQ_OVERHEAD + 4 + 2;
@@ -1906,6 +1942,7 @@ bool timing_test_brk_instruction(const char * test_description)
 bool timing_test_rti_instruction(const char * test_description)
 {
     // LOOPS: opcode_offset
+
     unsigned opcode_offset;
     unsigned test_overhead_cycles, instruction_cycles;
     uint8_t *opcode_address;
