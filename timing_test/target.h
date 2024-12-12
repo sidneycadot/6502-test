@@ -85,11 +85,11 @@ uint8_t * __fastcall__  set_irq_vector_address(uint8_t * newvec);
 //                                                       //
 ///////////////////////////////////////////////////////////
 
-# if defined(TIC_TARGET_ATARI)
+# if defined(TIC_PLATFORM_ATARI)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 7
-# elif defined(TIC_TARGET_C64)
+# elif defined(TIC_PLATFORM_C64)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 28
-# elif defined(TIC_TARGET_SIM6502)
+# elif defined(TIC_PLATFORM_SIM65)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
 # else
 #     error "No valid target specified."
