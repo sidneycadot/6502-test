@@ -1,6 +1,9 @@
 
 .PHONY : atari c64 all prep-atari
 
+# To keep all temporary (intermediate) files, enable the ".SECONDARY" target.
+#.SECONDARY:
+
 default:
 	@echo
 	@echo "Please provide a build target, e.g."
