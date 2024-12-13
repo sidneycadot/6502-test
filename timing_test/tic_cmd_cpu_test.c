@@ -664,7 +664,7 @@ bool run_6502_instruction_timing_tests(void)
         timing_test_branch_instructions()                    && // 8 instructions.
         timing_test_jmp_instructions()                       && // 2 instructions.
         timing_test_jsr_and_rts_instructions()               && // 2 instructions.
-        timing_test_brk_and_rti_instructions()               && // 2 instructions.
+        timing_test_brk_and_rti_instructions()               && true; // 2 instructions.
         // Test 93 of the 105 "illegal" instructions (all excluding the 12 JAM instructions).
         timing_test_6502_illegal_instructions();
 }

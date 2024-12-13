@@ -28,6 +28,7 @@ typedef enum {
     Par123_OpcodeOffset_ZPage_YReg,
     Par123_OpcodeOffset_AbsOffset_XReg,
     Par123_OpcodeOffset_AbsOffset_YReg,
+    Par123_OpcodeOffset_BranchDisplacement_TakenNotTaken,
     Par1234_OpcodeOffset_ZPage_XReg_AbsOffset,
     Par1234_OpcodeOffset_ZPage_AbsOffset_YReg
 } ParSpec;

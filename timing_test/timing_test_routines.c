@@ -1475,127 +1475,7 @@ bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * tes
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static bool timing_test_branch_instruction_taken(const char * test_description, uint8_t opcode, bool flag_value)
-{
-    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
-    // is in a state that lead to the branch being taken.
-    //
-    // The flag value (true or false) that leads to the branch being taken is passed in the 'flag_value' parameter.
-    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
-    // set to this value.
-    //
-    // Branch instructions, when taken, take 3 or 4 clock cycles:
-    //
-    // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
-    // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
-
-    uint8_t * opcode_address;
-    uint8_t * entry_address = TESTCODE_BASE;
-    int       displacement;
-
-    prepare_test(test_description);
-
-    num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_Displacement;
-
-    for (par1 = 0;;par1 += STEP_SIZE)
-    {
-        opcode_address = TESTCODE_ANCHOR + par1;
-
-        for (par2 = 0;;par2 += STEP_SIZE)
-        {
-            displacement = (par2 <= 0x7f) ? par2 : par2 - 0x100;
-
-            if (!(displacement == -1 || displacement == -2))
-            {
-                // The RTS will not overwrite the branch instruction or its displacement.
-
-                entry_address[0] = OPC_PHP;                        // PHP                  [3]
-                entry_address[1] = OPC_PLA;                        // PLA                  [4]
-                entry_address[2] = flag_value ? ORA_IMM : AND_IMM; // ORA #$c3 / AND #$3c  [2]
-                entry_address[3] = flag_value ?   0xc3  :   0x3c;  //
-                entry_address[4] = OPC_PHA;                        // PHA                  [3]
-                entry_address[5] = OPC_PLP;                        // PLP                  [4]
-                entry_address[6] = JMP_ABS;                        // JMP opcode_address   [3]
-                entry_address[7] = lsb(opcode_address);            //
-                entry_address[8] = msb(opcode_address);            //
-
-                opcode_address[0] = opcode;                        // Bxx operand          [3 or 4]
-                opcode_address[1] = par2;                          //
-                opcode_address[2 + displacement] = OPC_RTS;        // RTS                  [-]
-
-                m_test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
-                m_instruction_cycles = 3 + different_pages(&opcode_address[2], &opcode_address[2 + displacement]);
-
-                if (!run_measurement(test_description, entry_address, DEFAULT_RUN_FLAGS))
-                    return false;
-            }
-            if (par2 == LAST)
-                break;
-        }
-        if (par1 == LAST)
-            break;
-    }
-    return true;
-}
-
-static bool timing_test_branch_instruction_not_taken(const char * test_description, uint8_t opcode, bool flag_value)
-{
-    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
-    // is in a state that lead to the branch *NOT* being taken.
-    //
-    // The flag value (true or false) that leads to the branch being not taken is passed in the 'flag_value' parameter.
-    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
-    // set to this value.
-    //
-    // Branch instructions, when not taken, always take 2 clock cycles.
-
-    uint8_t * opcode_address;
-    uint8_t * entry_address  = TESTCODE_BASE;
-
-    prepare_test(test_description);
-
-    num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_Displacement;
-
-    for (par1 = 0;;par1 += STEP_SIZE)
-    {
-        opcode_address = TESTCODE_ANCHOR + par1;
-
-        for (par2 = 0;;par2 += STEP_SIZE)
-        {
-            entry_address[0] = OPC_PHP;                        // PHP                  [3]
-            entry_address[1] = OPC_PLA;                        // PLA                  [4]
-            entry_address[2] = flag_value ? ORA_IMM : AND_IMM; // ORA #$C3 / AND #$3C  [2]
-            entry_address[3] = flag_value ?   0xc3  :   0x3c;  //
-            entry_address[4] = OPC_PHA;                        // PHA                  [3]
-            entry_address[5] = OPC_PLP;                        // PLP                  [4]
-            entry_address[6] = JMP_ABS;                        // JMP opcode_address   [3]
-            entry_address[7] = lsb(opcode_address);            //
-            entry_address[8] = msb(opcode_address);            //
-
-            opcode_address[0] = opcode;                        // Bxx operand          [2]
-            opcode_address[1] = par2;                          //
-            opcode_address[2] = OPC_RTS;                       // RTS                  [-]
-
-            m_test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
-            m_instruction_cycles = 2;
-
-            if (!run_measurement(test_description, entry_address, DEFAULT_RUN_FLAGS))
-                return false;
-
-            if (par2 == LAST)
-                break;
-        }
-        if (par1 == LAST)
-            break;
-    }
-    return true;
-}
-
-bool timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool flag_value)
+bool timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool branch_when_flag_set)
 {
     // This function tests any of the "branch" instructions, testing both the "branch taken" and "branch not taken"
     // scenarios.
@@ -1608,16 +1488,100 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
     // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
     // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
 
-    char augmented_test_description[40];
+    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
+    // is in a state that lead to the branch *NOT* being taken.
+    //
+    // The flag value (true or false) that leads to the branch being not taken is passed in the 'flag_value' parameter.
+    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
+    // set to this value.
+    //
+    // Branch instructions, when not taken, always take 2 clock cycles.
 
-    sprintf(augmented_test_description, "%s - taken", test_description);
-    if (!timing_test_branch_instruction_taken(augmented_test_description, opcode, flag_value))
-        return false;
+    uint8_t * opcode_address;
+    uint8_t * entry_address  = TESTCODE_BASE;
+    int       displacement;
 
-    sprintf(augmented_test_description, "%s - not taken", test_description);
-    if (!timing_test_branch_instruction_not_taken(augmented_test_description, opcode, !flag_value))
-        return false;
+    prepare_test(test_description);
 
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    parspec = Par123_OpcodeOffset_BranchDisplacement_TakenNotTaken;
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            // Branch Not Taken measurement.
+
+            par3 = 0;
+
+            // If 'branch_when_flag_set' is true, set the N/V/C/Z flags all to zero.
+            // If 'branch_when_flag_set' is false, set the N/V/C/Z flags all to one.
+
+            opcode_address[-6] = OPC_PHP;                                  // PHP                  [3]
+            opcode_address[-5] = OPC_PLA;                                  // PLA                  [4]
+            opcode_address[-4] = branch_when_flag_set ? AND_IMM : ORA_IMM; // AND #$3C / ORA #$C3  [2]
+            opcode_address[-3] = branch_when_flag_set ?   0x3c  :  0xc3;   //
+            opcode_address[-2] = OPC_PHA;                                  // PHA                  [3]
+            opcode_address[-1] = OPC_PLP;                                  // PLP                  [4]
+            opcode_address[ 0] = opcode;                                   // Bxx operand          [2]
+            opcode_address[ 1] = par2;                                     //
+            opcode_address[ 2] = OPC_RTS;                                  // RTS                  [-]
+
+            m_test_overhead_cycles = 3 + 4 + 2 + 3 + 4;
+            m_instruction_cycles = 2;
+
+            if (!run_measurement(test_description, opcode_address - 6, DEFAULT_RUN_FLAGS))
+                return false;
+
+            // Branch Taken measurement.
+            //
+            // For a Branch Taken instruction, the target address should hold an RTS, bit
+            // this RTS cannot overlap with the branch opcode itself, or its operand (the displacement).
+            //
+            // So the par2 values 0xff (displacement -1) and 0xfe (displacement - 2) must be skipped.
+            //
+            // To maximize the range that we can cover, we jump to the test code from an 'entry point'
+            // region.
+            if ((par2 & 0xfe) != 0xfe)
+            {
+                displacement = (par2 <= 0x7f) ? par2 : par2 - 0x100;
+
+                par3 = 1;
+
+                // If 'branch_when_flag_set' is true,set the N/V/C/Z flags all to one.
+                // If 'branch_when_flag_set' is false, set the N/V/C/Z flags all to zero.
+
+                entry_address[0] = OPC_PHP;                                  // PHP                  [3]
+                entry_address[1] = OPC_PLA;                                  // PLA                  [4]
+                entry_address[2] = branch_when_flag_set ? ORA_IMM : AND_IMM; // ORA #$C3 / AND #$3C  [2]
+                entry_address[3] = branch_when_flag_set ?   0xc3  :   0x3c;  //
+                entry_address[4] = OPC_PHA;                                  // PHA                  [3]
+                entry_address[5] = OPC_PLP;                                  // PLP                  [4]
+                entry_address[6] = JMP_ABS;                                  // JMP opcode_address   [3]
+                entry_address[7] = lsb(opcode_address);                      //
+                entry_address[8] = msb(opcode_address);                      //
+
+                opcode_address[0] = opcode;                                  // Bxx operand          [2]
+                opcode_address[1] = par2;                                    //
+
+                opcode_address[2 + displacement] = OPC_RTS;                  // RTS                  [-]
+
+                m_test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
+                m_instruction_cycles = 3 + different_pages(opcode_address + 2, opcode_address + 2 + displacement);
+
+                if (!run_measurement(test_description, entry_address, DEFAULT_RUN_FLAGS))
+                    return false;
+            }
+
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
     return true;
 }
 

@@ -36,8 +36,8 @@ static uint8_t SAVE_COLOR1;
 static uint8_t SAVE_COLOR2;
 static uint8_t SAVE_COLOR4;
 
-static FIRSTPOS = 43;
-static LASTPOS = 210;
+static const uint8_t FIRSTPOS = 43;
+static const uint8_t LASTPOS = 210;
 
 void program_start_hook(void)
 {
@@ -69,8 +69,8 @@ void pre_big_measurement_block_hook(void)
     POKE(DMACTL, 0);
 
     POKE(GRAFM, 0x55);
-    POKE(COLPM0, 202);
-    POKE(COLPM1, 14);
+    POKE(COLPM0, 0xca); // Slow missile #0
+    POKE(COLPM1, 0x2a);  // Fast missile #1
     progress1 = FIRSTPOS;
     progress2 = FIRSTPOS;
 }
@@ -105,12 +105,12 @@ void pre_every_test_hook(const char * test_description)
     }
 }
 
-bool post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long msm_count, unsigned long error_count)
+bool post_every_measurement_hook(const char * test_description, bool success, unsigned opcode_count, unsigned long measurement_count, unsigned long error_count)
 {
     (void)test_description;
     (void)success;
-    (void)test_count;
-    (void)msm_count;
+    (void)opcode_count;
+    (void)measurement_count;
     (void)error_count;
     POKE(HPOSM1, progress2);
     if (progress2 == LASTPOS)

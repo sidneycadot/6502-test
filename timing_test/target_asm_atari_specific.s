@@ -70,10 +70,11 @@ _measure_cycles:
 
                 ; Burn the last 11 clockcycles before the sampling.
 
-                pla                                     ; [4 /  7]
-                pha                                     ; [3 /  4]
-                nop                                     ; [2 /  2]
-                nop                                     ; [2 /  2]
+                clc                                     ; 5 cycles
+                bcc     @prep
+
+@prep:          lda     #14                             ; 6 cycles
+                sta     COLBK
 
 @sample_before: ; Sample RANDOM three times, into RANDOM_T1[0..2], is assumed to take place periodically, at clock cycles T1, T1+8, and T1+16.
 
@@ -97,6 +98,11 @@ _measure_cycles:
                 sta     RANDOM_T2+1     ; Eight rightmost bits of 17-bits LSFR at time T2 + 8.
                 lda     RANDOM
                 sta     RANDOM_T2+2     ; Eight rightmost bits of 17-bits LSFR at time T2 + 16.
+
+@restore_color:
+
+                lda     #112
+                sta     COLBK
 
                 ; We now have two samplings of the state of RANDOM, each consisting of three bytes taken at 8-clockcycle intervals.
                 ; We will now simulate the action of the Atari random generator cycle by cycle, taking the three values RANDOM_T1

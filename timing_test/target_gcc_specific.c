@@ -31,12 +31,12 @@ void pre_every_test_hook(const char * test_description)
     printf("Running test: %s ...\n", test_description);
 }
 
-bool post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long msm_count, unsigned long error_count)
+bool post_every_measurement_hook(const char * test_description, bool success, unsigned opcode_count, unsigned long measurement_count, unsigned long error_count)
 {
     (void)test_description;
     (void)success;
-    (void)test_count;
-    (void)msm_count;
+    (void)opcode_count;
+    (void)measurement_count;
     (void)error_count;
     return true; // Proceed.
 }
