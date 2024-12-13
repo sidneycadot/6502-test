@@ -1130,7 +1130,7 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
 
         for (par2 = 0;;par2 += STEP_SIZE)
         {
-            if (zp_address_is_safe_write(par2))
+            if (zp_address_is_safe_for_write(par2))
             {
                 zpage_preserve[0] = par2;
 
@@ -1171,7 +1171,7 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
         {
             for (par3 = 0;;par3 += STEP_SIZE)
             {
-                if (zp_address_is_safe_write(par2 + par3))
+                if (zp_address_is_safe_for_write(par2 + par3))
                 {
                     zpage_preserve[0] = par2 + par3;
 
@@ -1358,7 +1358,7 @@ bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * tes
                 zpage_preserve[0] = zp_ptr_lo;
                 zpage_preserve[1] = zp_ptr_hi;
 
-                if (zp_address_is_safe_write(zp_ptr_lo) && zp_address_is_safe(zp_ptr_hi))
+                if (zp_address_is_safe_for_write(zp_ptr_lo) && zp_address_is_safe_for_write(zp_ptr_hi))
                 {
                     for (par4 = 0;;par4 += STEP_SIZE)
                     {
