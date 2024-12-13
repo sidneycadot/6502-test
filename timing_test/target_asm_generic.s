@@ -44,7 +44,7 @@ _measure_cycles_wrapper:
 
 @done_save:     ; Restore pointer to test-code.
 
-                pla 
+                pla
                 tax
                 pla
 

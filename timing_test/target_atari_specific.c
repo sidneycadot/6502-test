@@ -36,6 +36,9 @@ static uint8_t SAVE_COLOR1;
 static uint8_t SAVE_COLOR2;
 static uint8_t SAVE_COLOR4;
 
+static FIRSTPOS = 43;
+static LASTPOS = 210;
+
 void program_start_hook(void)
 {
     SAVE_LMARGN = PEEK(LMARGN);
@@ -68,8 +71,8 @@ void pre_big_measurement_block_hook(void)
     POKE(GRAFM, 0x55);
     POKE(COLPM0, 202);
     POKE(COLPM1, 14);
-    progress1 = 43;
-    progress2 = 43;
+    progress1 = FIRSTPOS;
+    progress2 = FIRSTPOS;
 }
 
 void post_big_measurement_block_hook(void)
@@ -90,9 +93,9 @@ void pre_every_test_hook(const char * test_description)
 {
     (void)test_description;
     POKE(HPOSM0, progress1);
-    if (progress1 == 210)
+    if (progress1 == LASTPOS)
     {
-        progress1 = 43;
+        progress1 = FIRSTPOS;
     }
     else
     {
@@ -100,16 +103,17 @@ void pre_every_test_hook(const char * test_description)
     }
 }
 
-bool post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long error_count)
+bool post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long msm_count, unsigned long error_count)
 {
     (void)test_description;
     (void)success;
     (void)test_count;
+    (void)msm_count;
     (void)error_count;
     POKE(HPOSM1, progress2);
-    if (progress2 == 210)
+    if (progress2 == LASTPOS)
     {
-        progress2 = 43;
+        progress2 = FIRSTPOS;
     }
     else
     {

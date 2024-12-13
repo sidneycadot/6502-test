@@ -7,23 +7,44 @@
 #include <stdbool.h>
 #include <string.h>
 #include <peekpoke.h>
+#include <assert.h>
 
 #include "target.h"
 #include "timing_test_measurement.h"
 
+// Interface from higher-level routines, via global variables.
+
+uint8_t num_zpage_preserve; // How many zero-pages addresses should the test preserve?
+uint8_t zpage_preserve[2];  // Zero page addresses to preserve while the test executes (0, 1, or 2 values).
+
+ParSpec parspec;
+
+uint8_t par1;
+uint8_t par2;
+uint8_t par3;
+uint8_t par4;
+
+unsigned m_test_overhead_cycles;
+unsigned m_instruction_cycles;
+
 unsigned long test_count;
+unsigned long msm_count;
 unsigned long error_count;
+
+//
 
 void reset_test_counts(void)
 {
     test_count = 0;
+    msm_count = 0;
     error_count = 0;
 }
 
 void report_test_counts(void)
 {
-    printf("Tests performed ... : %lu\n", test_count);
-    printf("Tests failed ...... : %lu\n", error_count);
+    printf("Tests performed .......... : %lu\n", test_count);
+    printf("Measurements performed ... : %lu\n", msm_count);
+    printf("Measurements failed ...... : %lu\n", error_count);
     printf("\n");
 }
 
@@ -43,34 +64,88 @@ void print_label_hex_value_pair(const char * prefix, const char * label, unsigne
     printf(" : 0x%02x\n", value);
 }
 
-static void print_test_report(const char * test_description, unsigned test_overhead_cycles, unsigned instruction_cycles, unsigned actual_cycles, LoopSpec loopspec)
+static void print_test_report(const char * test_description, unsigned actual_cycles)
 {
-    (void)loopspec;
+    uint8_t npar;
+
+    extern ParSpec parspec;
+
+    extern uint8_t par1;
+    extern uint8_t par2;
+    extern uint8_t par3;
+    extern uint8_t par4;
+
+    extern uint8_t m_test_overhead_cycles;
+    extern uint8_t m_instruction_cycles;
 
     printf("ERROR REPORT FOR \"%s\":\n", test_description);
 
-    print_label_value_pair("  ", "test count"           , test_count           , 20);
-    print_label_value_pair("  ", "test overhead cycles" , test_overhead_cycles , 20);
-    print_label_value_pair("  ", "instruction cycles"   , instruction_cycles   , 20);
-    print_label_value_pair("  ", "actual cycles"        , actual_cycles        , 20);
+    print_label_value_pair("  ", "test count"           , test_count             , 20);
+    print_label_value_pair("  ", "test overhead cycles" , m_test_overhead_cycles , 20);
+    print_label_value_pair("  ", "instruction cycles"   , m_instruction_cycles   , 20);
+    print_label_value_pair("  ", "actual cycles"        , actual_cycles          , 20);
+
+    switch (parspec)
+    {
+        case Par1_OpcodeOffset:
+        case Par1_ClockCycleCount:
+            npar = 1;
+            break;
+        case Par12_OpcodeOffset_Immediate:
+        case Par12_OpcodeOffset_ZPage:
+        case Par12_OpcodeOffset_AbsOffset:
+        case Par12_OpcodeOffset_Displacement:
+            npar = 2;
+            break;
+        case Par123_OpcodeOffset_ZPage_XReg:
+        case Par123_OpcodeOffset_ZPage_YReg:
+        case Par123_OpcodeOffset_AbsOffset_XReg:
+        case Par123_OpcodeOffset_AbsOffset_YReg:
+            npar = 3;
+            break;
+        case Par1234_OpcodeOffset_ZPage_XReg_AbsOffset:
+        case Par1234_OpcodeOffset_ZPage_AbsOffset_YReg:
+            npar = 4;
+            break;
+        default:
+            assert(false);
+            npar = 4;
+    }
+
+    if (npar >= 1)
+    {
+        print_label_hex_value_pair("  ", "par1", par1, 20);
+    }
+    if (npar >= 2)
+    {
+        print_label_hex_value_pair("  ", "par2", par2, 20);
+    }
+    if (npar >= 3)
+    {
+        print_label_hex_value_pair("  ", "par3", par3, 20);
+    }
+    if (npar >= 4)
+    {
+        print_label_hex_value_pair("  ", "par4", par4, 20);
+    }
 
     printf("END OF ERROR REPORT\n\n");
 }
 
 
-bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_t flags, LoopSpec loopspec)
+bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_t flags)
 {
-    extern uint8_t test_overhead_cycles;
-    extern uint8_t instruction_cycles;
+    extern uint8_t m_test_overhead_cycles;
+    extern uint8_t m_instruction_cycles;
 
     unsigned actual_cycles;
     bool success, hook_result;
 
     actual_cycles = measure_cycles_wrapper(entrypoint);
 
-    ++test_count;
+    ++msm_count;
 
-    success = (actual_cycles == test_overhead_cycles + instruction_cycles);
+    success = (actual_cycles == m_test_overhead_cycles + m_instruction_cycles);
 
     if (!success)
     {
@@ -78,11 +153,11 @@ bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_
     }
 
     // If hook_result is false, the hook requests termination.
-    hook_result = post_every_measurement_hook(test_description, success, test_count, error_count);
+    hook_result = post_every_measurement_hook(test_description, success, test_count, msm_count, error_count);
 
     if (!success)
     {
-        print_test_report(test_description, test_overhead_cycles,instruction_cycles, actual_cycles, loopspec);
+        print_test_report(test_description, actual_cycles);
 
         if (flags & F_STOP_ON_ERROR)
         {

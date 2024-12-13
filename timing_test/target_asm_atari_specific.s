@@ -82,7 +82,7 @@ _measure_cycles:
                 lda     RANDOM
                 sta     RANDOM_T1+1     ; Eight rightmost bits of 17-bits LSFR at time T1 + 8.
                 lda     RANDOM
-                sta     RANDOM_T1+2     ; Eight rightmost bits of 17-bits LSFR at time T1 + 16 
+                sta     RANDOM_T1+2     ; Eight rightmost bits of 17-bits LSFR at time T1 + 16.
 
 @execute_testcode_subroutine:
 

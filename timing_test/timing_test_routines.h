@@ -11,7 +11,7 @@
 
 // For testing purposes we often want to loop over values in the range 0..255. The STEP_SIZE variable
 // determines the steps to take; in case it's one, all 256 values are visited.
-// 
+//
 // By picking a smaller value, we can loop over the range faster (by skipping many values). For example,
 // if STEP_SIZE is 17, we only loop over {0, 17, 34, ..., 238, 255} -- just 16 out of the 256 values.
 //
@@ -24,9 +24,9 @@ extern unsigned STEP_SIZE;
 
 // Timing tests for one, two, and three-byte instruction sequences.
 
-bool timing_test_single_byte_instruction_sequence (const char * test_description, uint8_t b1                                                        , uint8_t instruction_cycles_p);
-bool timing_test_two_byte_instruction_sequence    (const char * test_description, uint8_t b1, uint8_t b2            , uint8_t test_overhead_cycles_p, uint8_t instruction_cycles_p);
-bool timing_test_three_byte_instruction_sequence  (const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t test_overhead_cycles_p, uint8_t instruction_cycles_p);
+bool timing_test_single_byte_instruction_sequence (const char * test_description, uint8_t b1                                                       , unsigned instruction_cycles);
+bool timing_test_two_byte_instruction_sequence    (const char * test_description, uint8_t b1, uint8_t b2            , unsigned test_overhead_cycles, unsigned instruction_cycles);
+bool timing_test_three_byte_instruction_sequence  (const char * test_description, uint8_t b1, uint8_t b2, uint8_t b3, unsigned test_overhead_cycles, unsigned instruction_cycles);
 
 // Timing tests for read-instructions.
 

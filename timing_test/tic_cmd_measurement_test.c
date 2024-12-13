@@ -51,30 +51,34 @@ static bool run_measurement_tests(unsigned repeats, uint8_t min_cycle_count, uin
 
     unsigned repeat_index;
 
-    extern uint8_t par1;
-    extern uint8_t test_overhead_cycles;
-    extern uint8_t instruction_cycles;
-
-    test_overhead_cycles = 0;
+    extern unsigned m_test_overhead_cycles;
+    extern unsigned m_instruction_cycles;
 
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
         pre_every_test_hook("measurement test");
 
-        for (par1 = min_cycle_count; par1 <= max_cycle_count; ++par1)
+        parspec = Par1_ClockCycleCount;
+
+        for (par1 = min_cycle_count;; ++par1)
         {
-            if (instruction_cycles == 1)
+            if (par1 == 1)
             {
                 // Cannot generate 1-cycle test code.
                 continue;
             }
 
-            generate_code(TESTCODE_BASE, instruction_cycles);
-            instruction_cycles = par1;
+            generate_code(TESTCODE_BASE, par1);
+
+            m_test_overhead_cycles = 0;
+            m_instruction_cycles = par1;
 
             // Note that we do not bail out in case of errors.
-            if (!run_measurement("measurement test", TESTCODE_BASE, F_NONE, Par1))
+            if (!run_measurement("measurement test", TESTCODE_BASE, F_NONE))
                 return false;
+
+            if (par1 == max_cycle_count)
+                break;
         }
     }
     return true;
