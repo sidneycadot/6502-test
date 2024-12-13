@@ -3,7 +3,6 @@
 // timing_test_routines.c //
 ////////////////////////////
 
-#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -71,18 +70,16 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timing_test_single_byte_instruction_sequence(const char * test_description, uint8_t opc, unsigned instruction_cycles)
+bool timing_test_single_byte_instruction_sequence(const char * opcode_description, uint8_t opc, unsigned instruction_cycles)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     m_test_overhead_cycles = 0;
     m_instruction_cycles = instruction_cycles;
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -91,7 +88,7 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
         opcode_address[0] = opc;     // OPC
         opcode_address[1] = OPC_RTS; // RTS [-]
 
-        if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -100,18 +97,16 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
     return true;
 }
 
-bool timing_test_two_byte_instruction_sequence(const char * test_description, uint8_t opc1, uint8_t opc2, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_two_byte_instruction_sequence(const char * opcode_description, uint8_t opc1, uint8_t opc2, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     m_test_overhead_cycles = test_overhead_cycles;
     m_instruction_cycles   = instruction_cycles;
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -121,7 +116,7 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
         opcode_address[1] = opc2;    // OPC
         opcode_address[2] = OPC_RTS; // RTS [-]
 
-        if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -130,18 +125,16 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
     return true;
 }
 
-bool timing_test_three_byte_instruction_sequence(const char * test_description, uint8_t opc1, uint8_t opc2, uint8_t opc3, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_three_byte_instruction_sequence(const char * opcode_description, uint8_t opc1, uint8_t opc2, uint8_t opc3, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
     m_test_overhead_cycles = test_overhead_cycles;
     m_instruction_cycles   = instruction_cycles;
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -152,7 +145,7 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
         opcode_address[2] = opc3;    // OPC
         opcode_address[3] = OPC_RTS; // RTS [-]
 
-        if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -167,15 +160,13 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timing_test_read_immediate_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_immediate_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_Immediate);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_Immediate;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -190,7 +181,7 @@ bool timing_test_read_immediate_instruction(const char * test_description, uint8
             m_test_overhead_cycles = 0;
             m_instruction_cycles = 2;
 
-            if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+            if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                 return false;
 
             if (par2 == LAST)
@@ -202,15 +193,13 @@ bool timing_test_read_immediate_instruction(const char * test_description, uint8
     return true;
 }
 
-bool timing_test_read_zpage_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_ZPage);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_ZPage;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -227,7 +216,7 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
                 m_test_overhead_cycles = 0;
                 m_instruction_cycles = 3;
 
-                if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                     return false;
             }
             if (par2 == LAST)
@@ -239,15 +228,13 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
     return true;
 }
 
-bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_x_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_ZPage_XReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_ZPage_XReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -268,7 +255,7 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
                     m_test_overhead_cycles = 2;
                     m_instruction_cycles = 4;
 
-                    if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                    if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                         return false;
                 }
                 if (par3 == LAST)
@@ -283,15 +270,13 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
     return true;
 }
 
-bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_ZPage_YReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_ZPage_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -312,7 +297,7 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
                     m_test_overhead_cycles = 2;
                     m_instruction_cycles = 4;
 
-                    if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                    if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                         return false;
                 }
                 if (par3 == LAST)
@@ -327,15 +312,13 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
     return true;
 }
 
-bool timing_test_read_abs_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_abs_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_AbsOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_AbsOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -353,7 +336,7 @@ bool timing_test_read_abs_instruction(const char * test_description, uint8_t opc
             m_test_overhead_cycles = 0;
             m_instruction_cycles = 4;
 
-            if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+            if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                 return false;
 
             if (par2 == LAST)
@@ -365,15 +348,13 @@ bool timing_test_read_abs_instruction(const char * test_description, uint8_t opc
     return true;
 }
 
-bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_abs_x_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_XReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_XReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -395,7 +376,7 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
                 m_test_overhead_cycles = 2;
                 m_instruction_cycles = 4 + different_pages(base_address, base_address + par3);
 
-                if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -410,15 +391,13 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
     return true;
 }
 
-bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_abs_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -440,7 +419,7 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
                 m_test_overhead_cycles = 2;
                 m_instruction_cycles = 4 + different_pages(base_address, base_address + par3);
 
-                if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -456,15 +435,13 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
 }
 
 
-bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, uint8_t opcode)
+bool timing_test_read_abs_y_instruction_save_sp(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -494,7 +471,7 @@ bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, u
                 m_test_overhead_cycles = 2 + 4 + 2 + 4 + 2;
                 m_instruction_cycles = 4 + different_pages(base_address, base_address + par3);
 
-                if (!run_measurement(test_description, opcode_address - 6, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 6, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -509,18 +486,16 @@ bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, u
     return true;
 }
 
-bool timing_test_read_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_x_indirect_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t   zp_ptr_lo;
     uint8_t   zp_ptr_hi;
     uint8_t * abs_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_XReg_AbsOffset);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
-
-    parspec = Par1234_OpcodeOffset_ZPage_XReg_AbsOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -560,7 +535,7 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
                         m_test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                         m_instruction_cycles = 6;
 
-                        if (!run_measurement(test_description, opcode_address - 10, DEFAULT_RUN_FLAGS))
+                        if (!execute_single_opcode_test(opcode_address - 10, DEFAULT_RUN_FLAGS))
                             return false;
 
                         if (par4 == LAST)
@@ -579,18 +554,16 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
     return true;
 }
 
-bool timing_test_read_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_zpage_indirect_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t   zp_ptr_lo;
     uint8_t   zp_ptr_hi;
     uint8_t * base_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_AbsOffset_YReg);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
-
-    parspec = Par1234_OpcodeOffset_ZPage_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -629,7 +602,7 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
                         m_test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                         m_instruction_cycles = 5 + different_pages(base_address, base_address + par4);
 
-                        if (!run_measurement(test_description, opcode_address - 10, DEFAULT_RUN_FLAGS))
+                        if (!execute_single_opcode_test(opcode_address - 10, DEFAULT_RUN_FLAGS))
                             return false;
 
                         if (par4 == LAST)
@@ -654,15 +627,13 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timing_test_write_zpage_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_ZPage);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_ZPage;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -681,7 +652,7 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
                 m_test_overhead_cycles = 0;
                 m_instruction_cycles = 3;
 
-                if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                     return false;
             }
             if (par2 == LAST)
@@ -693,15 +664,13 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
     return true;
 }
 
-bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_x_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_ZPage_XReg);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_ZPage_XReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -724,7 +693,7 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
                     m_test_overhead_cycles = 2;
                     m_instruction_cycles = 4;
 
-                    if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                    if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                         return false;
                 }
                 if (par3 == LAST)
@@ -739,15 +708,13 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
     return true;
 }
 
-bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_ZPage_YReg);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_ZPage_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -770,7 +737,7 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
                     m_test_overhead_cycles = 2;
                     m_instruction_cycles = 4;
 
-                    if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                    if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                         return false;
                 }
                 if (par3 == LAST)
@@ -785,16 +752,14 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
     return true;
 }
 
-bool timing_test_write_abs_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_abs_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * write_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_AbsOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_AbsOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -812,7 +777,7 @@ bool timing_test_write_abs_instruction(const char * test_description, uint8_t op
             m_test_overhead_cycles = 0;
             m_instruction_cycles = 4;
 
-            if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+            if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                 return false;
 
             if (par2 == LAST)
@@ -824,16 +789,14 @@ bool timing_test_write_abs_instruction(const char * test_description, uint8_t op
     return true;
 }
 
-bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_abs_x_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_XReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_XReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -855,7 +818,7 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
                 m_test_overhead_cycles = 2;
                 m_instruction_cycles = 5;
 
-                if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -870,16 +833,14 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
     return true;
 }
 
-bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_abs_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -901,7 +862,7 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
                 m_test_overhead_cycles = 2;
                 m_instruction_cycles = 5;
 
-                if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -916,16 +877,14 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
     return true;
 }
 
-bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, uint8_t opcode)
+bool timing_test_write_abs_y_instruction_save_sp(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -955,7 +914,7 @@ bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, 
                 m_test_overhead_cycles = 2 + 4 + 2 + 4 + 2;
                 m_instruction_cycles = 5;
 
-                if (!run_measurement(test_description, opcode_address - 6, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 6, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -970,18 +929,16 @@ bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, 
     return true;
 }
 
-bool timing_test_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_x_indirect_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t   zp_ptr_lo;
     uint8_t   zp_ptr_hi;
     uint8_t * abs_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_XReg_AbsOffset);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
-
-    parspec = Par1234_OpcodeOffset_ZPage_XReg_AbsOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1021,7 +978,7 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
                         m_test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                         m_instruction_cycles = 6;
 
-                        if (!run_measurement(test_description, opcode_address - 10, DEFAULT_RUN_FLAGS))
+                        if (!execute_single_opcode_test(opcode_address - 10, DEFAULT_RUN_FLAGS))
                             return false;
 
                         if (par4 == LAST)
@@ -1040,17 +997,15 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
     return true;
 }
 
-bool timing_test_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_write_zpage_indirect_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t   zp_ptr_lo;
     uint8_t   zp_ptr_hi;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_AbsOffset_YReg);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
-
-    parspec = Par1234_OpcodeOffset_ZPage_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1089,7 +1044,7 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
                         m_test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                         m_instruction_cycles = 6;
 
-                        if (!run_measurement(test_description, opcode_address - 10, DEFAULT_RUN_FLAGS))
+                        if (!execute_single_opcode_test(opcode_address - 10, DEFAULT_RUN_FLAGS))
                             return false;
 
                         if (par4 == LAST)
@@ -1114,15 +1069,13 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timing_test_read_modify_write_zpage_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_zpage_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_ZPage);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_ZPage;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1141,7 +1094,7 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
                 m_test_overhead_cycles = 0;
                 m_instruction_cycles = 5;
 
-                if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                     return false;
             }
             if (par2 == LAST)
@@ -1153,15 +1106,13 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
     return true;
 }
 
-bool timing_test_read_modify_write_zpage_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_zpage_x_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_ZPage_XReg);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_ZPage_XReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1184,7 +1135,7 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
                     m_test_overhead_cycles = 2;
                     m_instruction_cycles = 6;
 
-                    if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                    if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                         return false;
                 }
                 if (par3 == LAST)
@@ -1199,16 +1150,14 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
     return true;
 }
 
-bool timing_test_read_modify_write_abs_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * abs_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_AbsOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_AbsOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1226,7 +1175,7 @@ bool timing_test_read_modify_write_abs_instruction(const char * test_description
             m_test_overhead_cycles = 0;
             m_instruction_cycles = 6;
 
-            if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+            if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                 return false;
 
             if (par2 == LAST)
@@ -1238,16 +1187,14 @@ bool timing_test_read_modify_write_abs_instruction(const char * test_description
     return true;
 }
 
-bool timing_test_read_modify_write_abs_x_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_x_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_XReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_XReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1269,7 +1216,7 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
                 m_test_overhead_cycles = 2;
                 m_instruction_cycles = 7;
 
-                if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -1284,16 +1231,14 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
     return true;
 }
 
-bool timing_test_read_modify_write_abs_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1315,7 +1260,7 @@ bool timing_test_read_modify_write_abs_y_instruction(const char * test_descripti
                 m_test_overhead_cycles = 2;
                 m_instruction_cycles = 7;
 
-                if (!run_measurement(test_description, opcode_address - 2, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
                     return false;
 
                 if (par3 == LAST)
@@ -1330,18 +1275,16 @@ bool timing_test_read_modify_write_abs_y_instruction(const char * test_descripti
     return true;
 }
 
-bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t   zp_ptr_lo;
     uint8_t   zp_ptr_hi;
     uint8_t * abs_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_XReg_AbsOffset);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
-
-    parspec = Par1234_OpcodeOffset_ZPage_XReg_AbsOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1381,7 +1324,7 @@ bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * tes
                         m_test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                         m_instruction_cycles = 8;
 
-                        if (!run_measurement(test_description, opcode_address - 10, DEFAULT_RUN_FLAGS))
+                        if (!execute_single_opcode_test(opcode_address - 10, DEFAULT_RUN_FLAGS))
                             return false;
 
                         if (par4 == LAST)
@@ -1400,18 +1343,16 @@ bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * tes
     return true;
 }
 
-bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * test_description, uint8_t opcode)
+bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t   zp_ptr_lo;
     uint8_t   zp_ptr_hi;
     uint8_t * base_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_AbsOffset_YReg);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
-
-    parspec = Par1234_OpcodeOffset_ZPage_AbsOffset_YReg;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1450,7 +1391,7 @@ bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * tes
                         m_test_overhead_cycles = 2 + 3 + 2 + 3 + 2;
                         m_instruction_cycles = 8;
 
-                        if (!run_measurement(test_description, opcode_address - 10, DEFAULT_RUN_FLAGS))
+                        if (!execute_single_opcode_test(opcode_address - 10, DEFAULT_RUN_FLAGS))
                             return false;
 
                         if (par4 == LAST)
@@ -1475,7 +1416,7 @@ bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * tes
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timing_test_branch_instruction(const char * test_description, uint8_t opcode, bool branch_when_flag_set)
+bool timing_test_branch_instruction(const char * opcode_description, uint8_t opcode, bool branch_when_flag_set)
 {
     // This function tests any of the "branch" instructions, testing both the "branch taken" and "branch not taken"
     // scenarios.
@@ -1501,11 +1442,9 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
     uint8_t * entry_address  = TESTCODE_BASE;
     int       displacement;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_BranchDisplacement_TakenNotTaken);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par123_OpcodeOffset_BranchDisplacement_TakenNotTaken;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1533,7 +1472,7 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
             m_test_overhead_cycles = 3 + 4 + 2 + 3 + 4;
             m_instruction_cycles = 2;
 
-            if (!run_measurement(test_description, opcode_address - 6, DEFAULT_RUN_FLAGS))
+            if (!execute_single_opcode_test(opcode_address - 6, DEFAULT_RUN_FLAGS))
                 return false;
 
             // Branch Taken measurement.
@@ -1572,7 +1511,7 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
                 m_test_overhead_cycles = 3 + 4 + 2 + 3 + 4 + 3;
                 m_instruction_cycles = 3 + different_pages(opcode_address + 2, opcode_address + 2 + displacement);
 
-                if (!run_measurement(test_description, entry_address, DEFAULT_RUN_FLAGS))
+                if (!execute_single_opcode_test(entry_address, DEFAULT_RUN_FLAGS))
                     return false;
             }
 
@@ -1585,15 +1524,13 @@ bool timing_test_branch_instruction(const char * test_description, uint8_t opcod
     return true;
 }
 
-bool timing_test_jmp_abs_instruction(const char * test_description)
+bool timing_test_jmp_abs_instruction(const char * opcode_description)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1607,7 +1544,7 @@ bool timing_test_jmp_abs_instruction(const char * test_description)
         m_test_overhead_cycles = 0;
         m_instruction_cycles   = 3;
 
-        if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -1616,16 +1553,14 @@ bool timing_test_jmp_abs_instruction(const char * test_description)
     return true;
 }
 
-bool timing_test_jmp_indirect_instruction(const char * test_description)
+bool timing_test_jmp_indirect_instruction(const char * opcode_description)
 {
     uint8_t * opcode_address;
     uint8_t * target_ptr_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_AbsOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par12_OpcodeOffset_AbsOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1655,7 +1590,7 @@ bool timing_test_jmp_indirect_instruction(const char * test_description)
             m_test_overhead_cycles = 0;
             m_instruction_cycles   = 5;
 
-            if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+            if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                 return false;
 
             if (par2 == LAST)
@@ -1667,15 +1602,13 @@ bool timing_test_jmp_indirect_instruction(const char * test_description)
     return true;
 }
 
-bool timing_test_jsr_abs_instruction(const char * test_description)
+bool timing_test_jsr_abs_instruction(const char * opcode_description)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1691,7 +1624,7 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
         m_test_overhead_cycles = 8;
         m_instruction_cycles   = 6;
 
-        if (!run_measurement(test_description, opcode_address, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -1700,15 +1633,13 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
     return true;
 }
 
-bool timing_test_rts_instruction(const char * test_description)
+bool timing_test_rts_instruction(const char * opcode_description)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1728,7 +1659,7 @@ bool timing_test_rts_instruction(const char * test_description)
         m_test_overhead_cycles = 2 + 3 + 2 + 3;
         m_instruction_cycles   = 6;
 
-        if (!run_measurement(test_description, opcode_address - 6, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address - 6, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -1737,17 +1668,15 @@ bool timing_test_rts_instruction(const char * test_description)
     return true;
 }
 
-bool timing_test_brk_instruction(const char * test_description)
+bool timing_test_brk_instruction(const char * opcode_description)
 {
     uint8_t * opcode_address;
     uint8_t * oldvec;
     bool      proceed;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1769,7 +1698,7 @@ bool timing_test_brk_instruction(const char * test_description)
 
         oldvec = set_irq_vector_address(opcode_address + 1);
 
-        proceed = run_measurement(test_description, opcode_address - 4, DEFAULT_RUN_FLAGS);
+        proceed = execute_single_opcode_test(opcode_address - 4, DEFAULT_RUN_FLAGS);
 
         set_irq_vector_address(oldvec);
 
@@ -1782,15 +1711,13 @@ bool timing_test_brk_instruction(const char * test_description)
     return true;
 }
 
-bool timing_test_rti_instruction(const char * test_description)
+bool timing_test_rti_instruction(const char * opcode_description)
 {
     uint8_t * opcode_address;
 
-    prepare_test(test_description);
+    prepare_opcode_tests(opcode_description, Par1_OpcodeOffset);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
-
-    parspec = Par1_OpcodeOffset;
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1809,7 +1736,7 @@ bool timing_test_rti_instruction(const char * test_description)
         m_test_overhead_cycles = 2 + 3 + 2 + 3 + 3;
         m_instruction_cycles   = 6;
 
-        if (!run_measurement(test_description, opcode_address - 7, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address - 7, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)

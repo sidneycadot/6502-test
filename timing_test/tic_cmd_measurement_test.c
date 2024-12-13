@@ -51,15 +51,10 @@ static bool run_measurement_tests(unsigned repeats, uint8_t min_cycle_count, uin
 
     unsigned repeat_index;
 
-    extern unsigned m_test_overhead_cycles;
-    extern unsigned m_instruction_cycles;
+    prepare_opcode_tests("SLEEP", Par1_ClockCycleCount);
 
     for (repeat_index = 1; repeat_index <= repeats; ++repeat_index)
     {
-        pre_every_test_hook("measurement test");
-
-        parspec = Par1_ClockCycleCount;
-
         for (par1 = min_cycle_count;; ++par1)
         {
             if (par1 == 1)
@@ -74,7 +69,7 @@ static bool run_measurement_tests(unsigned repeats, uint8_t min_cycle_count, uin
             m_instruction_cycles = par1;
 
             // Note that we do not bail out in case of errors.
-            if (!run_measurement("measurement test", TESTCODE_BASE, F_NONE))
+            if (!execute_single_opcode_test(TESTCODE_BASE, F_NONE))
                 return false;
 
             if (par1 == max_cycle_count)

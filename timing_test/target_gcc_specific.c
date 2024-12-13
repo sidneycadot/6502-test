@@ -26,14 +26,13 @@ void post_big_measurement_block_hook(void)
 {
 }
 
-void pre_every_test_hook(const char * test_description)
+void pre_every_test_hook(const char * opcode_description)
 {
-    printf("Running test: %s ...\n", test_description);
+    printf("Testing opcode: %s ...\n", opcode_description);
 }
 
-bool post_every_measurement_hook(const char * test_description, bool success, unsigned opcode_count, unsigned long measurement_count, unsigned long error_count)
+bool post_every_measurement_hook(bool success, unsigned opcode_count, unsigned long measurement_count, unsigned long error_count)
 {
-    (void)test_description;
     (void)success;
     (void)opcode_count;
     (void)measurement_count;

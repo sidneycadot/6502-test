@@ -16,15 +16,16 @@
 uint8_t num_zpage_preserve; // How many zero-pages addresses should the test preserve?
 uint8_t zpage_preserve[2];  // Zero page addresses to preserve while the test executes (0, 1, or 2 values).
 
-ParSpec parspec;
+static const char * m_test_description;
+static ParSpec      m_parspec;
 
 uint8_t par1;
 uint8_t par2;
 uint8_t par3;
 uint8_t par4;
 
-unsigned m_test_overhead_cycles;
-unsigned m_instruction_cycles;
+unsigned     m_test_overhead_cycles;
+unsigned     m_instruction_cycles;
 
 unsigned long opcode_count;
 unsigned long measurement_count;
@@ -45,8 +46,10 @@ void report_test_counts(void)
     printf("\n");
 }
 
-void prepare_test(const char * test_description)
+void prepare_opcode_tests(const char * test_description, ParSpec parspec)
 {
+    m_test_description = test_description;
+    m_parspec = parspec;
     ++opcode_count;
     pre_every_test_hook(test_description);
 }
@@ -67,18 +70,18 @@ void print_label_hex_value_pair(const char * prefix, const char * label, unsigne
     printf(" : 0x%02x\n", value);
 }
 
-static void print_test_report(const char * test_description, unsigned actual_cycles)
+static void print_test_report(unsigned actual_cycles)
 {
     uint8_t npar;
 
-    printf("ERROR REPORT FOR \"%s\":\n", test_description);
+    printf("ERROR REPORT FOR \"%s\":\n", m_test_description);
 
     print_label_value_pair("  ", "opcode count"         , opcode_count           , 20);
     print_label_value_pair("  ", "test overhead cycles" , m_test_overhead_cycles , 20);
     print_label_value_pair("  ", "instruction cycles"   , m_instruction_cycles   , 20);
     print_label_value_pair("  ", "actual cycles"        , actual_cycles          , 20);
 
-    switch (parspec)
+    switch (m_parspec)
     {
         case Par1_OpcodeOffset:
         case Par1_ClockCycleCount:
@@ -127,7 +130,7 @@ static void print_test_report(const char * test_description, unsigned actual_cyc
 }
 
 
-bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_t flags)
+bool execute_single_opcode_test(uint8_t * entrypoint, uint8_t flags)
 {
     unsigned actual_cycles;
     bool success, hook_result;
@@ -144,11 +147,11 @@ bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_
     }
 
     // If hook_result is false, the hook requests termination.
-    hook_result = post_every_measurement_hook(test_description, success, opcode_count, measurement_count, error_count);
+    hook_result = post_every_measurement_hook(success, opcode_count, measurement_count, error_count);
 
     if (!success)
     {
-        print_test_report(test_description, actual_cycles);
+        print_test_report(actual_cycles);
 
         if (flags & F_STOP_ON_ERROR)
         {

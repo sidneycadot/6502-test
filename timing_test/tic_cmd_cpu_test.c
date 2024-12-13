@@ -400,6 +400,23 @@ bool timing_test_6502_illegal_instructions(void)
     // given below:
     //
     // https://csdb.dk/release/download.php?id=292274
+    //
+    // On a real Atari 800 XL, we see undefined behavior with 5 of the 93 opcodes.
+    //
+    // Results:
+    // - Illegal SLO/RLA/SRE/RRA                   28 opcodes - on the Atari at level 3 ( 16 steps): COMPLETED, NO ISSUES.
+    // - Illegal SAX/LAX/DCP/ISC                   24 opcodes - on the Atari at level 3 ( 16 steps): COMPLETED, NO ISSUES.
+    // - Illegal ANC/ALR/ARR/SBX/SBC/LAS            7 opcodes - on the Atari at level 5 ( 52 steps): COMPLETED, NO ISSUES.
+    // - Illegal NOP, different addressing modes   27 opcodes - on the Atari at level 4 ( 18 steps): COMPLETED, NO ISSUES.
+    // - Illegal SHA (zpage),Y                      1 opcode  - on the Atari at level 4 ( 18 steps): *** FAILS *** (undefined behavior, likely stack corruption).
+    // - Illegal SHA abs,Y                          1 opcode  - on the Atari at level 4 ( 18 steps): *** FAILS *** (undefined behavior, likely stack corruption).
+    // - Illegal SHX abs,Y                          1 opcode  - on the Atari at level 4 ( 18 steps): *** FAILS *** (undefined behavior, likely stack corruption).
+    // - Illegal SHY abs,X                          1 opcode  - on the Atari at level 4 ( 18 steps): *** FAILS *** (undefined behavior, likely stack corruption).
+    // - Illegal TAS abs,Y                          1 opcode  - on the Atari at level 0 (  2 steps): *** FAILS *** (undefined behavior, likely stack corruption).
+    // - Illegal ANE #imm                           1 opcode  - on the Atari at level 7 (256 steps): COMPLETED, NO ISSUES.
+    // - Illegal LAX #imm                           1 opcode  - on the Atari at level 7 (256 steps): COMPLETED, NO ISSUES.
+    // ============================================================================================
+    //   Illegal opcodes                           93 opcodes, of which 5 fail on the Atari.
 
     return
         //
@@ -433,7 +450,7 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_modify_write_abs_x_instruction           ("Illegal SRE abs,X"     " (0x5f)", 0x5f) &&
         timing_test_read_modify_write_abs_y_instruction           ("Illegal SRE abs,Y"     " (0x5b)", 0x5b) &&
         //
-        // Illegal RRA instruction (7 variants)
+        // Illegal RRA instruction (7 variants)1
         //
         timing_test_read_modify_write_zpage_instruction           ("Illegal RRA zpage"     " (0x67)", 0x67) &&
         timing_test_read_modify_write_zpage_x_instruction         ("Illegal RRA zpage,X"   " (0x77)", 0x77) &&
@@ -543,37 +560,24 @@ bool timing_test_6502_illegal_instructions(void)
         //
         //     0x02, 0x12, 0x22, 0x32, 0x42, 0x54, 0x62, 0x72, 0x92, 0xb2, 0xd2, 0xf2.
 
-        // *** SHA/SHX/SHY instructions ***
-        //
-        // Testing the SHA/SHX/SHY instructions somehow triggers undefined in the test program.
-        // This happens both on the Altirra simulator and on a real Atari.
-        // The crash is not currently understood.
-        //
-        // This could either be caused by a real side-effect of these undocumented instructions,
-        // or it could indicate a bug in the test program.
-        //
-        // If we replace the SHA/SHX/SHY opcodes with documented opcodes that should behave
-        // the same in terms of memory access and timing, the crash behavior is not seen.
-        //
-        // For now, we skip these four opcodes. If you want to test/debug them, use the
-        // 'timing_test_buggy_6502_illegal_instructions' routine defined below.
+        // *** SHA/SHX/SHY/TAS instructions -- PROBLEMS !!! ***
         //
         // Illegal SHA instruction (2 variants)
         //
-        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x91) && // TODO: fix
-        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x99) && // TODO: fix
+        // timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&
+        // timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&
         //
         // Illegal SHX instruction (1 variant)
         //
-        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x99) && // TODO: fix
+        // timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"    " (0x9e)", 0x9e) &&
         //
         // Illegal SHY instruction (1 variant)
         //
-        timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"     " (0x9c)", 0x9d) && // TODO: fix
-
-        // Illegal TAS instruction (1 variant).
+        // timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"    " (0x9c)", 0x9c) &&
         //
-        timing_test_write_abs_y_instruction_save_sp   ("Illegal TAS abs,Y"     " (0x9b)", 0x9b) &&
+        // Illegal TAS instruction (1 variant)
+        //
+        // timing_test_write_abs_y_instruction_save_sp   ("Illegal TAS abs,Y"    " (0x9b)", 0x9b) && true;
         //
         // Illegal ANE instruction (1 variant)
         //
@@ -595,21 +599,23 @@ bool timing_test_buggy_6502_illegal_instructions(void)
     // This could either be caused by a real side-effect of these undocumented instructions,
     // or it could indicate a bug in the test program.
     //
-    // If we replace the SHA/SHX/SHY opcodes with documented opcodes that should behave
+    // If we replace the SHA/SHX/SHY/TAS opcodes with documented opcodes that should behave
     // the same in terms of memory access and timing, the crash behavior is not seen.
     //
     // Replacements used:
     //
-    //    STA (zpage,Y)    0x91   instead of what we want to test:     SHA (zpage,Y)    0x93
+    //    STA (zpage),Y    0x91   instead of what we want to test:     SHA (zpage,Y)    0x93
     //    STA abs,Y        0x99   instead of what we want to test:     SHA abs,Y        0x9f
-    //    STA (zpage,Y)    0x99   instead of what we want to test:     SHX abs,Y        0x9e
+    //    STA abs,Y        0x99   instead of what we want to test:     SHX abs,Y        0x9e
     //    STA abs,X        0x9d   instead of what we want to test:     SHY abs,X        0x9c
+    //    STA abs,Y        0x99   instead of what we want to test:     TAS abs,Y        0x9b
 
     return
-        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&  // Should be 0x93 to test SHA.
-        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&  // Should be 0x9f to test SHA.
-        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x9e) &&  // Should be 0x9e to test SHX.
-        timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"     " (0x9c)", 0x9c);    // Should be 0x9c to test SHY.
+        timing_test_write_zpage_indirect_y_instruction("Illegal SHA (zpage),Y" " (0x93)", 0x93) &&
+        timing_test_write_abs_y_instruction           ("Illegal SHA abs,Y"     " (0x9f)", 0x9f) &&
+        timing_test_write_abs_y_instruction           ("Illegal SHX abs,Y"     " (0x9e)", 0x9e) &&
+        timing_test_write_abs_x_instruction           ("Illegal SHY abs,X"     " (0x9c)", 0x9c) &&
+        timing_test_write_abs_y_instruction_save_sp   ("Illegal TAS abs,Y"     " (0x9b)", 0x9b);
 }
 
 bool run_6502_instruction_timing_tests(void)
@@ -664,7 +670,7 @@ bool run_6502_instruction_timing_tests(void)
         timing_test_branch_instructions()                    && // 8 instructions.
         timing_test_jmp_instructions()                       && // 2 instructions.
         timing_test_jsr_and_rts_instructions()               && // 2 instructions.
-        timing_test_brk_and_rti_instructions()               && true; // 2 instructions.
+        timing_test_brk_and_rti_instructions()               && // 2 instructions.
         // Test 93 of the 105 "illegal" instructions (all excluding the 12 JAM instructions).
         timing_test_6502_illegal_instructions();
 }
@@ -686,6 +692,7 @@ void tic_cmd_cpu_test(unsigned level)
     pre_big_measurement_block_hook();
 
     run_completed = run_6502_instruction_timing_tests();
+    //run_completed = timing_test_6502_illegal_instructions();
     //run_completed = timing_test_buggy_6502_illegal_instructions();
 
     post_big_measurement_block_hook();
