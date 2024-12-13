@@ -49,7 +49,8 @@ int command_line_loop(void)
         char command[80];
         unsigned par1, par2, par3;
 
-        printf("Enter command (or ENTER for help)\n");
+        printf("Enter command (or ENTER for help):\n");
+        printf("\n");
         fgets(command, sizeof(command), stdin);
 
         // Remove the trailing end-of-line character.
@@ -58,6 +59,11 @@ int command_line_loop(void)
         if (par1 != 0)
         {
             command[par1 - 1] = '\0';
+        }
+
+        if (strlen(command) != 0)
+        {
+            printf("\n");
         }
 
         // Check for a command.

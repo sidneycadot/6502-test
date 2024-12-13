@@ -87,6 +87,8 @@ void post_big_measurement_block_hook(void)
     POKE(DMACTL, PEEK(SDMCTL));
     POKE(IRQEN, PEEK(POKMSK));
     POKE(NMIEN, 0x40);
+
+    putchar('\a');
 }
 
 void pre_every_test_hook(const char * test_description)
