@@ -25,7 +25,7 @@ static void generate_code(uint8_t * code, unsigned cycles)
             // Insert a three-cycle opcode: load from zero page.
             // First, Find a safe zero-page address to load from.
             uint8_t zp_address = 0x00;
-            while (!zp_address_is_safe(zp_address))
+            while (!zp_address_is_safe_for_read(zp_address))
             {
                 ++zp_address;
             }

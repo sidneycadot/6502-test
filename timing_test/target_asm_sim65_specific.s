@@ -87,16 +87,3 @@ _measure_cycles:
 
 @done:          plp                                     ; Restore the flags that were present on entry.
                 rts
-
-_zp_address_is_safe:
-
-                ; Note: this routine must be written in such a way that it can be called from C, but also from
-                ; assembly language while restoring the zero page, with the ZP still (partially) garbled!
-                ;
-                ; Hence, for full control, we implement it in assembly language.
-                ;
-                ; On the Atari, any ZP address is safe.
-
-                lda     #1
-                ldx     #0
-                rts

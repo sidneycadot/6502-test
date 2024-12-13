@@ -2,7 +2,8 @@
                 .export _pre_big_measurement_block_hook
                 .export _post_big_measurement_block_hook
                 .export _set_irq_vector_address
-                .export _zp_address_is_safe
+                .export _zp_address_is_safe_for_read
+                .export _zp_address_is_safe_for_write
                 .export _measure_cycles
 
                 .include "c64.inc"
@@ -64,13 +65,9 @@ _set_irq_vector_address:
                 tya
                 rts
 
-_zp_address_is_safe:
+_zp_address_is_safe_for_read:
+_zp_address_is_safe_for_write:
 
-                ; Note: this routine must be written in such a way that it can be called from C, but also from
-                ; assembly language while restoring the zero page, with the ZP still (partially) garbled!
-                ;
-                ; Hence, for full control, we implement it in assembly language.
-                ;
                 ; On the C64, any ZP address other than 0 and 1 is safe.
 
                 cmp     #1      ; iff A > 1, the carry will be set.

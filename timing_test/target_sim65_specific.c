@@ -48,7 +48,13 @@ uint8_t * set_irq_vector_address(uint8_t * newvec)
     return oldvec;
 }
 
-bool zp_address_is_safe(uint8_t zp_address)
+bool zp_address_is_safe_for_read(uint8_t zp_address)
+{
+    (void)zp_address;
+    return true;
+}
+
+bool zp_address_is_safe_for_write(uint8_t zp_address)
 {
     (void)zp_address;
     return true;

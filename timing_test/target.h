@@ -53,13 +53,18 @@ bool FASTCALL post_every_measurement_hook(const char * test_description, bool su
 // allows the 'measure_cycles' and 'measure_cycles_zp_safe' to do their job.
 
 // Indicate which zero-page addresses can be touched by the testing code.
-bool FASTCALL zp_address_is_safe(uint8_t address);
+bool FASTCALL zp_address_is_safe_for_read(uint8_t address);
+bool FASTCALL zp_address_is_safe_for_write(uint8_t address);
 
 // Report back measurement status.
 
 // Measure the number of cycles that a code fragment will take, up to (but not including) a final RTS.
+// This is plaform independent.
 int16_t FASTCALL measure_cycles(uint8_t * code);
 
+// Measure the number of cycles that a code fragment will take, up to (but not including) a final RTS.
+// This is a platform-independent wrapper aroud 'measure_cycles' that saves and restore zero page
+// addresses that the test touches.
 int16_t FASTCALL measure_cycles_wrapper(uint8_t * code);
 
 // Code and constants to implement the BRK timing test.
