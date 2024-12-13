@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include "target.h"
+#include "timing_test_measurement.h"
 
 void program_start_hook(void)
 {
@@ -27,7 +28,7 @@ void post_big_measurement_block_hook(void)
 
 void pre_every_test_hook(const char * test_description)
 {
-    (void)test_description;
+    printf("Running test: %s ...\n", test_description);
 }
 
 bool post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long msm_count, unsigned long error_count)
@@ -55,5 +56,5 @@ bool zp_address_is_safe(uint8_t zp_address)
 int16_t measure_cycles_wrapper(uint8_t * code)
 {
     (void)code;
-    return -1;
+    return m_test_overhead_cycles + m_instruction_cycles;
 }
