@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <peekpoke.h>
 #include <assert.h>
 
 #include "target.h"
@@ -48,6 +47,12 @@ void report_test_counts(void)
     printf("\n");
 }
 
+void prepare_test(const char * test_description)
+{
+    ++test_count;
+    pre_every_test_hook(test_description);
+}
+
 void print_label_value_pair(const char * prefix, const char * label, unsigned long value, unsigned max_label_length)
 {   unsigned k;
     printf("%s", prefix);
@@ -67,16 +72,6 @@ void print_label_hex_value_pair(const char * prefix, const char * label, unsigne
 static void print_test_report(const char * test_description, unsigned actual_cycles)
 {
     uint8_t npar;
-
-    extern ParSpec parspec;
-
-    extern uint8_t par1;
-    extern uint8_t par2;
-    extern uint8_t par3;
-    extern uint8_t par4;
-
-    extern uint8_t m_test_overhead_cycles;
-    extern uint8_t m_instruction_cycles;
 
     printf("ERROR REPORT FOR \"%s\":\n", test_description);
 
@@ -135,9 +130,6 @@ static void print_test_report(const char * test_description, unsigned actual_cyc
 
 bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_t flags)
 {
-    extern uint8_t m_test_overhead_cycles;
-    extern uint8_t m_instruction_cycles;
-
     unsigned actual_cycles;
     bool success, hook_result;
 

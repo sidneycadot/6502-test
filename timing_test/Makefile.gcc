@@ -1,0 +1,30 @@
+
+CFLAGS = -W -Wall -O3
+CPPFLAGS = -DTIC_PLATFORM_GCC
+
+tic_gcc : target_gcc_specific_gcc.o timing_test_measurement_gcc.o timing_test_routines_gcc.o tic_cmd_measurement_test_gcc.o tic_cmd_cpu_test_gcc.o timing_test_memory_gcc.o tic_main_gcc.o
+	$(CC) $(LDFLAGS) $^ -o $@
+
+tic_main_gcc.o : tic_main.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+tic_cmd_measurement_test_gcc.o : tic_cmd_measurement_test.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+tic_cmd_cpu_test_gcc.o : tic_cmd_cpu_test.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+timing_test_memory_gcc.o : timing_test_memory.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+timing_test_routines_gcc.o : timing_test_routines.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+timing_test_measurement_gcc.o : timing_test_measurement.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+	
+target_gcc_specific_gcc.o : target_gcc_specific.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+clean :
+	$(RM) *.o tic_gcc

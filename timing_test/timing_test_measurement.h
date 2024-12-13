@@ -53,6 +53,7 @@ extern unsigned long error_count;
 #define F_STOP_ON_ERROR    0x01
 
 void reset_test_counts(void);
+void prepare_test(const char * test_description);
 bool run_measurement(const char * test_description, uint8_t * entrypoint, uint8_t flags);
 void report_test_counts(void);
 

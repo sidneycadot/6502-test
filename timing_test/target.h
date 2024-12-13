@@ -15,25 +15,31 @@
 //                                                                                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef __CC65__
+#define FASTCALL __fastcall__
+#else
+#define FASTCALL
+#endif
+
 // The 'program_start_hook' routine will be called once at startup of the program.
 // Use it to clear the screen, set nice colors, and so on.
-void __fastcall__ program_start_hook(void);
+void FASTCALL program_start_hook(void);
 
 // This will be called once at the end of the program.
-void __fastcall__ program_end_hook(void);
+void FASTCALL program_end_hook(void);
 
 // The 'pre_measurement_hook' routine will be called before zero or more (but typically: dozens
 // or hundreds) timing measurements are made. Use it to create an environment where the
 // measure_cycles() routine can reliably do its work.
 // Typically, this would mean things like disabling interrupts, and disabling video chip DMA.
-void __fastcall__ pre_big_measurement_block_hook(void);
+void FASTCALL pre_big_measurement_block_hook(void);
 
 // This will be a number of measurements have been completed, and no more measurements are forthcoming soom.
 // Use it to undo the actions done in the 'post_measurements_hook' routine.
-void __fastcall__ post_big_measurement_block_hook(void);
+void FASTCALL post_big_measurement_block_hook(void);
 
 // This is called before testing a specific opcode.
-void __fastcall__ pre_every_test_hook(const char * test_description);
+void FASTCALL pre_every_test_hook(const char * test_description);
 
 // The 'post_measure_cycles_hook' routine is called immediately following each call to 'measure_cycles'
 // or 'measure_cycles_zp_safe'. It reports success, and the test_count and error_count values updated
@@ -41,24 +47,24 @@ void __fastcall__ pre_every_test_hook(const char * test_description);
 //
 // If this function returns false, execution will be terminated gracefully.
 // This feature can be used to stop a test run in progress.
-bool __fastcall__ post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long msm_count, unsigned long error_count);
+bool FASTCALL post_every_measurement_hook(const char * test_description, bool success, unsigned long test_count, unsigned long msm_count, unsigned long error_count);
 
 // Enable/disable DMA and interrupts, to create a situation where the 6502 timing behaves in a way that
 // allows the 'measure_cycles' and 'measure_cycles_zp_safe' to do their job.
 
 // Indicate which zero-page addresses can be touched by the testing code.
-bool __fastcall__ zp_address_is_safe(uint8_t address);
+bool FASTCALL zp_address_is_safe(uint8_t address);
 
 // Report back measurement status.
 
 // Measure the number of cycles that a code fragment will take, up to (but not including) a final RTS.
-int16_t __fastcall__ measure_cycles(uint8_t * code);
+int16_t FASTCALL measure_cycles(uint8_t * code);
 
-int16_t __fastcall__ measure_cycles_wrapper(uint8_t * code);
+int16_t FASTCALL measure_cycles_wrapper(uint8_t * code);
 
 // Code and constants to implement the BRK timing test.
 //
-// The BRK instruction will vector through the IRQ vector at (0xfffe, 0xffff).
+// The BRK instruction will vector thr__fastcall__ough the IRQ vector at (0xfffe, 0xffff).
 // Depending on the platform, this may take the CPU into an OS service routine.
 // It is assumed that, at some point, and after a predictable number of cycles,
 // it will be possible to route execution to a routine under user control, by
@@ -77,7 +83,7 @@ int16_t __fastcall__ measure_cycles_wrapper(uint8_t * code);
 // This means that 'set_irq_vector_address' changes the generic IRQ-processing vector at
 // 0x216 (and returns its old value) and the overhead for reaching user code is 7 cycles.
 
-uint8_t * __fastcall__  set_irq_vector_address(uint8_t * newvec);
+uint8_t * FASTCALL  set_irq_vector_address(uint8_t * newvec);
 
 ///////////////////////////////////////////////////////////
 //                                                       //
@@ -90,6 +96,8 @@ uint8_t * __fastcall__  set_irq_vector_address(uint8_t * newvec);
 # elif defined(TIC_PLATFORM_C64)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 28
 # elif defined(TIC_PLATFORM_SIM65)
+#     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
+# elif defined(TIC_PLATFORM_GCC)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
 # else
 #     error "No valid target specified."

@@ -75,7 +75,7 @@ bool timing_test_single_byte_instruction_sequence(const char * test_description,
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -104,7 +104,7 @@ bool timing_test_two_byte_instruction_sequence(const char * test_description, ui
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -134,7 +134,7 @@ bool timing_test_three_byte_instruction_sequence(const char * test_description, 
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -171,7 +171,7 @@ bool timing_test_read_immediate_instruction(const char * test_description, uint8
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -206,7 +206,7 @@ bool timing_test_read_zpage_instruction(const char * test_description, uint8_t o
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -243,7 +243,7 @@ bool timing_test_read_zpage_x_instruction(const char * test_description, uint8_t
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -287,7 +287,7 @@ bool timing_test_read_zpage_y_instruction(const char * test_description, uint8_t
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -331,7 +331,7 @@ bool timing_test_read_abs_instruction(const char * test_description, uint8_t opc
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -369,7 +369,7 @@ bool timing_test_read_abs_x_instruction(const char * test_description, uint8_t o
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -414,7 +414,7 @@ bool timing_test_read_abs_y_instruction(const char * test_description, uint8_t o
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -460,7 +460,7 @@ bool timing_test_read_abs_y_instruction_save_sp(const char * test_description, u
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -516,7 +516,7 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
     uint8_t   zp_ptr_hi;
     uint8_t * abs_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
 
@@ -534,7 +534,7 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * test_description
                 zp_ptr_lo = par2 + par3;
                 zp_ptr_hi = zp_ptr_lo + 1;
 
-                if (zp_address_is_safe(zp_ptr_lo) && zp_address_is_safe(zp_ptr_lo))
+                if (zp_address_is_safe(zp_ptr_lo) && zp_address_is_safe(zp_ptr_hi))
                 {
                     zpage_preserve[0] = zp_ptr_lo;
                     zpage_preserve[1] = zp_ptr_lo;
@@ -586,7 +586,7 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * test_description
     uint8_t   zp_ptr_hi;
     uint8_t * base_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
 
@@ -658,7 +658,7 @@ bool timing_test_write_zpage_instruction(const char * test_description, uint8_t 
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
 
@@ -697,7 +697,7 @@ bool timing_test_write_zpage_x_instruction(const char * test_description, uint8_
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
 
@@ -743,7 +743,7 @@ bool timing_test_write_zpage_y_instruction(const char * test_description, uint8_
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
 
@@ -790,7 +790,7 @@ bool timing_test_write_abs_instruction(const char * test_description, uint8_t op
     uint8_t * opcode_address;
     uint8_t * write_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -829,7 +829,7 @@ bool timing_test_write_abs_x_instruction(const char * test_description, uint8_t 
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -875,7 +875,7 @@ bool timing_test_write_abs_y_instruction(const char * test_description, uint8_t 
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -921,7 +921,7 @@ bool timing_test_write_abs_y_instruction_save_sp(const char * test_description, 
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -977,7 +977,7 @@ bool timing_test_write_zpage_x_indirect_instruction(const char * test_descriptio
     uint8_t   zp_ptr_hi;
     uint8_t * abs_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
 
@@ -1046,7 +1046,7 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * test_descriptio
     uint8_t   zp_ptr_lo;
     uint8_t   zp_ptr_hi;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
 
@@ -1118,7 +1118,7 @@ bool timing_test_read_modify_write_zpage_instruction(const char * test_descripti
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
 
@@ -1157,7 +1157,7 @@ bool timing_test_read_modify_write_zpage_x_instruction(const char * test_descrip
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 1; // This test *DOES* require zero page address preservation.
 
@@ -1204,7 +1204,7 @@ bool timing_test_read_modify_write_abs_instruction(const char * test_description
     uint8_t * opcode_address;
     uint8_t * abs_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1243,7 +1243,7 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * test_descripti
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1289,7 +1289,7 @@ bool timing_test_read_modify_write_abs_y_instruction(const char * test_descripti
     uint8_t * opcode_address;
     uint8_t * base_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1337,7 +1337,7 @@ bool timing_test_read_modify_write_zpage_x_indirect_instruction(const char * tes
     uint8_t   zp_ptr_hi;
     uint8_t * abs_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
 
@@ -1407,7 +1407,7 @@ bool timing_test_read_modify_write_zpage_indirect_y_instruction(const char * tes
     uint8_t   zp_ptr_hi;
     uint8_t * base_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
 
@@ -1493,7 +1493,7 @@ static bool timing_test_branch_instruction_taken(const char * test_description, 
     uint8_t * entry_address = TESTCODE_BASE;
     int       displacement;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1554,7 +1554,7 @@ static bool timing_test_branch_instruction_not_taken(const char * test_descripti
     uint8_t * opcode_address;
     uint8_t * entry_address  = TESTCODE_BASE;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1625,7 +1625,7 @@ bool timing_test_jmp_abs_instruction(const char * test_description)
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1657,7 +1657,7 @@ bool timing_test_jmp_indirect_instruction(const char * test_description)
     uint8_t * opcode_address;
     uint8_t * target_ptr_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1707,7 +1707,7 @@ bool timing_test_jsr_abs_instruction(const char * test_description)
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1740,7 +1740,7 @@ bool timing_test_rts_instruction(const char * test_description)
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1779,7 +1779,7 @@ bool timing_test_brk_instruction(const char * test_description)
     uint8_t * oldvec;
     bool      proceed;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
@@ -1822,7 +1822,7 @@ bool timing_test_rti_instruction(const char * test_description)
 {
     uint8_t * opcode_address;
 
-    pre_every_test_hook(test_description);
+    prepare_test(test_description);
 
     num_zpage_preserve = 0; // This test does not require zero page address preservation.
 
