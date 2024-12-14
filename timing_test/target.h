@@ -102,10 +102,12 @@ uint8_t * FASTCALL  set_irq_vector_address(uint8_t * newvec);
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 28
 # elif defined(TIC_PLATFORM_SIM65)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
+# elif defined(TIC_PLATFORM_NEO)
+#     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
 # elif defined(TIC_PLATFORM_GCC)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
 # else
-#     error "No valid target specified."
+#     error "No valid platform specified."
 # endif
 
 #endif

@@ -16,7 +16,7 @@
 uint8_t num_zpage_preserve; // How many zero-pages addresses should the test preserve?
 uint8_t zpage_preserve[2];  // Zero page addresses to preserve while the test executes (0, 1, or 2 values).
 
-static const char * m_test_description;
+static const char * m_opcode_description;
 static ParSpec      m_parspec;
 
 uint8_t par1;
@@ -46,12 +46,12 @@ void report_test_counts(void)
     printf("\n");
 }
 
-void prepare_opcode_tests(const char * test_description, ParSpec parspec)
+void prepare_opcode_tests(const char * opcode_description, ParSpec parspec)
 {
-    m_test_description = test_description;
+    m_opcode_description = opcode_description;
     m_parspec = parspec;
     ++opcode_count;
-    pre_every_test_hook(test_description);
+    pre_every_test_hook(opcode_description);
 }
 
 void print_label_value_pair(const char * prefix, const char * label, unsigned long value, unsigned max_label_length)
@@ -74,7 +74,7 @@ static void print_test_report(unsigned actual_cycles)
 {
     uint8_t npar;
 
-    printf("ERROR REPORT FOR \"%s\":\n", m_test_description);
+    printf("ERROR REPORT FOR \"%s\":\n", m_opcode_description);
 
     print_label_value_pair("  ", "opcode count"         , opcode_count           , 20);
     print_label_value_pair("  ", "test overhead cycles" , m_test_overhead_cycles , 20);

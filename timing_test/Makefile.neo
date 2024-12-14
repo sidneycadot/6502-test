@@ -1,0 +1,48 @@
+
+.PHONY : neo clean
+
+neo :
+	$(MAKE) -f Makefile.neo tic.neo TIC_PLATFORM=neo TIC_PLATFORM_UPPERCASE=NEO TIC_SIM65_TARGET=none TIC_EXECUTABLE_EXTENSION=prg
+
+CC65_FLAGS := -O -t ${TIC_SIM65_TARGET} -DTIC_PLATFORM_${TIC_PLATFORM_UPPERCASE} -DCPU_65C02
+CA65_FLAGS :=    -t ${TIC_SIM65_TARGET}
+LD65_FLAGS :=    -t ${TIC_SIM65_TARGET} --start-addr 0x0200 --ld-args --define,__STACKSTART__=0xfc00
+
+TIC_OBJS := tic_main_${TIC_PLATFORM}.o                            \
+            tic_cmd_measurement_test_${TIC_PLATFORM}.o            \
+            tic_cmd_cpu_test_${TIC_PLATFORM}.o                    \
+            timing_test_routines_${TIC_PLATFORM}.o                \
+            timing_test_measurement_${TIC_PLATFORM}.o             \
+            timing_test_memory_${TIC_PLATFORM}.o                  \
+            target_asm_generic_${TIC_PLATFORM}.o                  \
+            target_asm_${TIC_PLATFORM}_specific_${TIC_PLATFORM}.o \
+            target_${TIC_PLATFORM}_specific_${TIC_PLATFORM}.o     \
+            neo6502_glue_neo.o
+
+tic.neo : tic_neo.prg
+	./make_neo_executable.py $< $@
+
+# Link the final executable.
+# Note that we call cl65 as linker, not ld65.
+# The cl65 driver script knows to include all target-specific libraries.
+tic_${TIC_PLATFORM}.${TIC_EXECUTABLE_EXTENSION} : ${TIC_OBJS}
+	cl65 $(LD65_FLAGS) $^ -o $@
+
+# Compile a platform-specific C file to a platform-specific assembly file.
+target_${TIC_PLATFORM}.s : target_${TIC_PLATFORM}.c
+	cc65 $(CC65_FLAGS) $< -o $@
+
+# Compile a generic C file to a platform-specific assembly file.
+%_${TIC_PLATFORM}.s : %.c
+	cc65 $(CC65_FLAGS) $< -o $@
+
+# Assemble a generic assembly file to a platform-specific object file.
+%_${TIC_PLATFORM}.o : %.s
+	ca65 $(CA65_FLAGS) $< -o $@
+
+# Assemble a platform-specific assembly file to a platform-specific object file.
+%_${TIC_PLATFORM}.o : %_${TIC_PLATFORM}.s
+	ca65 $(CA65_FLAGS) $< -o $@
+
+clean :
+	$(RM) tic.neo

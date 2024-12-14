@@ -91,9 +91,9 @@ void post_big_measurement_block_hook(void)
     putchar('\a');
 }
 
-void pre_every_test_hook(const char * test_description)
+void pre_every_test_hook(const char * opcode_description)
 {
-    (void)test_description;
+    (void)opcode_description;
 
     POKE(HPOSM0, progress1);
     if (progress1 == LASTPOS)

@@ -3,8 +3,7 @@
 // tic_main.c //
 ////////////////
 
-// This program tests the instruction timing (i.e., clock-cycle counts) of
-// the 151 documented 6502 instructions.
+// This program tests the instruction timing (i.e., clock-cycle counts) of 6502/65C02 instructions.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,7 +105,7 @@ int main(void)
 
     program_start_hook();
 
-    printf("*** TIC v0.3.1 ***\n");
+    printf("*** TIC v0.4.0 ***\n");
     printf("\n");
 
     result = command_line_loop();

@@ -3,11 +3,9 @@
 // timing_test_routines.c //
 ////////////////////////////
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #include "timing_test_memory.h"
 #include "timing_test_measurement.h"
+#include "timing_test_routines.h"
 #include "target.h"
 
 unsigned STEP_SIZE = 85;
@@ -97,7 +95,7 @@ bool timing_test_single_byte_instruction_sequence(const char * opcode_descriptio
     return true;
 }
 
-bool timing_test_two_byte_instruction_sequence(const char * opcode_description, uint8_t opc1, uint8_t opc2, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_two_byte_instruction_sequence(const char * opcode_description, uint8_t test_opcode_offset, uint8_t opc1, uint8_t opc2, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     uint8_t * opcode_address;
 
@@ -112,11 +110,11 @@ bool timing_test_two_byte_instruction_sequence(const char * opcode_description, 
     {
         opcode_address = TESTCODE_ANCHOR + par1;
 
-        opcode_address[0] = opc1;    // OPC
-        opcode_address[1] = opc2;    // OPC
-        opcode_address[2] = OPC_RTS; // RTS [-]
+        opcode_address[0 - (int)test_opcode_offset] = opc1;    // OPC
+        opcode_address[1 - (int)test_opcode_offset] = opc2;    // OPC
+        opcode_address[2 - (int)test_opcode_offset] = OPC_RTS; // RTS [-]
 
-        if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address - test_opcode_offset, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -125,7 +123,7 @@ bool timing_test_two_byte_instruction_sequence(const char * opcode_description, 
     return true;
 }
 
-bool timing_test_three_byte_instruction_sequence(const char * opcode_description, uint8_t opc1, uint8_t opc2, uint8_t opc3, unsigned test_overhead_cycles, unsigned instruction_cycles)
+bool timing_test_three_byte_instruction_sequence(const char * opcode_description, uint8_t test_opcode_offset, uint8_t opc1, uint8_t opc2, uint8_t opc3, unsigned test_overhead_cycles, unsigned instruction_cycles)
 {
     uint8_t * opcode_address;
 
@@ -140,12 +138,12 @@ bool timing_test_three_byte_instruction_sequence(const char * opcode_description
     {
         opcode_address = TESTCODE_ANCHOR + par1;
 
-        opcode_address[0] = opc1;    // OPC
-        opcode_address[1] = opc2;    // OPC
-        opcode_address[2] = opc3;    // OPC
-        opcode_address[3] = OPC_RTS; // RTS [-]
+        opcode_address[0 - (int)test_opcode_offset] = opc1;    // OPC
+        opcode_address[1 - (int)test_opcode_offset] = opc2;    // OPC
+        opcode_address[2 - (int)test_opcode_offset] = opc3;    // OPC
+        opcode_address[3 - (int)test_opcode_offset] = OPC_RTS; // RTS [-]
 
-        if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
+        if (!execute_single_opcode_test(opcode_address - test_opcode_offset, DEFAULT_RUN_FLAGS))
             return false;
 
         if (par1 == LAST)
@@ -1187,7 +1185,7 @@ bool timing_test_read_modify_write_abs_instruction(const char * opcode_descripti
     return true;
 }
 
-bool timing_test_read_modify_write_abs_x_instruction(const char * opcode_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_x_v1_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * base_address;
@@ -1230,6 +1228,56 @@ bool timing_test_read_modify_write_abs_x_instruction(const char * opcode_descrip
     }
     return true;
 }
+
+#if defined(CPU_65C02)
+// Note: this code is only ever useful on a 65C02 processor.
+bool timing_test_read_modify_write_abs_x_v2_instruction(const char * opcode_description, uint8_t opcode)
+{
+    // The ASL/ROL/ROR/LSR instructions with absolute-x addressing have different timing on the 65C02 compared to the 6502.
+    // Note: the DEC/INC with absolute-x indexing on the 65C02 have the same timing as their 6502 counterparts. Go figure.
+
+    uint8_t * opcode_address;
+    uint8_t * base_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_XReg);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            base_address = TESTCODE_BASE + par2;
+
+            for (par3 = 0;;par3 += STEP_SIZE)
+            {
+                opcode_address[-2] = LDX_IMM;           // LDX #par3            [2]
+                opcode_address[-1] = par3;              //
+                opcode_address[ 0] = opcode;            // OPC base_address,X   [7]
+                opcode_address[ 1] = lsb(base_address); //
+                opcode_address[ 2] = msb(base_address); //
+                opcode_address[ 3] = OPC_RTS;           // RTS                  [-]
+
+                m_test_overhead_cycles = 2;
+                m_instruction_cycles = 6 + different_pages(base_address, base_address + par3);
+
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
+                    return false;
+
+                if (par3 == LAST)
+                    break;
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
 
 bool timing_test_read_modify_write_abs_y_instruction(const char * opcode_description, uint8_t opcode)
 {
@@ -1570,17 +1618,25 @@ bool timing_test_jmp_indirect_instruction(const char * opcode_description)
         {
             target_ptr_address = TESTCODE_BASE + par2;
 
-            target_ptr_address[0] = lsb(opcode_address + 3);
-            target_ptr_address[1] = msb(opcode_address + 3);
+#if defined(CPU_6502)
 
             // The jump-indirect instruction suffers from the "JUMP INDIRECT" bug on
             // the original 6502; this bug was corrected in later variants like the 65C02.
             //
-            // In case the 6502 we're testing has this issue, we're also putting the MSB
-            // of the target at the "wrong" location, in cases where this bug would be triggered.
-
+            // On the 6502, if the absolute address low and high bytes are on different pages,
+            // the target address would be read from the wrong location. We deal with that here.
             if (different_pages(target_ptr_address + 0, target_ptr_address + 1))
+            {
+                // Deal with the 6502 bug.
+                target_ptr_address[0        ] = lsb(opcode_address + 3);
                 target_ptr_address[1 - 0x100] = msb(opcode_address + 3);
+            }
+            else
+            {
+                // Normal behavior.
+                target_ptr_address[0] = lsb(opcode_address + 3);
+                target_ptr_address[1] = msb(opcode_address + 3);
+            }
 
             opcode_address[0] = JMP_IND;                 // JMP ind      [5]
             opcode_address[1] = lsb(target_ptr_address); //
@@ -1588,7 +1644,23 @@ bool timing_test_jmp_indirect_instruction(const char * opcode_description)
             opcode_address[3] = OPC_RTS;                 // RTS          [-]
 
             m_test_overhead_cycles = 0;
-            m_instruction_cycles   = 5;
+            m_instruction_cycles   = 5; // The instruction takes 5 cycles on the 6502.
+
+#elif defined(CPU_65C02)
+
+            target_ptr_address[0] = lsb(opcode_address + 3);
+            target_ptr_address[1] = msb(opcode_address + 3);
+
+            opcode_address[0] = JMP_IND;                 // JMP ind      [5]
+            opcode_address[1] = lsb(target_ptr_address); //
+            opcode_address[2] = msb(target_ptr_address); //
+            opcode_address[3] = OPC_RTS;                 // RTS          [-]
+
+            m_test_overhead_cycles = 0;
+            m_instruction_cycles   = 6; // The instruction takes 6 cycles on the 65C02.
+#else
+#error "CPU type not specified."
+#endif
 
             if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
                 return false;

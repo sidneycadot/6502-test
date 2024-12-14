@@ -3,14 +3,15 @@
 #
 # The purpose of this is twofold:
 #
-# - We benefit from GCC's warnings and error checking, that is better than CC65's.
+# - We benefit from GCC's warnings and error checking that is much better than what
+#   CC65 provides.
 # - We can run tests with the program, and every measurement  will always succeed.
 #   It gives us a way to simulate test runs quickly, and the report such a simulated
 #   run produces is useful to count the number of tests and measurements performed
 #   at the speed of a modern CPU.
 
 CFLAGS = -W -Wall -O3
-CPPFLAGS = -DTIC_PLATFORM_GCC
+CPPFLAGS = -DTIC_PLATFORM_GCC -DCPU_6502
 
 TIC_OBJS = target_gcc_specific_gcc.o      \
            timing_test_measurement_gcc.o  \

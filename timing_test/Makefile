@@ -33,7 +33,7 @@ prep-atari : atari
 # Define linker, compiler, and assembler flags.
 # Note that the C65 compiler and assembler take a -t option, which is used for string encoding.
 # This means that their output files are also target-specific.
-CC65_FLAGS := -O -t ${TIC_SIM65_TARGET} -DTIC_PLATFORM_${TIC_PLATFORM_UPPERCASE}
+CC65_FLAGS := -O -t ${TIC_SIM65_TARGET} -DTIC_PLATFORM_${TIC_PLATFORM_UPPERCASE} -DCPU_6502
 CA65_FLAGS :=    -t ${TIC_SIM65_TARGET}
 LD65_FLAGS :=    -t ${TIC_SIM65_TARGET}
 
