@@ -98,10 +98,12 @@ static void print_test_report(unsigned actual_cycles)
         case Par123_OpcodeOffset_AbsOffset_XReg:
         case Par123_OpcodeOffset_AbsOffset_YReg:
         case Par123_OpcodeOffset_BranchDisplacement_TakenNotTaken:
+        case Par123_OpcodeOffset_ZPage_AbsOffset:
             npar = 3;
             break;
         case Par1234_OpcodeOffset_ZPage_XReg_AbsOffset:
         case Par1234_OpcodeOffset_ZPage_AbsOffset_YReg:
+        case Par1234_OpcodeOffset_ZPage_BranchDisplacement_TakenNotTaken:
             npar = 4;
             break;
         default:

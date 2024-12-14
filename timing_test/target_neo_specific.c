@@ -7,12 +7,16 @@
 #include <peekpoke.h>
 #include "target.h"
 
+// Prototype.
+void neo6502_system_reset(void);
+
 void program_start_hook(void)
 {
 }
 
 void program_end_hook(void)
 {
+    neo6502_system_reset();
 }
 
 void pre_big_measurement_block_hook(void)
@@ -21,6 +25,7 @@ void pre_big_measurement_block_hook(void)
 
 void post_big_measurement_block_hook(void)
 {
+    printf("\n");
 }
 
 void pre_every_test_hook(const char * opcode_description)
@@ -36,7 +41,6 @@ bool post_every_measurement_hook(bool success, unsigned opcode_count, unsigned l
     (void)error_count;
     return true;
 }
-
 
 uint8_t * set_irq_vector_address(uint8_t * newvec)
 {

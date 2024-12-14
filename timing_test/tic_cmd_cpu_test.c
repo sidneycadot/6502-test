@@ -334,20 +334,20 @@ bool timing_test_read_modify_write_abs_x_instructions(void)
 
 #if defined(CPU_6502)
     return
-        timing_test_read_modify_write_abs_x_v1_instruction("ASL abs,X", 0x1e) &&
-        timing_test_read_modify_write_abs_x_v1_instruction("ROL abs,X", 0x3e) &&
-        timing_test_read_modify_write_abs_x_v1_instruction("LSR abs,X", 0x5e) &&
-        timing_test_read_modify_write_abs_x_v1_instruction("ROR abs,X", 0x7e) &&
-        timing_test_read_modify_write_abs_x_v1_instruction("DEC abs,X", 0xde) &&
-        timing_test_read_modify_write_abs_x_v1_instruction("INC abs,X", 0xfe);
+        timing_test_read_modify_write_abs_x_instruction_v1("ASL abs,X", 0x1e) &&
+        timing_test_read_modify_write_abs_x_instruction_v1("ROL abs,X", 0x3e) &&
+        timing_test_read_modify_write_abs_x_instruction_v1("LSR abs,X", 0x5e) &&
+        timing_test_read_modify_write_abs_x_instruction_v1("ROR abs,X", 0x7e) &&
+        timing_test_read_modify_write_abs_x_instruction_v1("DEC abs,X", 0xde) &&
+        timing_test_read_modify_write_abs_x_instruction_v1("INC abs,X", 0xfe);
 #elif defined (CPU_65C02)
     return
-        timing_test_read_modify_write_abs_x_v2_instruction("ASL abs,X", 0x1e) &&
-        timing_test_read_modify_write_abs_x_v2_instruction("ROL abs,X", 0x3e) &&
-        timing_test_read_modify_write_abs_x_v2_instruction("LSR abs,X", 0x5e) &&
-        timing_test_read_modify_write_abs_x_v2_instruction("ROR abs,X", 0x7e) &&
-        timing_test_read_modify_write_abs_x_v1_instruction("DEC abs,X", 0xde) &&
-        timing_test_read_modify_write_abs_x_v1_instruction("INC abs,X", 0xfe);
+        timing_test_read_modify_write_abs_x_instruction_v2("ASL abs,X", 0x1e) &&
+        timing_test_read_modify_write_abs_x_instruction_v2("ROL abs,X", 0x3e) &&
+        timing_test_read_modify_write_abs_x_instruction_v2("LSR abs,X", 0x5e) &&
+        timing_test_read_modify_write_abs_x_instruction_v2("ROR abs,X", 0x7e) &&
+        timing_test_read_modify_write_abs_x_instruction_v1("DEC abs,X", 0xde) &&
+        timing_test_read_modify_write_abs_x_instruction_v1("INC abs,X", 0xfe);
 #else
 #error "CPU type not specified."
 #endif
@@ -373,8 +373,8 @@ bool timing_test_jmp_instructions(void)
     // The single jump-to-absolute-address instruction takes 3 cycles.
     // The single jump-to-indirect-address instruction takes 5 cycles.
     return
-        timing_test_jmp_abs_instruction("JMP abs") &&
-        timing_test_jmp_indirect_instruction("JMP (ind)");
+        timing_test_jmp_abs_instruction         ("JMP abs") &&
+        timing_test_jmp_abs_indirect_instruction("JMP (ind)");
 }
 
 bool timing_test_jsr_and_rts_instructions(void)
@@ -441,7 +441,7 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal SLO (zpage,X)" " (0x03)", 0x03) &&
         timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal SLO (zpage),Y" " (0x13)", 0x13) &&
         timing_test_read_modify_write_abs_instruction             ("Illegal SLO abs"       " (0x0f)", 0x0f) &&
-        timing_test_read_modify_write_abs_x_v1_instruction        ("Illegal SLO abs,X"     " (0x1f)", 0x1f) &&
+        timing_test_read_modify_write_abs_x_instruction_v1        ("Illegal SLO abs,X"     " (0x1f)", 0x1f) &&
         timing_test_read_modify_write_abs_y_instruction           ("Illegal SLO abs,Y"     " (0x1b)", 0x1b) &&
         //
         // Illegal RLA instruction (7 variants)
@@ -451,7 +451,7 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal RLA (zpage,X)" " (0x23)", 0x23) &&
         timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal RLA (zpage),Y" " (0x33)", 0x33) &&
         timing_test_read_modify_write_abs_instruction             ("Illegal RLA abs"       " (0x2f)", 0x2f) &&
-        timing_test_read_modify_write_abs_x_v1_instruction        ("Illegal RLA abs,X"     " (0x3f)", 0x3f) &&
+        timing_test_read_modify_write_abs_x_instruction_v1        ("Illegal RLA abs,X"     " (0x3f)", 0x3f) &&
         timing_test_read_modify_write_abs_y_instruction           ("Illegal RLA abs,Y"     " (0x3b)", 0x3b) &&
         //
         // Illegal SRE instruction (7 variants)
@@ -461,7 +461,7 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal SRE (zpage,X)" " (0x43)", 0x43) &&
         timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal SRE (zpage),Y" " (0x53)", 0x53) &&
         timing_test_read_modify_write_abs_instruction             ("Illegal SRE abs"       " (0x4f)", 0x4f) &&
-        timing_test_read_modify_write_abs_x_v1_instruction        ("Illegal SRE abs,X"     " (0x5f)", 0x5f) &&
+        timing_test_read_modify_write_abs_x_instruction_v1        ("Illegal SRE abs,X"     " (0x5f)", 0x5f) &&
         timing_test_read_modify_write_abs_y_instruction           ("Illegal SRE abs,Y"     " (0x5b)", 0x5b) &&
         //
         // Illegal RRA instruction (7 variants)1
@@ -471,7 +471,7 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_modify_write_zpage_x_indirect_instruction("Illegal RRA (zpage,X)" " (0x63)", 0x63) &&
         timing_test_read_modify_write_zpage_indirect_y_instruction("Illegal RRA (zpage),Y" " (0x73)", 0x73) &&
         timing_test_read_modify_write_abs_instruction             ("Illegal RRA abs"       " (0x6f)", 0x6f) &&
-        timing_test_read_modify_write_abs_x_v1_instruction        ("Illegal RRA abs,X"     " (0x7f)", 0x7f) &&
+        timing_test_read_modify_write_abs_x_instruction_v1        ("Illegal RRA abs,X"     " (0x7f)", 0x7f) &&
         timing_test_read_modify_write_abs_y_instruction           ("Illegal RRA abs,Y"     " (0x7b)", 0x7b) &&
         //
         // Illegal SAX instruction (4 variants)
@@ -497,7 +497,7 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_modify_write_zpage_x_indirect_instruction ("Illegal DCP (zpage,X)" " (0xc3)", 0xc3) &&
         timing_test_read_modify_write_zpage_indirect_y_instruction ("Illegal DCP (zpage),Y" " (0xd3)", 0xd3) &&
         timing_test_read_modify_write_abs_instruction              ("Illegal DCP abs"       " (0xcf)", 0xcf) &&
-        timing_test_read_modify_write_abs_x_v1_instruction         ("Illegal DCP abs,X"     " (0xdf)", 0xdf) &&
+        timing_test_read_modify_write_abs_x_instruction_v1         ("Illegal DCP abs,X"     " (0xdf)", 0xdf) &&
         timing_test_read_modify_write_abs_y_instruction            ("Illegal DCP abs,Y"     " (0xdb)", 0xdb) &&
         //
         // Illegal ISC instruction (7 variants)
@@ -507,7 +507,7 @@ bool timing_test_6502_illegal_instructions(void)
         timing_test_read_modify_write_zpage_x_indirect_instruction ("Illegal ISC (zpage,X)" " (0xe3)", 0xe3) &&
         timing_test_read_modify_write_zpage_indirect_y_instruction ("Illegal ISC (zpage),Y" " (0xf3)", 0xf3) &&
         timing_test_read_modify_write_abs_instruction              ("Illegal ISC abs"       " (0xef)", 0xef) &&
-        timing_test_read_modify_write_abs_x_v1_instruction         ("Illegal ISC abs,X"     " (0xff)", 0xff) &&
+        timing_test_read_modify_write_abs_x_instruction_v1         ("Illegal ISC abs,X"     " (0xff)", 0xff) &&
         timing_test_read_modify_write_abs_y_instruction            ("Illegal ISC abs,Y"     " (0xfb)", 0xfb) &&
         //
         // Illegal ANC instruction (2 variants)
@@ -603,6 +603,152 @@ bool timing_test_6502_illegal_instructions(void)
 }
 #endif
 
+#if defined(CPU_65C02)
+// Note: this code is only ever useful on a 65C02 processor.
+bool timing_test_65c02_specific_instructions(void)
+{
+    // The 65C02 has 256 opcodes.
+    //
+    // 151 of the are (almost) identical to their 6502 counterparts.
+    //
+    // Three differences:
+    //
+    //   * ADC/SBC                behavior and timing in decimal mode.
+    //   * ASL/LSR/ROL/ROR abs,X  timing
+    //   * JMP (indirect)         behavior and timing.
+    //
+    // 105 instructions now have defined behavior, which was previously undefined.
+    //
+    // We will not test the WAI and STP instructions.
+
+    return
+        timing_test_branch_always_instruction("65C02 BRA rel", 0x80) &&
+        //
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x03)", 0x03, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x13)", 0x13, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x23)", 0x23, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x33)", 0x33, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x43)", 0x43, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x53)", 0x53, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x63)", 0x63, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x73)", 0x73, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x83)", 0x83, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x93)", 0x93, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xa3)", 0xa3, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xb3)", 0xb3, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xc3)", 0xc3, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xd3)", 0xd3, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xe3)", 0xe3, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xf3)", 0xf3, 1) &&
+        //
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x0b)", 0x0b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x1b)", 0x1b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x2b)", 0x2b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x3b)", 0x3b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x4b)", 0x4b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x5b)", 0x5b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x6b)", 0x6b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x7b)", 0x7b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x8b)", 0x8b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0x9b)", 0x9b, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xab)", 0xab, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xbb)", 0xbb, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xeb)", 0xeb, 1) &&
+        timing_test_single_byte_instruction_sequence("65C02 NOP (0xfb)", 0xfb, 1) &&
+        //
+        timing_test_read_immediate_instruction("65C02 NOP #imm (0x02)", 0x02) &&
+        timing_test_read_immediate_instruction("65C02 NOP #imm (0x22)", 0x22) &&
+        timing_test_read_immediate_instruction("65C02 NOP #imm (0x42)", 0x42) &&
+        timing_test_read_immediate_instruction("65C02 NOP #imm (0x62)", 0x62) &&
+        timing_test_read_immediate_instruction("65C02 NOP #imm (0x82)", 0x82) &&
+        timing_test_read_immediate_instruction("65C02 NOP #imm (0xc2)", 0xc2) &&
+        timing_test_read_immediate_instruction("65C02 NOP #imm (0xe2)", 0xe2) &&
+        //
+        timing_test_read_zpage_instruction   ("65C02 NOP zp"   " (0x44)", 0x44) &&
+        timing_test_read_zpage_x_instruction ("65C02 NOP zp,x" " (0x54)", 0x54) &&
+        timing_test_read_zpage_x_instruction ("65C02 NOP zp,x" " (0xd4)", 0xd4) &&
+        timing_test_read_zpage_x_instruction ("65C02 NOP zp,x" " (0xf4)", 0xf4) &&
+        timing_test_read_abs_instruction_slow("65C02 NOP abs"  " (0x5c)", 0x5c) &&
+        timing_test_read_abs_instruction     ("65C02 NOP abs"  " (0xdc)", 0xdc) &&
+        timing_test_read_abs_instruction     ("65C02 NOP abs"  " (0xfc)", 0xfc) &&
+        //
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB0 zp (0x07)", 0x07) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB1 zp (0x17)", 0x17) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB2 zp (0x27)", 0x27) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB3 zp (0x37)", 0x37) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB4 zp (0x47)", 0x47) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB5 zp (0x57)", 0x57) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB6 zp (0x67)", 0x67) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB7 zp (0x77)", 0x77) &&
+        //
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB0 zp (0x87)", 0x87) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB1 zp (0x97)", 0x97) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB2 zp (0xa7)", 0xa7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB3 zp (0xb7)", 0xb7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB4 zp (0xc7)", 0xc7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB5 zp (0xd7)", 0xd7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB6 zp (0xe7)", 0xe7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB7 zp (0xf7)", 0xf7) &&
+        //
+        timing_test_read_modify_write_zpage_instruction("65C02 TRB zp"  " (0x14)", 0x14) &&
+        timing_test_read_modify_write_abs_instruction  ("65C02 TRB abs" " (0x1c)", 0x1c) &&
+        //
+        timing_test_read_modify_write_zpage_instruction("65C02 TSB zp"  " (0x04)", 0x04) &&
+        timing_test_read_modify_write_abs_instruction  ("65C02 TSB abs" " (0x0c)", 0x0c) &&
+        //
+        timing_test_read_immediate_instruction("65C02 BIT #imm"  " (0x89)", 0x89) &&
+        timing_test_read_zpage_x_instruction  ("65C02 BIT zp,x"  " (0x34)", 0x34) &&
+        timing_test_read_abs_x_instruction    ("65C02 BIT abs,x" " (0x3c)", 0x3c) &&
+        //
+        timing_test_write_zpage_instruction  ("65C02 STZ zp"    " (0x64)", 0x64) &&
+        timing_test_write_zpage_x_instruction("65C02 STZ zp,x"  " (0x74)", 0x74) &&
+        timing_test_write_abs_instruction    ("65C02 STZ abs"   " (0x9c)", 0x9c) &&
+        timing_test_write_abs_x_instruction  ("65C02 STZ abs,x" " (0x9e)", 0x9e) &&
+        //
+        timing_test_single_byte_instruction_sequence("65C02 INC", 0x1a, 2) &&
+        timing_test_single_byte_instruction_sequence("65C02 DEC", 0x3a, 2) &&
+        //
+        // TSX, PHX, TXS - The stack pointer is saved before, and restored after the instruction.
+        timing_test_three_byte_instruction_sequence("65C02 PHX", (+1), 0xba, 0xda, 0x9a, 2 + 2, 3) &&
+        // TSX, PHY, TXS - The stack pointer is saved before, and restored after the instruction.
+        timing_test_three_byte_instruction_sequence("65C02 PHY", (+1), 0xba, 0x5a, 0x9a, 2 + 2, 3) &&
+        // PHX, PLX - The value to be pulled is pushed immediately before.
+        timing_test_two_byte_instruction_sequence("65C02 PLX", (+1), 0xda, 0xfa, 3, 4) &&
+        // PHY, PLY - The value to be pulled is pushed immediately before.
+        timing_test_two_byte_instruction_sequence("65C02 PLY", (+1), 0x5a, 0x7a, 3, 4) &&
+        //
+        timing_test_read_zpage_indirect_instruction("65C02 ORA (zp) (0x12)", 0x12) &&
+        timing_test_read_zpage_indirect_instruction("65C02 AND (zp) (0x32)", 0x32) &&
+        timing_test_read_zpage_indirect_instruction("65C02 EOR (zp) (0x52)", 0x52) &&
+        timing_test_read_zpage_indirect_instruction("65C02 ADC (zp) (0x72)", 0x72) &&
+        timing_test_read_zpage_indirect_instruction("65C02 LDA (zp) (0xb2)", 0xb2) &&
+        timing_test_read_zpage_indirect_instruction("65C02 CMP (zp) (0xd2)", 0xd2) &&
+        timing_test_read_zpage_indirect_instruction("65C02 SBC (zp) (0xf2)", 0xf2) &&
+        //
+        timing_test_write_zpage_indirect_instruction("65C02 STA (zp) (0x92)", 0x92) &&
+        //
+        timing_test_bit_branch_instruction("65C02 BBR0 (0x0f)", 0x0f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR1 (0x1f)", 0x1f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR2 (0x2f)", 0x2f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR3 (0x3f)", 0x3f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR4 (0x4f)", 0x4f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR5 (0x5f)", 0x5f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR6 (0x6f)", 0x6f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR7 (0x7f)", 0x7f, false) &&
+        //
+        timing_test_bit_branch_instruction("65C02 BBS0 (0x8f)", 0x8f, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS1 (0x9f)", 0x9f, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS2 (0xaf)", 0xaf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS3 (0xbf)", 0xbf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS4 (0xcf)", 0xcf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS5 (0xdf)", 0xdf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS6 (0xef)", 0xef, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS7 (0xff)", 0xff, true) &&
+        //
+        timing_test_jmp_abs_x_indirect_instruction("65C02 JMP (ind,X) (0x7c)");
+}
+#endif
+
 bool timing_test_buggy_6502_illegal_instructions(void)
 {
     // *** SHA/SHX/SHY instructions ***
@@ -687,8 +833,12 @@ bool run_6502_instruction_timing_tests(void)
         timing_test_jsr_and_rts_instructions()               && // 2 instructions.
         timing_test_brk_and_rti_instructions()               && // 2 instructions.
 #if defined(CPU_6502)
-        // Test 93 of the 105 "illegal" instructions (all excluding the 12 JAM instructions).
-        timing_test_6502_illegal_instructions() &&
+        // Test 89 of the 105 "illegal" 6502 instructions.
+        // We exclude the 12 JAM instructions and the 5 instructions that crash the Atari.
+        timing_test_6502_illegal_instructions();
+#elif defined(CPU_65C02)
+        // Test the 105 extra instructions that the 65C02 has.
+        timing_test_65c02_specific_instructions();
 #endif
         true;
 }
@@ -709,7 +859,6 @@ void tic_cmd_cpu_test(unsigned level)
     pre_big_measurement_block_hook();
 
     run_completed = run_6502_instruction_timing_tests();
-    //run_completed = timing_test_6502_illegal_instructions();
     //run_completed = timing_test_buggy_6502_illegal_instructions();
 
     post_big_measurement_block_hook();

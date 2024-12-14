@@ -40,27 +40,29 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define OPC_BRK  0x00
-#define OPC_PHP  0x08
-#define ORA_IMM  0x09
-#define JSR_ABS  0x20
-#define OPC_PLP  0x28
-#define AND_IMM  0x29
-#define OPC_RTI  0x40
-#define OPC_PHA  0x48
-#define JMP_ABS  0x4c
-#define OPC_RTS  0x60
-#define OPC_PLA  0x68
-#define JMP_IND  0x6c
-#define STY_ZP   0x84
-#define STX_ZP   0x86
-#define STX_ABS  0x8e
-#define OPC_TXS  0x9a
-#define LDY_IMM  0xa0
-#define LDX_IMM  0xa2
-#define LDA_IMM  0xa9
-#define LDX_ABS  0xae
-#define OPC_TSX  0xba
+#define OPC_BRK    0x00
+#define OPC_PHP    0x08
+#define ORA_IMM    0x09
+#define JSR_ABS    0x20
+#define OPC_PLP    0x28
+#define AND_IMM    0x29
+#define OPC_RTI    0x40
+#define OPC_PHA    0x48
+#define JMP_ABS    0x4c
+#define OPC_RTS    0x60
+#define OPC_PLA    0x68
+#define JMP_IND    0x6c
+#define JMP_IND_X  0x7c
+#define STY_ZP     0x84
+#define STA_ZP     0x85
+#define STX_ZP     0x86
+#define STX_ABS    0x8e
+#define OPC_TXS    0x9a
+#define LDY_IMM    0xa0
+#define LDX_IMM    0xa2
+#define LDA_IMM    0xa9
+#define LDX_ABS    0xae
+#define OPC_TSX    0xba
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
@@ -346,6 +348,44 @@ bool timing_test_read_abs_instruction(const char * opcode_description, uint8_t o
     return true;
 }
 
+#if defined(CPU_65C02)
+bool timing_test_read_abs_instruction_slow(const char * opcode_description, uint8_t opcode)
+{
+    uint8_t * opcode_address;
+
+    prepare_opcode_tests(opcode_description, Par12_OpcodeOffset_AbsOffset);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            uint8_t * read_address = TESTCODE_BASE + par2;
+
+            opcode_address[0] = opcode;            // OPC read_address   [4]
+            opcode_address[1] = lsb(read_address); //
+            opcode_address[2] = msb(read_address); //
+            opcode_address[3] = OPC_RTS;           // RTS                [-]
+
+            m_test_overhead_cycles = 0;
+            m_instruction_cycles = 8; // Unique for instruction 0x5C on the 65C02.
+
+            if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
+                return false;
+
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
+
 bool timing_test_read_abs_x_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
@@ -518,11 +558,11 @@ bool timing_test_read_zpage_x_indirect_instruction(const char * opcode_descripti
 
                         opcode_address[-10] = LDX_IMM;          // LDX #<abs_address     [2]
                         opcode_address[ -9] = lsb(abs_address); //
-                        opcode_address[ -8] = STX_ZP;           // STX zp_ptr_lo [3]
+                        opcode_address[ -8] = STX_ZP;           // STX zp_ptr_lo         [3]
                         opcode_address[ -7] = zp_ptr_lo;        //
                         opcode_address[ -6] = LDX_IMM;          // LDX #>abs_address     [2]
                         opcode_address[ -5] = msb(abs_address); //
-                        opcode_address[ -4] = STX_ZP;           // STX zp_ptr_lo [3]
+                        opcode_address[ -4] = STX_ZP;           // STX zp_ptr_lo         [3]
                         opcode_address[ -3] = zp_ptr_lo;        //
                         opcode_address[ -2] = LDX_IMM;          // LDX #par3             [2]
                         opcode_address[ -1] = par3;             //
@@ -585,11 +625,11 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * opcode_descripti
                     {
                         opcode_address[-10] = LDY_IMM;           // LDY #<base_address    [2]
                         opcode_address[ -9] = lsb(base_address); //
-                        opcode_address[ -8] = STY_ZP;            // STY zp_ptr_lo [3]
+                        opcode_address[ -8] = STY_ZP;            // STY zp_ptr_lo         [3]
                         opcode_address[ -7] = zp_ptr_lo;         //
                         opcode_address[ -6] = LDY_IMM;           // LDY #>base_address    [2]
                         opcode_address[ -5] = msb(base_address); //
-                        opcode_address[ -4] = STY_ZP;            // STY zp_ptr_hi [3]
+                        opcode_address[ -4] = STY_ZP;            // STY zp_ptr_hi         [3]
                         opcode_address[ -3] = zp_ptr_hi;         //
                         opcode_address[ -2] = LDY_IMM;           // LDY #par4             [2]
                         opcode_address[ -1] = par4;              //
@@ -618,6 +658,68 @@ bool timing_test_read_zpage_indirect_y_instruction(const char * opcode_descripti
     }
     return true;
 }
+
+#if defined(CPU_65C02)
+bool timing_test_read_zpage_indirect_instruction(const char * opcode_description, uint8_t opcode)
+{
+    uint8_t * opcode_address;
+    uint8_t   zp_ptr_lo;
+    uint8_t   zp_ptr_hi;
+    uint8_t * effective_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_ZPage_AbsOffset);
+
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            zp_ptr_lo = par2;
+            zp_ptr_hi = zp_ptr_lo + 1;
+
+            if (zp_address_is_safe_for_write(zp_ptr_lo) && zp_address_is_safe_for_write(zp_ptr_hi))
+            {
+                zpage_preserve[0] = zp_ptr_lo;
+                zpage_preserve[1] = zp_ptr_hi;
+
+                for (par3 = 0;;par3 += STEP_SIZE)
+                {
+                    effective_address = TESTCODE_BASE + par3;
+
+                    opcode_address[-8] = LDA_IMM;                // LDA #<base_address    [2]
+                    opcode_address[-7] = lsb(effective_address); //
+                    opcode_address[-6] = STA_ZP;                 // STA zp_ptr_lo         [3]
+                    opcode_address[-5] = zp_ptr_lo;              //
+                    opcode_address[-4] = LDA_IMM;                // LDA #>base_address    [2]
+                    opcode_address[-3] = msb(effective_address); //
+                    opcode_address[-2] = STA_ZP;                 // STA zp_ptr_hi         [3]
+                    opcode_address[-1] = zp_ptr_hi;              //
+                    opcode_address[ 0] = opcode;                 // OPC (zpage)           [5]
+                    opcode_address[ 1] = zp_ptr_lo;              //
+                    opcode_address[ 2] = OPC_RTS;                // RTS                   [-]
+
+                    m_test_overhead_cycles = 2 + 3 + 2 + 3;
+                    m_instruction_cycles = 5;
+
+                    if (!execute_single_opcode_test(opcode_address - 8, DEFAULT_RUN_FLAGS))
+                        return false;
+
+                    if (par3 == LAST)
+                        break;
+                }
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
@@ -1061,6 +1163,68 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * opcode_descript
     return true;
 }
 
+#if defined(CPU_65C02)
+bool timing_test_write_zpage_indirect_instruction(const char * opcode_description, uint8_t opcode)
+{
+    uint8_t * opcode_address;
+    uint8_t   zp_ptr_lo;
+    uint8_t   zp_ptr_hi;
+    uint8_t * effective_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_ZPage_AbsOffset);
+
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            zp_ptr_lo = par2;
+            zp_ptr_hi = zp_ptr_lo + 1;
+
+            if (zp_address_is_safe_for_write(zp_ptr_lo) && zp_address_is_safe_for_write(zp_ptr_hi))
+            {
+                zpage_preserve[0] = zp_ptr_lo;
+                zpage_preserve[1] = zp_ptr_hi;
+
+                for (par3 = 0;;par3 += STEP_SIZE)
+                {
+                    effective_address = TESTCODE_BASE + par3;
+
+                    opcode_address[-8] = LDA_IMM;                // LDA #<base_address    [2]
+                    opcode_address[-7] = lsb(effective_address); //
+                    opcode_address[-6] = STA_ZP;                 // STA zp_ptr_lo         [3]
+                    opcode_address[-5] = zp_ptr_lo;              //
+                    opcode_address[-4] = LDA_IMM;                // LDA #>base_address    [2]
+                    opcode_address[-3] = msb(effective_address); //
+                    opcode_address[-2] = STA_ZP;                 // STA zp_ptr_hi         [3]
+                    opcode_address[-1] = zp_ptr_hi;              //
+                    opcode_address[ 0] = opcode;                 // OPC (zpage)           [5]
+                    opcode_address[ 1] = zp_ptr_lo;              //
+                    opcode_address[ 2] = OPC_RTS;                // RTS                   [-]
+
+                    m_test_overhead_cycles = 2 + 3 + 2 + 3;
+                    m_instruction_cycles = 5;
+
+                    if (!execute_single_opcode_test(opcode_address - 8, DEFAULT_RUN_FLAGS))
+                        return false;
+
+                    if (par3 == LAST)
+                        break;
+                }
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
 //                                    TIMING TESTS FOR READ-MODIFY-WRITE INSTRUCTIONS                                //
@@ -1185,7 +1349,7 @@ bool timing_test_read_modify_write_abs_instruction(const char * opcode_descripti
     return true;
 }
 
-bool timing_test_read_modify_write_abs_x_v1_instruction(const char * opcode_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_x_instruction_v1(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
     uint8_t * base_address;
@@ -1231,7 +1395,7 @@ bool timing_test_read_modify_write_abs_x_v1_instruction(const char * opcode_desc
 
 #if defined(CPU_65C02)
 // Note: this code is only ever useful on a 65C02 processor.
-bool timing_test_read_modify_write_abs_x_v2_instruction(const char * opcode_description, uint8_t opcode)
+bool timing_test_read_modify_write_abs_x_instruction_v2(const char * opcode_description, uint8_t opcode)
 {
     // The ASL/ROL/ROR/LSR instructions with absolute-x addressing have different timing on the 65C02 compared to the 6502.
     // Note: the DEC/INC with absolute-x indexing on the 65C02 have the same timing as their 6502 counterparts. Go figure.
@@ -1561,8 +1725,174 @@ bool timing_test_branch_instruction(const char * opcode_description, uint8_t opc
 
                 if (!execute_single_opcode_test(entry_address, DEFAULT_RUN_FLAGS))
                     return false;
-            }
+            } // displacement acceptable?
 
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true; // displacement acceptable?
+}
+
+#if defined(CPU_65C02)
+bool timing_test_bit_branch_instruction(const char * opcode_description, uint8_t opcode, bool branch_when_bit_set)
+{
+    // This function tests any of the "branch" instructions, testing both the "branch taken" and "branch not taken"
+    // scenarios.
+    //
+    // The 'flag_value' parameter determines whether "branch taken" happens when the associated flag is High or Low.
+    // The instructions BMI, BCS, BVS, and BEQ jump when N/C/V/Z are 1; BPL, BCC, BVC and BNE jump when N/C/V/Z are 0.
+    //
+    // Branch instructions, when not taken, take 2 clock cycles. When taken, they take 3 or 4 clock cycles:
+    //
+    // * 3 clock cycles if the address following the branch instruction is on the same memory page as the destination address;
+    // * 4 clock cycles if the address following the branch instruction is *not* on the same memory page as the destination address.
+
+    // This function tests any of the "branch" instructions, assuming the flag associated with the instruction
+    // is in a state that lead to the branch *NOT* being taken.
+    //
+    // The flag value (true or false) that leads to the branch being not taken is passed in the 'flag_value' parameter.
+    // Before executing the branch instructions, the CPU flags that can be used for branching (N, V, Z, C) are all
+    // set to this value.
+    //
+    // Branch instructions, when not taken, always take 2 clock cycles.
+
+    uint8_t * opcode_address;
+    uint8_t * entry_address  = TESTCODE_BASE;
+    int       displacement;
+
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_BranchDisplacement_TakenNotTaken);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            if (zp_address_is_safe_for_write(par2))
+            {
+                for (par3 = 0;;par3 += STEP_SIZE)
+                {
+                    // Branch Not Taken measurement.
+
+                    par4 = 0;
+
+                    // If 'branch_when_bit_set' is true, set the zpage address bits all to zero.
+                    // If 'branch_when_bit_set' is false, set the zpage address bits all to one.
+
+                    opcode_address[-4] = LDA_IMM;                               // LDA #value             [2]
+                    opcode_address[-3] = branch_when_bit_set ?   0x00 : 0xff;   //
+                    opcode_address[-2] = STA_ZP;                                // STA par2               [3]
+                    opcode_address[-1] = par2;                                  //
+                    opcode_address[ 0] = opcode;                                // BBxy zp,distplacement  [5]
+                    opcode_address[ 1] = par2;                                  // (zpage)
+                    opcode_address[ 2] = par3;                                  // (displacement)         [-]
+                    opcode_address[ 3] = OPC_RTS;                               // RTS                    [-]
+
+                    m_test_overhead_cycles = 2 + 3;
+                    m_instruction_cycles = 5;
+
+                    if (!execute_single_opcode_test(opcode_address - 4, DEFAULT_RUN_FLAGS))
+                        return false;
+
+                    // Branch Taken measurement.
+                    //
+                    // For a Branch Taken instruction, the target address should hold an RTS, bit
+                    // this RTS cannot overlap with the branch opcode itself, or its operand (the displacement).
+                    //
+                    // So the par2 values 0xff (displacement -1) and 0xfe (displacement - 2) must be skipped.
+                    //
+                    // To maximize the range that we can cover, we jump to the test code from an 'entry point'
+                    // region.
+                    if (!(par3 == 0xfd || par3 == 0xfe || par3 == 0xff))
+                    {
+                        par4 = 1;
+
+                        displacement = (par3 <= 0x7f) ? par3 : par3 - 0x100;
+
+                        // If 'branch_when_bit_set' is true, set the zpage address bits all to one.
+                        // If 'branch_when_bit_set' is false, set the zpage address bits all to zero.
+
+                        entry_address[0] = LDA_IMM;                               // LDA #value             [2]
+                        entry_address[1] = branch_when_bit_set ?   0xff : 0x00;   //
+                        entry_address[2] = STA_ZP;                                // STA par2               [3]
+                        entry_address[3] = par2;                                  //
+                        entry_address[4] = JMP_ABS;                               // JMP opcode_address     [3]
+                        entry_address[5] = lsb(opcode_address);                   //
+                        entry_address[6] = msb(opcode_address);                   //
+
+                        opcode_address[0] = opcode;                               // BBxy operand           [6/7]
+                        opcode_address[1] = par2;                                 //
+                        opcode_address[2] = par3;                                 //
+
+                        opcode_address[3 + displacement] = OPC_RTS;               // RTS                    [-]
+
+                        m_test_overhead_cycles = 2 + 3 + 3;
+                        m_instruction_cycles = 6 + different_pages(opcode_address + 3, opcode_address + 3 + displacement);
+
+                        if (!execute_single_opcode_test(entry_address, DEFAULT_RUN_FLAGS))
+                            return false;
+                    } // displacement acceptable?
+
+                    if (par3 == LAST)
+                        break;
+                }
+            } // ZP address safe?
+            if (par2 == LAST)
+                break;
+        } // par2 loop
+        if (par1 == LAST)
+            break;
+    } // par1 loop
+    return true;
+}
+#endif
+
+#if defined(CPU_65C02)
+bool timing_test_branch_always_instruction(const char * opcode_description, uint8_t opcode)
+{
+    uint8_t * opcode_address;
+    uint8_t * entry_address  = TESTCODE_BASE;
+    int       displacement;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_BranchDisplacement_TakenNotTaken);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            if ((par2 & 0xfe) != 0xfe)
+            {
+                displacement = (par2 <= 0x7f) ? par2 : par2 - 0x100;
+
+                par3 = 1;
+
+                // If 'branch_when_flag_set' is true,set the N/V/C/Z flags all to one.
+                // If 'branch_when_flag_set' is false, set the N/V/C/Z flags all to zero.
+
+                entry_address[0] = JMP_ABS;                                  // JMP opcode_address   [3]
+                entry_address[1] = lsb(opcode_address);                      //
+                entry_address[2] = msb(opcode_address);                      //
+
+                opcode_address[0] = opcode;                                  // Bxx operand          [2]
+                opcode_address[1] = par2;                                    //
+
+                opcode_address[2 + displacement] = OPC_RTS;                  // RTS                  [-]
+
+                m_test_overhead_cycles = 3;
+                m_instruction_cycles = 3 + different_pages(opcode_address + 2, opcode_address + 2 + displacement);
+
+                if (!execute_single_opcode_test(entry_address, DEFAULT_RUN_FLAGS))
+                    return false;
+            }
             if (par2 == LAST)
                 break;
         }
@@ -1571,6 +1901,7 @@ bool timing_test_branch_instruction(const char * opcode_description, uint8_t opc
     }
     return true;
 }
+#endif
 
 bool timing_test_jmp_abs_instruction(const char * opcode_description)
 {
@@ -1601,7 +1932,7 @@ bool timing_test_jmp_abs_instruction(const char * opcode_description)
     return true;
 }
 
-bool timing_test_jmp_indirect_instruction(const char * opcode_description)
+bool timing_test_jmp_abs_indirect_instruction(const char * opcode_description)
 {
     uint8_t * opcode_address;
     uint8_t * target_ptr_address;
@@ -1651,7 +1982,7 @@ bool timing_test_jmp_indirect_instruction(const char * opcode_description)
             target_ptr_address[0] = lsb(opcode_address + 3);
             target_ptr_address[1] = msb(opcode_address + 3);
 
-            opcode_address[0] = JMP_IND;                 // JMP ind      [5]
+            opcode_address[0] = JMP_IND;                 // JMP ind      [6]
             opcode_address[1] = lsb(target_ptr_address); //
             opcode_address[2] = msb(target_ptr_address); //
             opcode_address[3] = OPC_RTS;                 // RTS          [-]
@@ -1673,6 +2004,55 @@ bool timing_test_jmp_indirect_instruction(const char * opcode_description)
     }
     return true;
 }
+
+#if defined(CPU_65C02)
+bool timing_test_jmp_abs_x_indirect_instruction(const char * opcode_description)
+{
+    uint8_t * opcode_address;
+    uint8_t * target_ptr_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_XReg);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            for (par3 = 0;;par3 += STEP_SIZE)
+            {
+                target_ptr_address = TESTCODE_BASE + par2 + par3;
+
+                target_ptr_address[0] = lsb(opcode_address + 3);
+                target_ptr_address[1] = msb(opcode_address + 3);
+
+                opcode_address[-2] = LDX_IMM;                   // LDX #imm     [2]
+                opcode_address[-1] = par3;                      //
+                opcode_address[ 0] = JMP_IND_X;                 // JMP (ind,X)  [6]
+                opcode_address[ 1] = lsb(TESTCODE_BASE + par2); //
+                opcode_address[ 2] = msb(TESTCODE_BASE + par2); //
+                opcode_address[ 3] = OPC_RTS;                   // RTS          [-]
+
+                m_test_overhead_cycles = 2;
+                m_instruction_cycles   = 6;
+
+                if (!execute_single_opcode_test(opcode_address - 2, DEFAULT_RUN_FLAGS))
+                    return false;
+
+                if (par3 == LAST)
+                    break;
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
 
 bool timing_test_jsr_abs_instruction(const char * opcode_description)
 {
