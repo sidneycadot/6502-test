@@ -9,6 +9,8 @@
                 .import _measure_cycles
                 .export _measure_cycles_wrapper
 
+                .export _get_cpu_signature
+
                 ; These addreses are used by the caller to specify which (if any) zero page addresses
                 ; need to be saved.
                 ;
@@ -77,4 +79,30 @@ _measure_cycles_wrapper:
 
                 ; All done.
 
+                rts
+
+                .code
+
+                ; This cute little routine distinguishes between different 6502 variants:
+                ;
+                ; - A regular 6502 (with decimal mode support) will return 0.
+                ; - A 6502 without decimal mode support will return 1.
+                ; - A 65C02 will return 2.
+                ;
+                ; This routine uses the differences in decimal mode operations of those
+                ; processor variants.
+                ;
+                ; Note that the implementation does not rely on the state of the Carry
+                ; flag on entry, even though it does not set it.
+
+_get_cpu_signature:
+
+                sed
+                lda     #0
+                sbc     #28
+                lsr
+                sbc     #28
+                and     #3
+                cld
+                ldx     #0
                 rts

@@ -88,7 +88,10 @@ int16_t FASTCALL measure_cycles_wrapper(uint8_t * code);
 // This means that 'set_irq_vector_address' changes the generic IRQ-processing vector at
 // 0x216 (and returns its old value) and the overhead for reaching user code is 7 cycles.
 
-uint8_t * FASTCALL  set_irq_vector_address(uint8_t * newvec);
+uint8_t * FASTCALL set_irq_vector_address(uint8_t * newvec);
+
+
+uint8_t FASTCALL get_cpu_signature(void);
 
 ///////////////////////////////////////////////////////////
 //                                                       //

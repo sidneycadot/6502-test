@@ -14,6 +14,8 @@
 #include "tic_cmd_cpu_test.h"
 #include "target.h"
 
+uint8_t cpu_signature;
+
 void tic_cmd_help(void)
 {
     printf("Commands:\n");
@@ -99,14 +101,24 @@ int command_line_loop(void)
     return 0; // Report success.
 }
 
+const char * cpu_signature_string[4] = {
+    "6502 with decimal mode",
+    "6502 without decimal mode",
+    "65C02",
+    "unknown"
+};
+
 int main(void)
 {
     int result;
 
+    cpu_signature = get_cpu_signature();
+
     program_start_hook();
 
-    printf("*** TIC v0.5.0 ***\n");
+    printf("*** TIC v0.5.1 ***\n");
     printf("\n");
+    printf("CPU signature:\n\n  0x%02x: %s.\n\n", cpu_signature, cpu_signature_string[cpu_signature]);
 
     result = command_line_loop();
 

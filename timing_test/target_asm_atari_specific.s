@@ -42,7 +42,7 @@ _measure_cycles:
                 ; The 6502 "rts" instruction will return to the address found on the stack increased by 1.
                 ; Calculated the (pointer - 1) value and store it in RANDOM_T1, RANDOM_T1+1 so we can push it later.
 
-                php                                     ; [3 / 53] Save the status bits (in particular, the P register).
+                php                                     ; [3 / 53] Save the status bits (in particular, the D flag).
                 cld                                     ; [2 / 51] Make sure we're not in decimal mode.
 
                 sec                                     ; [2 / 49]

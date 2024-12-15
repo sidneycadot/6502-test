@@ -3,12 +3,13 @@
 
 atari
 
-target_atari_specific.s
-target_c64_specific.s
-target_sim65_specific.s
+#target_atari_specific.s
+#target_c64_specific.s
+#target_sim65_specific.s
 
-tic_atari.xex
-tic_c64.prg
+tic.xex
+tic.prg
+tic_raw.out
 tic_sim65.prg
 tic_neo.prg
 tic.neo
