@@ -58,7 +58,8 @@ TIC_OBJS := tic_main_${TIC_PLATFORM}.o                            \
             timing_test_memory_${TIC_PLATFORM}.o                  \
             target_asm_generic_${TIC_PLATFORM}.o                  \
             target_asm_${TIC_PLATFORM}_specific_${TIC_PLATFORM}.o \
-            target_${TIC_PLATFORM}_specific_${TIC_PLATFORM}.o
+            target_${TIC_PLATFORM}_specific_${TIC_PLATFORM}.o     \
+	    ${TIC_OBJS_EXTRA}
 
 tic.neo : tic_raw.out
 	@ # The Neo6502 uses CC65 target "none" and outputs a bare executable image.
@@ -69,7 +70,7 @@ tic.neo : tic_raw.out
 # Note that we call cl65 as linker, not ld65.
 # The cl65 driver script knows to include all target-specific libraries.
 
-${TIC_EXECUTABLE_NAME} : ${TIC_OBJS} ${TIC_OBJS_EXTRA}
+${TIC_EXECUTABLE_NAME} : ${TIC_OBJS}
 	cl65 $(LD65_FLAGS) $^ -o $@
 
 # Compile a platform-specific C file to a platform-specific assembly file.
