@@ -1,7 +1,10 @@
 *.o
 *~
 
+# Directories
 atari
+c64
+neo
 
 #target_atari_specific.s
 #target_c64_specific.s

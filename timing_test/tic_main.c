@@ -101,7 +101,7 @@ int command_line_loop(void)
     return 0; // Report success.
 }
 
-const char * cpu_signature_string[4] = {
+static const char * cpu_signature_string[4] = {
     "6502 with decimal mode",
     "6502 without decimal mode",
     "65C02",
@@ -118,7 +118,7 @@ int main(void)
 
     printf("*** TIC v0.5.1 ***\n");
     printf("\n");
-    printf("CPU signature:\n\n  0x%02x: %s.\n\n", cpu_signature, cpu_signature_string[cpu_signature]);
+    printf("CPU: %s.\n\n", cpu_signature_string[cpu_signature]);
 
     result = command_line_loop();
 

@@ -1,5 +1,5 @@
 
-.PHONY : default atari c64 neo sim65 all prep-atari prep-c64 clean
+.PHONY : default atari c64 neo sim65 all prep-atari prep-c64 prep-neo clean
 
 # To keep all temporary (intermediate) files, enable the ".SECONDARY" target.
 #.SECONDARY:
@@ -18,33 +18,38 @@ default:
 all  : atari c64 neo sim65
 
 atari :
-	$(MAKE) tic.xex       TIC_PLATFORM=atari TIC_PLATFORM_UPPERCASE=ATARI TIC_SIM65_TARGET=atari   TIC_EXECUTABLE_NAME=tic.xex
+	$(MAKE) tic.xex       TIC_PLATFORM=atari TIC_PLATFORM_UPPERCASE=ATARI TIC_SIM65_TARGET=atari   TIC_EXECUTABLE_NAME=tic.xex        TIC_CPU=6502
 
 c64 :
-	$(MAKE) tic.prg       TIC_PLATFORM=c64   TIC_PLATFORM_UPPERCASE=C64   TIC_SIM65_TARGET=c64     TIC_EXECUTABLE_NAME=tic.prg
+	$(MAKE) tic.prg       TIC_PLATFORM=c64   TIC_PLATFORM_UPPERCASE=C64   TIC_SIM65_TARGET=c64     TIC_EXECUTABLE_NAME=tic.prg        TIC_CPU=6502
 
 neo :
-	$(MAKE) tic.neo       TIC_PLATFORM=neo   TIC_PLATFORM_UPPERCASE=NEO   TIC_SIM65_TARGET=none    TIC_EXECUTABLE_NAME=tic_raw.out \
-	        LD65_FLAGS_EXTRA="--start-addr 0x0200 --ld-args --define,__STACKSTART__=0xfc00"                                        \
+	$(MAKE) tic.neo       TIC_PLATFORM=neo   TIC_PLATFORM_UPPERCASE=NEO   TIC_SIM65_TARGET=none    TIC_EXECUTABLE_NAME=tic_raw.out    TIC_CPU=65C02 \
+	        LD65_FLAGS_EXTRA="--start-addr 0x0200 --ld-args --define,__STACKSTART__=0xfc00"                                                         \
 	        TIC_OBJS_EXTRA="neo6502_glue_neo.o"
 
 sim65 :
-	$(MAKE) tic_sim65.prg TIC_PLATFORM=sim65 TIC_PLATFORM_UPPERCASE=SIM65 TIC_SIM65_TARGET=sim6502 TIC_EXECUTABLE_NAME=tic_sim65.prg
+	$(MAKE) tic_sim65.prg TIC_PLATFORM=sim65 TIC_PLATFORM_UPPERCASE=SIM65 TIC_SIM65_TARGET=sim6502 TIC_EXECUTABLE_NAME=tic_sim65.prg  TIC_CPU=6502
 
 # A convenience target to facilitate rapid development for the Atari platform.
 # Set up an 'atari' directory on your PC that can easily be accessed from your Atari for optimal results.
 prep-atari : atari
-	cp tic.xex atari/tic.xex
+	cp tic.xex atari/
 
 # A convenience target to facilitate rapid development for the Atari platform.
-# Set up an 'atari' directory on your PC that can easily be accessed from your Atari for optimal results.
+# Set up a 'c64' directory on your PC that can easily be accessed from your C64 for optimal results.
 prep-c64 : c64
-	cp tic.prg c64/tic.prg
+	cp tic.prg c64/
+
+# A convenience target to facilitate rapid development for the Neo6502 platform.
+# Set up a 'neo' directory on your PC that can easily be accessed from your Neo6502 for optimal results.
+prep-neo : neo
+	cp tic.neo neo/
 
 # Define linker, compiler, and assembler flags.
 # Note that the C65 compiler and assembler take a -t option, which is used for string encoding.
 # This means that their output files are also target-specific.
-CC65_FLAGS := -O -t ${TIC_SIM65_TARGET} -DTIC_PLATFORM_${TIC_PLATFORM_UPPERCASE} -DCPU_6502
+CC65_FLAGS := -O -t ${TIC_SIM65_TARGET} -DTIC_PLATFORM_${TIC_PLATFORM_UPPERCASE} -DCPU_${TIC_CPU}
 CA65_FLAGS :=    -t ${TIC_SIM65_TARGET}
 LD65_FLAGS :=    -t ${TIC_SIM65_TARGET} ${LD65_FLAGS_EXTRA}
 
