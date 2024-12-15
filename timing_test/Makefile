@@ -90,4 +90,4 @@ target_${TIC_PLATFORM}.s : target_${TIC_PLATFORM}.c
 	ca65 $(CA65_FLAGS) $< -o $@
 
 clean :
-	$(RM) *~ *.o tic.xex tic.prg tic.neo tic_raw.out
+	$(RM) *~ *.o tic.xex tic.prg tic_raw.out tic.neo
