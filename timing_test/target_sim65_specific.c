@@ -28,7 +28,7 @@ void post_big_measurement_block_hook(void)
 
 void pre_every_test_hook(const char * opcode_description)
 {
-    (void)opcode_description;
+    printf("Testing opcode: %s ...\n", opcode_description);
 }
 
 bool post_every_measurement_hook(bool success, unsigned opcode_count, unsigned long measurement_count, unsigned long error_count)
