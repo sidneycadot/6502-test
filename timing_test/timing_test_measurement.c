@@ -24,8 +24,8 @@ uint8_t par2;
 uint8_t par3;
 uint8_t par4;
 
-unsigned     m_test_overhead_cycles;
-unsigned     m_instruction_cycles;
+unsigned m_test_overhead_cycles;
+unsigned m_instruction_cycles;
 
 unsigned long opcode_count;
 unsigned long measurement_count;
@@ -101,6 +101,7 @@ static void print_test_report(unsigned actual_cycles)
         case Par123_OpcodeOffset_ZPage_AbsOffset:
             npar = 3;
             break;
+        case Par1234_Generic:
         case Par1234_OpcodeOffset_ZPage_XReg_AbsOffset:
         case Par1234_OpcodeOffset_ZPage_AbsOffset_YReg:
         case Par1234_OpcodeOffset_ZPage_BranchDisplacement_TakenNotTaken:

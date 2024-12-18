@@ -30,6 +30,7 @@ typedef enum {
     Par123_OpcodeOffset_AbsOffset_YReg,
     Par123_OpcodeOffset_ZPage_AbsOffset,
     Par123_OpcodeOffset_BranchDisplacement_TakenNotTaken,
+    Par1234_Generic,
     Par1234_OpcodeOffset_ZPage_XReg_AbsOffset,
     Par1234_OpcodeOffset_ZPage_AbsOffset_YReg,
     Par1234_OpcodeOffset_ZPage_BranchDisplacement_TakenNotTaken

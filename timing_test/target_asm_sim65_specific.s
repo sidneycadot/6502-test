@@ -1,10 +1,6 @@
 
 ; SIM65 currently provides no way to do clock cycle measurements.
 ; Adding support for this is being discusssed on the CC65 issue tracker: https://github.com/cc65/cc65/issues/2355
-;
-; Until a better solution comes along, a sim65 hack adds an opcode $42 (normally unused/undefined) that
-; samples the lowest 16 bits of the clock cycle counter into the AX register. Here, we simply call that opcode twice
-; before and after the code fragment we want to time.
 
                 .export _measure_cycles
 
@@ -43,18 +39,26 @@ _measure_cycles:
                 lda     TIMER_T1                        ; [4 / 14]
                 pha                                     ; [3 / 11]
 
-                .byte $42
-                sta     TIMER_T1
-                stx     TIMER_T1 + 1
+                lda     #0
+                sta     $ffc1				; Select clock cycle timer.
+
+                sta     $ffc0				; Latch counter values.
+		lda     $ffc2				; Copy lowest 16 bits of latched clock cycle counter.
+		sta     TIMER_T1
+ 		lda	$ffc3
+                sta     TIMER_T1+1
 
 @execute_testcode_subroutine:
 
                 rts     ; Jump into the 'testcode' subroutine, and return to @return_from_testcode when we reach the RTS that ends it.
 
 @return_from_testcode:
-                .byte $42
-                sta     TIMER_T2
-                stx     TIMER_T2 + 1
+
+                sta     $ffc0				; Latch counter values.
+		lda     $ffc2				; Copy lowest 16 bits of latched clock cycle counter.
+		sta     TIMER_T2
+ 		lda	$ffc3
+                sta     TIMER_T2+1
 
                 ; T2 -= T1
 
@@ -67,17 +71,15 @@ _measure_cycles:
                 sbc     TIMER_T1+1
                 sta     TIMER_T2+1
 
-                ;
-
-                ; T2 -= 6
+                ; T2 -= 32
 
                 sec
                 lda     TIMER_T2
-                sbc     #<22
+                sbc     #<32
                 sta     TIMER_T2
 
                 lda     TIMER_T2+1
-                sbc     #>22
+                sbc     #>32
                 sta     TIMER_T2+1
 
                 ;
