@@ -1,5 +1,5 @@
 
-.PHONY : default atari c64 neo sim65 all prep-atari prep-c64 prep-neo clean
+.PHONY : default atari c64 sim6502 sim65c02 neo all prep-atari prep-c64 prep-neo clean
 
 # To keep all temporary (intermediate) files, enable the ".SECONDARY" target.
 #.SECONDARY:
@@ -10,26 +10,30 @@ default:
 	@echo
 	@echo "  make atari"
 	@echo "  make c64"
+	@echo "  make sim6502"
+	@echo "  make sim65c02"
 	@echo "  make neo"
-	@echo "  make sim65"
 	@echo "  make all"
 	@echo
 
-all  : atari c64 neo sim65
-
 atari :
-	$(MAKE) tic.xex       TIC_PLATFORM=atari TIC_PLATFORM_UPPERCASE=ATARI TIC_SIM65_TARGET=atari   TIC_EXECUTABLE_NAME=tic.xex        TIC_CPU=6502
+	$(MAKE) tic.xex          TIC_PLATFORM=atari    TIC_PLATFORM_UPPERCASE=ATARI    TIC_SIM65_TARGET=atari    TIC_EXECUTABLE_NAME=tic.xex          TIC_CPU=6502
 
 c64 :
-	$(MAKE) tic.prg       TIC_PLATFORM=c64   TIC_PLATFORM_UPPERCASE=C64   TIC_SIM65_TARGET=c64     TIC_EXECUTABLE_NAME=tic.prg        TIC_CPU=6502
+	$(MAKE) tic.prg          TIC_PLATFORM=c64      TIC_PLATFORM_UPPERCASE=C64      TIC_SIM65_TARGET=c64      TIC_EXECUTABLE_NAME=tic.prg          TIC_CPU=6502
+
+sim6502 :
+	$(MAKE) tic_sim6502.prg  TIC_PLATFORM=sim6502  TIC_PLATFORM_UPPERCASE=SIM6502  TIC_SIM65_TARGET=sim6502  TIC_EXECUTABLE_NAME=tic_sim6502.prg  TIC_CPU=6502
+
+sim65c02 :
+	$(MAKE) tic_sim65c02.prg TIC_PLATFORM=sim65c02 TIC_PLATFORM_UPPERCASE=SIM65C02 TIC_SIM65_TARGET=sim65c02 TIC_EXECUTABLE_NAME=tic_sim65c02.prg TIC_CPU=65C02
 
 neo :
-	$(MAKE) tic.neo       TIC_PLATFORM=neo   TIC_PLATFORM_UPPERCASE=NEO   TIC_SIM65_TARGET=none    TIC_EXECUTABLE_NAME=tic_raw.out    TIC_CPU=65C02 \
-	        LD65_FLAGS_EXTRA="--start-addr 0x0200 --ld-args --define,__STACKSTART__=0xfc00"                                                         \
+	$(MAKE) tic.neo          TIC_PLATFORM=neo      TIC_PLATFORM_UPPERCASE=NEO      TIC_SIM65_TARGET=none     TIC_EXECUTABLE_NAME=tic_raw.out      TIC_CPU=65C02 \
+	        LD65_FLAGS_EXTRA="--start-addr 0x0200 --ld-args --define,__STACKSTART__=0xfc00"                                                                     \
 	        TIC_OBJS_EXTRA="neo6502_glue_neo.o"
 
-sim65 :
-	$(MAKE) tic_sim65.prg TIC_PLATFORM=sim65 TIC_PLATFORM_UPPERCASE=SIM65 TIC_SIM65_TARGET=sim6502 TIC_EXECUTABLE_NAME=tic_sim65.prg  TIC_CPU=6502
+all  : atari c64 sim6502 sim65c02 neo
 
 # A convenience target to facilitate rapid development for the Atari platform.
 # Set up an 'atari' directory on your PC that can easily be accessed from your Atari for optimal results.
@@ -95,4 +99,4 @@ target_${TIC_PLATFORM}.s : target_${TIC_PLATFORM}.c
 	ca65 $(CA65_FLAGS) $< -o $@
 
 clean :
-	$(RM) *~ *.o tic.xex tic.prg tic_raw.out tic.neo
+	$(RM) *~ *.o tic.xex tic.prg tic_raw.out tic_sim6502.prg tic_sim65c02.prg tic.neo

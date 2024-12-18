@@ -93,17 +93,19 @@ uint8_t * FASTCALL set_irq_vector_address(uint8_t * newvec);
 
 uint8_t FASTCALL get_cpu_signature(void);
 
-///////////////////////////////////////////////////////////
-//                                                       //
-//  CONSTANTS THAT ARE SPECIFIC TO EACH SUPPRTED TARGET  //
-//                                                       //
-///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+//                                                        //
+//  CONSTANTS THAT ARE SPECIFIC TO EACH SUPPORTED TARGET  //
+//                                                        //
+////////////////////////////////////////////////////////////
 
 # if defined(TIC_PLATFORM_ATARI)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 7
 # elif defined(TIC_PLATFORM_C64)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 28
-# elif defined(TIC_PLATFORM_SIM65)
+# elif defined(TIC_PLATFORM_SIM6502)
+#     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
+# elif defined(TIC_PLATFORM_SIM65C02)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
 # elif defined(TIC_PLATFORM_NEO)
 #     define TARGET_SPECIFIC_IRQ_OVERHEAD 0
