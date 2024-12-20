@@ -1,5 +1,4 @@
 
-
                 .importzp sp
                 .import incsp4
                 .export _sha_absy
@@ -33,9 +32,8 @@ ldy_opc:        ldy     #0              ; Immediate value will be patched.
 
                 ; Execute opcode.
 
-sha_absy_opc:   .byte   $9f             ; Illegal opcode: SHA abs,y (0x9f) or legal opcode: STA abs,y (0x99).
-                .word 0
-
+sha_absy_opc:   .byte   $9f             ; Illegal opcode: SHA abs,y (0x9f)
+                .word   0
                 ; Tear down the stack frame and return.
 
                 jmp     incsp4
