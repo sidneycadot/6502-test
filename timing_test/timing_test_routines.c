@@ -2069,11 +2069,9 @@ bool timing_test_jsr_abs_instruction(const char * opcode_description)
         opcode_address[0] = JSR_ABS;                 // JSR abs      [6]
         opcode_address[1] = lsb(opcode_address + 3); //
         opcode_address[2] = msb(opcode_address + 3); //
-        opcode_address[3] = OPC_PLA;                 // PLA          [4]
-        opcode_address[4] = OPC_PLA;                 // PLA          [4]
-        opcode_address[5] = OPC_RTS;                 // RTS          [-]
+        opcode_address[3] = OPC_RTS;                 // RTS          [-]
 
-        m_test_overhead_cycles = 8;
+        m_test_overhead_cycles = 6; // The RTS to get back.
         m_instruction_cycles   = 6;
 
         if (!execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS))
@@ -2134,23 +2132,16 @@ bool timing_test_brk_instruction(const char * opcode_description)
     {
         opcode_address = TESTCODE_ANCHOR + par1;
 
-        opcode_address[-4] = OPC_TSX;               // TSX          [2]
-        opcode_address[-3] = STX_ABS;               // STX save_sp  [4]
-        opcode_address[-2] = lsb(opcode_address+6); //
-        opcode_address[-1] = msb(opcode_address+6); //
-        opcode_address[ 0] = OPC_BRK;               // BRK          [7]
-        opcode_address[ 1] = LDX_ABS;               // LDX save_sp  [4] The BRK ends up here.
-        opcode_address[ 2] = lsb(opcode_address+6); //
-        opcode_address[ 3] = msb(opcode_address+6); //
-        opcode_address[ 4] = OPC_TXS;               // TXS          [2]
-        opcode_address[ 5] = OPC_RTS;               // RTS          [-]
+        opcode_address[ 0] = OPC_BRK;       // BRK          [7]
+        opcode_address[ 1] = OPC_RTI;       // RTI          [6]
+        opcode_address[ 2] = OPC_RTS;       // RTS          [-] Return address for the BRK.
 
-        m_test_overhead_cycles = 2 + 4 + TARGET_SPECIFIC_IRQ_OVERHEAD + 4 + 2;
+        m_test_overhead_cycles = TARGET_SPECIFIC_IRQ_OVERHEAD + 6;
         m_instruction_cycles   = 7;
 
         oldvec = set_irq_vector_address(opcode_address + 1);
 
-        proceed = execute_single_opcode_test(opcode_address - 4, DEFAULT_RUN_FLAGS);
+        proceed = execute_single_opcode_test(opcode_address, DEFAULT_RUN_FLAGS);
 
         set_irq_vector_address(oldvec);
 
