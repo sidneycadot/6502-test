@@ -1739,8 +1739,8 @@ bool timing_test_branch_instruction(const char * opcode_description, uint8_t opc
 #if defined(CPU_65C02)
 bool timing_test_bit_branch_instruction(const char * opcode_description, uint8_t opcode, bool branch_when_bit_set)
 {
-    // This function tests any of the "branch" instructions, testing both the "branch taken" and "branch not taken"
-    // scenarios.
+    // This function tests any of the 65C02 "zero-page bit branch" instructions, testing both the "branch taken"
+    // and "branch not taken" scenarios.
     //
     // The 'flag_value' parameter determines whether "branch taken" happens when the associated flag is High or Low.
     // The instructions BMI, BCS, BVS, and BEQ jump when N/C/V/Z are 1; BPL, BCC, BVC and BNE jump when N/C/V/Z are 0.
@@ -1765,7 +1765,7 @@ bool timing_test_bit_branch_instruction(const char * opcode_description, uint8_t
 
     prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_BranchDisplacement_TakenNotTaken);
 
-    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+    num_zpage_preserve = 1; // This test requires zero page address preservation.
 
     for (par1 = 0;;par1 += STEP_SIZE)
     {
@@ -1775,6 +1775,8 @@ bool timing_test_bit_branch_instruction(const char * opcode_description, uint8_t
         {
             if (zp_address_is_safe_for_write(par2))
             {
+                zpage_preserve[0] = par2;
+
                 for (par3 = 0;;par3 += STEP_SIZE)
                 {
                     // Branch Not Taken measurement.
