@@ -61,6 +61,7 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 #define OPC_LDY_IMM    0xa0
 #define OPC_LDX_IMM    0xa2
 #define OPC_LDA_IMM    0xa9
+#define OPC_TAX        0xaa
 #define OPC_LDX_ABS    0xae
 #define OPC_TSX        0xba
 
@@ -933,6 +934,62 @@ bool timing_test_write_abs_x_instruction(const char * opcode_description, uint8_
     return true;
 }
 
+#if defined (CPU_6502)
+bool timing_test_write_abs_x_instruction_shy_absx(const char * opcode_description, uint8_t opcode)
+{
+    // This is a special variant of the 'timing_test_write_abs_x_instruction' function, to test
+    // illegal opcode 0x9c: SHY abs,x.
+    //
+    // The difficulty with this opcode is that in case of a page crossing due to the X indexing, the high
+    // byte of the effective address is (base_addr_hi + 1), but ANDed with register Y (!?!).
+    //
+    // We deal with this by making sure Y is 0xff when the instruction is executed.
+
+    uint8_t * opcode_address;
+    uint8_t * base_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            base_address = TESTCODE_BASE + par2;
+
+            for (par3 = 0;;par3 += STEP_SIZE)
+            {
+                opcode_address[-4] = OPC_LDY_IMM;        // LDY #$ff             [2]
+                opcode_address[-3] = 0xff;               //
+                opcode_address[-2] = OPC_LDX_IMM;        // LDX #par3            [2]
+                opcode_address[-1] = par3;               //
+                opcode_address[ 0] = opcode;             // OPC base_address,X   [5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = OPC_RTS;            // RTS                  [-]
+
+                m_test_overhead_cycles = 2 + 2;
+                m_instruction_cycles = 5;
+
+                if (!execute_single_opcode_test(opcode_address - 4, DEFAULT_RUN_FLAGS))
+                    return false;
+
+                if (par3 == LAST)
+                    break;
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
+
 bool timing_test_write_abs_y_instruction(const char * opcode_description, uint8_t opcode)
 {
     uint8_t * opcode_address;
@@ -976,6 +1033,187 @@ bool timing_test_write_abs_y_instruction(const char * opcode_description, uint8_
     }
     return true;
 }
+
+#if defined (CPU_6502)
+bool timing_test_write_abs_y_instruction_shx_absy(const char * opcode_description, uint8_t opcode)
+{
+    // This is a special variant of the 'timing_test_write_abs_y_instruction' function, to test
+    // illegal opcode 0x9d: SHX abs,y.
+    //
+    // The difficulty with this opcode is that in case of a page crossing due to the Y indexing, the high
+    // byte of the effective address is (base_addr_hi + 1), but ANDed with register X (!?!).
+    //
+    // We deal with this by making sure X is 0xff when the instruction is executed.
+
+    uint8_t * opcode_address;
+    uint8_t * base_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            base_address = TESTCODE_BASE + par2;
+
+            for (par3 = 0;;par3 += STEP_SIZE)
+            {
+                opcode_address[-4] = OPC_LDX_IMM;        // LDX #$ff             [2]
+                opcode_address[-3] = 0xff;               //
+                opcode_address[-2] = OPC_LDY_IMM;        // LDY #par3            [2]
+                opcode_address[-1] = par3;               //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = OPC_RTS;            // RTS                  [-]
+
+                m_test_overhead_cycles = 2 + 2;
+                m_instruction_cycles = 5;
+
+                if (!execute_single_opcode_test(opcode_address - 4, DEFAULT_RUN_FLAGS))
+                    return false;
+
+                if (par3 == LAST)
+                    break;
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
+
+#if defined (CPU_6502)
+bool timing_test_write_abs_y_instruction_sha_absy(const char * opcode_description, uint8_t opcode)
+{
+    // This is a special variant of the 'timing_test_write_abs_y_instruction' function, to test
+    // illegal opcode 0x9f: SHA abs,y.
+    //
+    // The difficulty with this opcode is that in case of a page crossing due to the Y indexing, the high
+    // byte of the effective address is (base_addr_hi + 1), but ANDed with registers A and X (!?!).
+    //
+    // We deal with this by making sure A and X are both 0xff when the instruction is executed.
+
+    uint8_t * opcode_address;
+    uint8_t * base_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            base_address = TESTCODE_BASE + par2;
+
+            for (par3 = 0;;par3 += STEP_SIZE)
+            {
+                opcode_address[-5] = OPC_LDA_IMM;        // LDA #$ff             [2]
+                opcode_address[-4] = 0xff;               //
+                opcode_address[-3] = OPC_TAX;            // TAX                  [2]
+                opcode_address[-2] = OPC_LDY_IMM;        // LDY #par3            [2]
+                opcode_address[-1] = par3;               //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = OPC_RTS;            // RTS                  [-]
+
+                m_test_overhead_cycles = 2 + 2 + 2;
+                m_instruction_cycles = 5;
+
+                if (!execute_single_opcode_test(opcode_address - 5, DEFAULT_RUN_FLAGS))
+                    return false;
+
+                if (par3 == LAST)
+                    break;
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
+
+#if defined (CPU_6502)
+bool timing_test_write_abs_y_instruction_tas_absy(const char * opcode_description, uint8_t opcode)
+{
+    // This is a special variant of the 'timing_test_write_abs_y_instruction_tas_absy' function, to test
+    // illegal opcode 0x9f: TAS abs,y.
+    //
+    // The difficulty with this opcode is that in case of a page crossing due to the Y indexing, the high
+    // byte of the effective address is (base_addr_hi + 1), but ANDed with registers A and X (!?!).
+    //
+    // We deal with this by making sure A and X are both 0xff when the instruction is executed.
+    //
+    // Furthermore, this instruction changes the S register. To deal with that, we save its initial
+    // value and restore it afterwards.
+
+    uint8_t * opcode_address;
+    uint8_t * base_address;
+
+    prepare_opcode_tests(opcode_description, Par123_OpcodeOffset_AbsOffset_YReg);
+
+    num_zpage_preserve = 0; // This test does not require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            base_address = TESTCODE_BASE + par2;
+
+            for (par3 = 0;;par3 += STEP_SIZE)
+            {
+                opcode_address[-9] = OPC_TSX;            // TSX                  [2]
+                opcode_address[-8] = OPC_STX_ABS;        // STX save_sp          [4]
+                opcode_address[-7] = lsb(opcode_address + 8);
+                opcode_address[-6] = msb(opcode_address + 8);
+                opcode_address[-5] = OPC_LDA_IMM;        // LDA #$ff             [2]
+                opcode_address[-4] = 0xff;               //
+                opcode_address[-3] = OPC_TAX;            // TAX                  [2]
+                opcode_address[-2] = OPC_LDY_IMM;        // LDY #par3            [2]
+                opcode_address[-1] = par3;               //
+                opcode_address[ 0] = opcode;             // OPC base_address,Y   [5]
+                opcode_address[ 1] = lsb(base_address);  //
+                opcode_address[ 2] = msb(base_address);  //
+                opcode_address[ 3] = OPC_LDX_ABS;        // LDX save_sp          [4]
+                opcode_address[ 4] = lsb(opcode_address + 8);
+                opcode_address[ 5] = msb(opcode_address + 8);
+                opcode_address[ 6] = OPC_TXS;            // TXS                  [2]
+                opcode_address[ 7] = OPC_RTS;            // RTS                  [-]
+
+                m_test_overhead_cycles = 2 + 4 + 2 + 2 + 2 + 4 + 2;
+                m_instruction_cycles = 5;
+
+                if (!execute_single_opcode_test(opcode_address - 9, DEFAULT_RUN_FLAGS))
+                    return false;
+
+                if (par3 == LAST)
+                    break;
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
 
 bool timing_test_write_abs_y_instruction_save_sp(const char * opcode_description, uint8_t opcode)
 {
@@ -1129,7 +1367,7 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * opcode_descript
                     {
                         opcode_address[-10] = OPC_LDY_IMM;        // LDY #<base_address    [2]
                         opcode_address[ -9] = lsb(base_address);  //
-                        opcode_address[ -8] = OPC_STY_ZP;         // STY zp_ptr_lo [3]
+                        opcode_address[ -8] = OPC_STY_ZP;         // STY zp_ptr_lo         [3]
                         opcode_address[ -7] = zp_ptr_lo;          //
                         opcode_address[ -6] = OPC_LDY_IMM;        // LDY #>base_address    [2]
                         opcode_address[ -5] = msb(base_address);  //
@@ -1137,7 +1375,7 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * opcode_descript
                         opcode_address[ -3] = zp_ptr_hi;          //
                         opcode_address[ -2] = OPC_LDY_IMM;        // LDY #par4             [2]
                         opcode_address[ -1] = par4;               //
-                        opcode_address[  0] = opcode;             // OPC (zpage), Y        [5 or 6]
+                        opcode_address[  0] = opcode;             // OPC (zpage), Y        [6]
                         opcode_address[  1] = zp_ptr_lo;          //
                         opcode_address[  2] = OPC_RTS;            // RTS                   [-]
 
@@ -1162,6 +1400,87 @@ bool timing_test_write_zpage_indirect_y_instruction(const char * opcode_descript
     }
     return true;
 }
+
+#if defined(CPU_6502)
+bool timing_test_write_zpage_indirect_y_instruction_sha_zpy(const char * opcode_description, uint8_t opcode)
+{
+    // This is a special variant of the 'timing_test_write_zpage_indirect_y_instruction' function, to test
+    // illegal opcode 0x93: SHA (zp),y.
+    //
+    // The difficulty with this opcode is that in case of a page crossing due to the Y indexing, the high
+    // byte of the effective address is (base_addr_hi + 1), but ANDed with registers A and X (!?!).
+    //
+    // We deal with this by making sure A and X are both 0xff when the instruction is executed.
+
+    uint8_t * opcode_address;
+    uint8_t   zp_ptr_lo;
+    uint8_t   zp_ptr_hi;
+
+    prepare_opcode_tests(opcode_description, Par1234_OpcodeOffset_ZPage_AbsOffset_YReg);
+
+    num_zpage_preserve = 2; // This test *DOES* require zero page address preservation.
+
+    for (par1 = 0;;par1 += STEP_SIZE)
+    {
+        opcode_address = TESTCODE_ANCHOR + par1;
+
+        for (par2 = 0;;par2 += STEP_SIZE)
+        {
+            zp_ptr_lo = par2;
+            zp_ptr_hi = zp_ptr_lo + 1;
+
+            if (zp_address_is_safe_for_write(zp_ptr_lo) && zp_address_is_safe_for_write(zp_ptr_hi))
+            {
+                zpage_preserve[0] = zp_ptr_lo;
+                zpage_preserve[1] = zp_ptr_hi;
+
+                for (par3 = 0;;par3 += STEP_SIZE)
+                {
+                    uint8_t * base_address = TESTCODE_BASE + par3;
+
+                    for (par4 = 0;;par4 += STEP_SIZE)
+                    {
+                        opcode_address[-13] = OPC_LDA_IMM;        // LDA #$ff              [2]
+                        opcode_address[-12] = 0xff;               //
+                        opcode_address[-11] = OPC_TAX;            // TAX                   [2]
+                        opcode_address[-10] = OPC_LDY_IMM;        // LDY #<base_address    [2]
+                        opcode_address[ -9] = lsb(base_address);  //
+                        opcode_address[ -8] = OPC_STY_ZP;         // STY zp_ptr_lo         [3]
+                        opcode_address[ -7] = zp_ptr_lo;          //
+                        opcode_address[ -6] = OPC_LDY_IMM;        // LDY #>base_address    [2]
+                        opcode_address[ -5] = msb(base_address);  //
+                        opcode_address[ -4] = OPC_STY_ZP;         // STY zp_ptr_hi         [3]
+                        opcode_address[ -3] = zp_ptr_hi;          //
+                        opcode_address[ -2] = OPC_LDY_IMM;        // LDY #par4             [2]
+                        opcode_address[ -1] = par4;               //
+
+                        opcode_address[  0] = opcode;             // OPC (zpage), Y        [6]
+                        opcode_address[  1] = zp_ptr_lo;          //
+                        opcode_address[  2] = OPC_RTS;            // RTS                   [-]
+
+                        m_test_overhead_cycles = 2 + 2 + 2 + 3 + 2 + 3 + 2;
+                        m_instruction_cycles = 6;
+
+                        if (!execute_single_opcode_test(opcode_address - 13, DEFAULT_RUN_FLAGS))
+                            return false;
+
+                        if (par4 == LAST)
+                            break;
+                    }
+                    if (par3 == LAST)
+                        break;
+                }
+            }
+            if (par2 == LAST)
+                break;
+        }
+        if (par1 == LAST)
+            break;
+    }
+    return true;
+}
+#endif
+
 
 #if defined(CPU_65C02)
 bool timing_test_write_zpage_indirect_instruction(const char * opcode_description, uint8_t opcode)

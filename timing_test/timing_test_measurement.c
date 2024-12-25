@@ -141,7 +141,6 @@ bool execute_single_opcode_test(uint8_t * entrypoint, uint8_t flags)
     actual_cycles = measure_cycles_wrapper(entrypoint);
 
     ++measurement_count;
-
     success = (actual_cycles == m_test_overhead_cycles + m_instruction_cycles);
 
     if (!success)

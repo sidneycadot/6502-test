@@ -45,16 +45,21 @@ bool timing_test_read_zpage_indirect_instruction  (const char * opcode_descripti
 
 // Timing tests for write-instructions.
 
-bool timing_test_write_zpage_instruction           (const char * opcode_description, uint8_t opcode);
-bool timing_test_write_zpage_x_instruction         (const char * opcode_description, uint8_t opcode);
-bool timing_test_write_zpage_y_instruction         (const char * opcode_description, uint8_t opcode);
-bool timing_test_write_abs_instruction             (const char * opcode_description, uint8_t opcode);
-bool timing_test_write_abs_x_instruction           (const char * opcode_description, uint8_t opcode);
-bool timing_test_write_abs_y_instruction           (const char * opcode_description, uint8_t opcode);
-bool timing_test_write_abs_y_instruction_save_sp   (const char * opcode_description, uint8_t opcode);
-bool timing_test_write_zpage_x_indirect_instruction(const char * opcode_description, uint8_t opcode);
-bool timing_test_write_zpage_indirect_y_instruction(const char * opcode_description, uint8_t opcode);
-bool timing_test_write_zpage_indirect_instruction  (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_zpage_instruction                   (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_zpage_x_instruction                 (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_zpage_y_instruction                 (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_instruction                     (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_x_instruction                   (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_x_instruction_shy_absx          (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_y_instruction                   (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_y_instruction_sha_absy          (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_y_instruction_shx_absy          (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_y_instruction_tas_absy          (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_abs_y_instruction_save_sp           (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_zpage_x_indirect_instruction        (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_zpage_indirect_y_instruction        (const char * opcode_description, uint8_t opcode);
+bool timing_test_write_zpage_indirect_y_instruction_sha_zpy(const char * opcode_description, uint8_t opcode);
+bool timing_test_write_zpage_indirect_instruction          (const char * opcode_description, uint8_t opcode);
 
 // Timing tests for read-modify-write instructions.
 

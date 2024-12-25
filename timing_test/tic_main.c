@@ -24,7 +24,7 @@ void tic_cmd_help(void)
     printf("\n");
     printf("> cpu <level>\n");
     printf("\n");
-    printf("  Test timing of 6502 instructions.\n");
+    printf("  Test timing of instructions.\n");
     printf("\n");
     printf("  * level: 0 (fast) to 7 (slow)\n");
     printf("\n");
@@ -116,7 +116,7 @@ int main(void)
 
     program_start_hook();
 
-    printf("*** TIC v0.6.0 ***\n");
+    printf("*** TIC v0.7.0 ***\n");
     printf("\n");
     printf("CPU: %s.\n\n", cpu_signature_string[cpu_signature]);
 
