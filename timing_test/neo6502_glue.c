@@ -176,7 +176,7 @@ int read(int fd, void* buf, unsigned count)
 int write(int fd, const void *buf, unsigned count)
 {
     unsigned k;
-    char *cbuf = buf;
+    const char *cbuf = buf;
 
     if (!(fd == STDOUT_FILENO || fd == STDERR_FILENO))
     {
