@@ -26,7 +26,7 @@ void post_big_measurement_block_hook(void)
 {
 }
 
-void pre_every_test_hook(const char * opcode_description, bool skip_flag)
+void pre_opcode_hook(const char * opcode_description, bool skip_flag)
 {
     if (skip_flag)
     {
@@ -69,4 +69,9 @@ int16_t measure_cycles_wrapper(uint8_t * code)
 {
     (void)code;
     return m_test_overhead_cycles + m_instruction_cycles;
+}
+
+uint8_t get_cpu_signature(void)
+{
+    return 3;
 }

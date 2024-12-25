@@ -116,7 +116,7 @@ int main(void)
 
     program_start_hook();
 
-    printf("*** TIC v0.7.0 ***\n");
+    printf("*** TIC v0.7.1 ***\n");
     printf("\n");
     printf("CPU: %s.\n\n", cpu_signature_string[cpu_signature]);
 

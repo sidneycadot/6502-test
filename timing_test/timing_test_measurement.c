@@ -54,14 +54,14 @@ void prepare_opcode_tests(const char * opcode_description, ParSpec parspec)
     m_opcode_description = opcode_description;
     m_parspec = parspec;
     ++opcode_count;
-    pre_every_test_hook(opcode_description, false);
+    pre_opcode_hook(opcode_description, false);
 }
 
 void prepare_opcode_tests_skip(const char * opcode_description)
 {
     m_opcode_description = opcode_description;
     ++opcode_skip_count;
-    pre_every_test_hook(opcode_description, true);
+    pre_opcode_hook(opcode_description, true);
 }
 
 void print_label_value_pair(const char * prefix, const char * label, unsigned long value, unsigned max_label_length)

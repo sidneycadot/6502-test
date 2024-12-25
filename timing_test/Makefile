@@ -29,9 +29,8 @@ sim65c02 :
 	$(MAKE) tic_sim65c02.prg TIC_PLATFORM=sim65c02 TIC_PLATFORM_UPPERCASE=SIM65C02 TIC_SIM65_TARGET=sim65c02 TIC_EXECUTABLE_NAME=tic_sim65c02.prg TIC_CPU=65C02
 
 neo :
-	$(MAKE) tic.neo          TIC_PLATFORM=neo      TIC_PLATFORM_UPPERCASE=NEO      TIC_SIM65_TARGET=none     TIC_EXECUTABLE_NAME=tic_raw.out      TIC_CPU=65C02 \
-	        LD65_FLAGS_EXTRA="--start-addr 0x0200 --ld-args --define,__STACKSTART__=0xfc00"                                                                     \
-	        TIC_OBJS_EXTRA="neo6502_glue_neo.o"
+	$(MAKE) tic.neo          TIC_PLATFORM=neo      TIC_PLATFORM_UPPERCASE=NEO      TIC_SIM65_TARGET=none     TIC_EXECUTABLE_NAME=tic.neo          TIC_CPU=65C02 \
+	        LD65_FLAGS_EXTRA="--start-addr 0x0200 --ld-args --define,__STACKSTART__=0xfc00" TIC_OBJS_EXTRA="neo6502_glue_neo.o"
 
 all  : atari c64 sim6502 sim65c02 neo
 
@@ -68,19 +67,20 @@ TIC_OBJS := tic_main_${TIC_PLATFORM}.o                            \
             target_asm_generic_${TIC_PLATFORM}.o                  \
             target_asm_${TIC_PLATFORM}_specific_${TIC_PLATFORM}.o \
             target_${TIC_PLATFORM}_specific_${TIC_PLATFORM}.o     \
-	    ${TIC_OBJS_EXTRA}
-
-tic.neo : tic_raw.out
-	@ # The Neo6502 uses CC65 target "none" and outputs a bare executable image.
-	@ # We need to prepend a header get to an executable image.
-	./make_neo_executable.py $< $@
+            ${TIC_OBJS_EXTRA}
 
 # Link the executable.
 # Note that we call cl65 as linker, not ld65.
 # The cl65 driver script knows to include all target-specific libraries.
-
+#
+# For the 'sim6502' target, post-process the executable to make sure the CPU mode in the
+# executable header is set to "6502X".
+#
+# For the 'neo' target, post-process the executable to prepend a Neo-style header.
 ${TIC_EXECUTABLE_NAME} : ${TIC_OBJS}
 	cl65 $(LD65_FLAGS) $^ -o $@
+	if [ ${TIC_SIM65_TARGET} = sim6502 ] ; then ./set_sim65_cpu.py --cpu 6502X $@ ; fi
+	if [ ${TIC_SIM65_TARGET} = neo     ] ; then ./make_neo_executable.py $@ $@    ; fi
 
 # Compile a platform-specific C file to a platform-specific assembly file.
 target_${TIC_PLATFORM}.s : target_${TIC_PLATFORM}.c

@@ -28,7 +28,7 @@ void post_big_measurement_block_hook(void)
     printf("\n");
 }
 
-void pre_every_test_hook(const char * opcode_description, bool skip_flag)
+void pre_opcode_hook(const char * opcode_description, bool skip_flag)
 {
     if (skip_flag)
     {

@@ -8,9 +8,17 @@
 
                 .include "c64.inc"
 
+                .data
+
+save_border_color:
+                .res 1
+
                 .code
 
 _pre_big_measurement_block_hook:
+
+                lda     VIC_BORDERCOLOR
+                sta     save_border_color
 
                 sei                     ; Disable interrupts.
 
@@ -49,6 +57,9 @@ _post_big_measurement_block_hook:
 
                 lda     #129            ; Enable CIA#1 timer A underflow interrupt
                 sta     CIA1_ICR
+
+                lda     save_border_color
+                sta     VIC_BORDERCOLOR
 
                 rts
 

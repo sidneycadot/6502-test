@@ -13,7 +13,7 @@
 
 bool timing_test_stackpointer_transfer_instructions(void)
 {
-    // Test the 2 instructions to transfer to stack pointer to and from the X register.
+    // Test the 2 instructions to transfer the stack pointer to and from the X register.
     return
         timing_test_single_byte_instruction_sequence("TSX", 0xba, 2) &&
         timing_test_two_byte_instruction_sequence   ("TXS", (+1), 0xba, 0x9a, 2, 2);
@@ -21,7 +21,7 @@ bool timing_test_stackpointer_transfer_instructions(void)
 
 bool timing_test_single_byte_stack_push_pull_instructions(void)
 {
-    // Test the 4 instructions that push to /pull from the stack.
+    // Test the 4 instructions that push to / pull from the stack.
 
     return
         // TSX, PHA, TXS - The stack pointer is saved before, and restored after the instruction.
@@ -669,49 +669,49 @@ bool timing_test_65c02_specific_instructions(void)
         timing_test_read_immediate_instruction("65C02 NOP #imm (0xc2)", 0xc2) &&
         timing_test_read_immediate_instruction("65C02 NOP #imm (0xe2)", 0xe2) &&
         //
-        timing_test_read_zpage_instruction   ("65C02 NOP zp"   " (0x44)", 0x44) &&
-        timing_test_read_zpage_x_instruction ("65C02 NOP zp,x" " (0x54)", 0x54) &&
-        timing_test_read_zpage_x_instruction ("65C02 NOP zp,x" " (0xd4)", 0xd4) &&
-        timing_test_read_zpage_x_instruction ("65C02 NOP zp,x" " (0xf4)", 0xf4) &&
-        timing_test_read_abs_instruction_slow("65C02 NOP abs"  " (0x5c)", 0x5c) &&
-        timing_test_read_abs_instruction     ("65C02 NOP abs"  " (0xdc)", 0xdc) &&
-        timing_test_read_abs_instruction     ("65C02 NOP abs"  " (0xfc)", 0xfc) &&
+        timing_test_read_zpage_instruction   ("65C02 NOP zpage"   " (0x44)", 0x44) &&
+        timing_test_read_zpage_x_instruction ("65C02 NOP zpage,X" " (0x54)", 0x54) &&
+        timing_test_read_zpage_x_instruction ("65C02 NOP zpage,X" " (0xd4)", 0xd4) &&
+        timing_test_read_zpage_x_instruction ("65C02 NOP zpage,X" " (0xf4)", 0xf4) &&
+        timing_test_read_abs_instruction_slow("65C02 NOP abs"     " (0x5c)", 0x5c) &&
+        timing_test_read_abs_instruction     ("65C02 NOP abs"     " (0xdc)", 0xdc) &&
+        timing_test_read_abs_instruction     ("65C02 NOP abs"     " (0xfc)", 0xfc) &&
         //
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB0 zp (0x07)", 0x07) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB1 zp (0x17)", 0x17) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB2 zp (0x27)", 0x27) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB3 zp (0x37)", 0x37) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB4 zp (0x47)", 0x47) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB5 zp (0x57)", 0x57) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB6 zp (0x67)", 0x67) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 RMB7 zp (0x77)", 0x77) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB0 zpage" " (0x07)", 0x07) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB1 zpage" " (0x17)", 0x17) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB2 zpage" " (0x27)", 0x27) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB3 zpage" " (0x37)", 0x37) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB4 zpage" " (0x47)", 0x47) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB5 zpage" " (0x57)", 0x57) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB6 zpage" " (0x67)", 0x67) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 RMB7 zpage" " (0x77)", 0x77) &&
         //
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB0 zp (0x87)", 0x87) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB1 zp (0x97)", 0x97) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB2 zp (0xa7)", 0xa7) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB3 zp (0xb7)", 0xb7) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB4 zp (0xc7)", 0xc7) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB5 zp (0xd7)", 0xd7) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB6 zp (0xe7)", 0xe7) &&
-        timing_test_read_modify_write_zpage_instruction("65C02 SMB7 zp (0xf7)", 0xf7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB0 zpage" " (0x87)", 0x87) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB1 zpage" " (0x97)", 0x97) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB2 zpage" " (0xa7)", 0xa7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB3 zpage" " (0xb7)", 0xb7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB4 zpage" " (0xc7)", 0xc7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB5 zpage" " (0xd7)", 0xd7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB6 zpage" " (0xe7)", 0xe7) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 SMB7 zpage" " (0xf7)", 0xf7) &&
         //
-        timing_test_read_modify_write_zpage_instruction("65C02 TRB zp"  " (0x14)", 0x14) &&
-        timing_test_read_modify_write_abs_instruction  ("65C02 TRB abs" " (0x1c)", 0x1c) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 TRB zpage"  " (0x14)", 0x14) &&
+        timing_test_read_modify_write_abs_instruction  ("65C02 TRB abs"    " (0x1c)", 0x1c) &&
         //
-        timing_test_read_modify_write_zpage_instruction("65C02 TSB zp"  " (0x04)", 0x04) &&
-        timing_test_read_modify_write_abs_instruction  ("65C02 TSB abs" " (0x0c)", 0x0c) &&
+        timing_test_read_modify_write_zpage_instruction("65C02 TSB zpage"  " (0x04)", 0x04) &&
+        timing_test_read_modify_write_abs_instruction  ("65C02 TSB abs"    " (0x0c)", 0x0c) &&
         //
-        timing_test_read_immediate_instruction("65C02 BIT #imm"  " (0x89)", 0x89) &&
-        timing_test_read_zpage_x_instruction  ("65C02 BIT zp,x"  " (0x34)", 0x34) &&
-        timing_test_read_abs_x_instruction    ("65C02 BIT abs,x" " (0x3c)", 0x3c) &&
+        timing_test_read_immediate_instruction("65C02 BIT #imm"            " (0x89)", 0x89) &&
+        timing_test_read_zpage_x_instruction  ("65C02 BIT zpage,X"         " (0x34)", 0x34) &&
+        timing_test_read_abs_x_instruction    ("65C02 BIT abs,X"           " (0x3c)", 0x3c) &&
         //
-        timing_test_write_zpage_instruction  ("65C02 STZ zp"    " (0x64)", 0x64) &&
-        timing_test_write_zpage_x_instruction("65C02 STZ zp,x"  " (0x74)", 0x74) &&
-        timing_test_write_abs_instruction    ("65C02 STZ abs"   " (0x9c)", 0x9c) &&
-        timing_test_write_abs_x_instruction  ("65C02 STZ abs,x" " (0x9e)", 0x9e) &&
+        timing_test_write_zpage_instruction  ("65C02 STZ zpage"            " (0x64)", 0x64) &&
+        timing_test_write_zpage_x_instruction("65C02 STZ zpage,X"          " (0x74)", 0x74) &&
+        timing_test_write_abs_instruction    ("65C02 STZ abs"              " (0x9c)", 0x9c) &&
+        timing_test_write_abs_x_instruction  ("65C02 STZ abs,X"            " (0x9e)", 0x9e) &&
         //
-        timing_test_single_byte_instruction_sequence("65C02 INC", 0x1a, 2) &&
-        timing_test_single_byte_instruction_sequence("65C02 DEC", 0x3a, 2) &&
+        timing_test_single_byte_instruction_sequence("65C02 INC"           " (0x1a)", 0x1a, 2) &&
+        timing_test_single_byte_instruction_sequence("65C02 DEC"           " (0x3a)", 0x3a, 2) &&
         //
         // TSX, PHX, TXS - The stack pointer is saved before, and restored after the instruction.
         timing_test_three_byte_instruction_sequence("65C02 PHX", (+1), 0xba, 0xda, 0x9a, 2 + 2, 3) &&
@@ -722,35 +722,35 @@ bool timing_test_65c02_specific_instructions(void)
         // PHY, PLY - The value to be pulled is pushed immediately before.
         timing_test_two_byte_instruction_sequence("65C02 PLY", (+1), 0x5a, 0x7a, 3, 4) &&
         //
-        timing_test_read_zpage_indirect_instruction("65C02 ORA (zp) (0x12)", 0x12) &&
-        timing_test_read_zpage_indirect_instruction("65C02 AND (zp) (0x32)", 0x32) &&
-        timing_test_read_zpage_indirect_instruction("65C02 EOR (zp) (0x52)", 0x52) &&
-        timing_test_read_zpage_indirect_instruction("65C02 ADC (zp) (0x72)", 0x72) &&
-        timing_test_read_zpage_indirect_instruction("65C02 LDA (zp) (0xb2)", 0xb2) &&
-        timing_test_read_zpage_indirect_instruction("65C02 CMP (zp) (0xd2)", 0xd2) &&
-        timing_test_read_zpage_indirect_instruction("65C02 SBC (zp) (0xf2)", 0xf2) &&
+        timing_test_read_zpage_indirect_instruction("65C02 ORA (zpage)"  " (0x12)", 0x12) &&
+        timing_test_read_zpage_indirect_instruction("65C02 AND (zpage)"  " (0x32)", 0x32) &&
+        timing_test_read_zpage_indirect_instruction("65C02 EOR (zpage)"  " (0x52)", 0x52) &&
+        timing_test_read_zpage_indirect_instruction("65C02 ADC (zpage)"  " (0x72)", 0x72) &&
+        timing_test_read_zpage_indirect_instruction("65C02 LDA (zpage)"  " (0xb2)", 0xb2) &&
+        timing_test_read_zpage_indirect_instruction("65C02 CMP (zpage)"  " (0xd2)", 0xd2) &&
+        timing_test_read_zpage_indirect_instruction("65C02 SBC (zpage)"  " (0xf2)", 0xf2) &&
         //
-        timing_test_write_zpage_indirect_instruction("65C02 STA (zp) (0x92)", 0x92) &&
+        timing_test_write_zpage_indirect_instruction("65C02 STA (zpage)" " (0x92)", 0x92) &&
         //
-        timing_test_bit_branch_instruction("65C02 BBR0 (0x0f)", 0x0f, false) &&
-        timing_test_bit_branch_instruction("65C02 BBR1 (0x1f)", 0x1f, false) &&
-        timing_test_bit_branch_instruction("65C02 BBR2 (0x2f)", 0x2f, false) &&
-        timing_test_bit_branch_instruction("65C02 BBR3 (0x3f)", 0x3f, false) &&
-        timing_test_bit_branch_instruction("65C02 BBR4 (0x4f)", 0x4f, false) &&
-        timing_test_bit_branch_instruction("65C02 BBR5 (0x5f)", 0x5f, false) &&
-        timing_test_bit_branch_instruction("65C02 BBR6 (0x6f)", 0x6f, false) &&
-        timing_test_bit_branch_instruction("65C02 BBR7 (0x7f)", 0x7f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR0 zpage,rel"        " (0x0f)", 0x0f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR1 zpage,rel"        " (0x1f)", 0x1f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR2 zpage,rel"        " (0x2f)", 0x2f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR3 zpage,rel"        " (0x3f)", 0x3f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR4 zpage,rel"        " (0x4f)", 0x4f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR5 zpage,rel"        " (0x5f)", 0x5f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR6 zpage,rel"        " (0x6f)", 0x6f, false) &&
+        timing_test_bit_branch_instruction("65C02 BBR7 zpage,rel"        " (0x7f)", 0x7f, false) &&
         //
-        timing_test_bit_branch_instruction("65C02 BBS0 (0x8f)", 0x8f, true) &&
-        timing_test_bit_branch_instruction("65C02 BBS1 (0x9f)", 0x9f, true) &&
-        timing_test_bit_branch_instruction("65C02 BBS2 (0xaf)", 0xaf, true) &&
-        timing_test_bit_branch_instruction("65C02 BBS3 (0xbf)", 0xbf, true) &&
-        timing_test_bit_branch_instruction("65C02 BBS4 (0xcf)", 0xcf, true) &&
-        timing_test_bit_branch_instruction("65C02 BBS5 (0xdf)", 0xdf, true) &&
-        timing_test_bit_branch_instruction("65C02 BBS6 (0xef)", 0xef, true) &&
-        timing_test_bit_branch_instruction("65C02 BBS7 (0xff)", 0xff, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS0 zpage,rel"        " (0x8f)", 0x8f, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS1 zpage,rel"        " (0x9f)", 0x9f, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS2 zpage,rel"        " (0xaf)", 0xaf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS3 zpage,rel"        " (0xbf)", 0xbf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS4 zpage,rel"        " (0xcf)", 0xcf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS5 zpage,rel"        " (0xdf)", 0xdf, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS6 zpage,rel"        " (0xef)", 0xef, true) &&
+        timing_test_bit_branch_instruction("65C02 BBS7 zpage,rel"        " (0xff)", 0xff, true) &&
         //
-        timing_test_jmp_abs_x_indirect_instruction("65C02 JMP (ind,X) (0x7c)");
+        timing_test_jmp_abs_x_indirect_instruction("65C02 JMP (ind,X)" " (0x7c)");
 }
 #endif
 

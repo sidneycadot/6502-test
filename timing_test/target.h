@@ -39,7 +39,7 @@ void FASTCALL pre_big_measurement_block_hook(void);
 void FASTCALL post_big_measurement_block_hook(void);
 
 // This is called before testing a specific opcode.
-void FASTCALL pre_every_test_hook(const char * test_description, bool skip_flag);
+void FASTCALL pre_opcode_hook(const char * opcode_description, bool skip_flag);
 
 // The 'post_measure_cycles_hook' routine is called immediately following each call to 'measure_cycles'
 // or 'measure_cycles_zp_safe'. It reports success, and the test_count and error_count values updated

@@ -5,8 +5,11 @@
 
 #include <stdbool.h>
 #include <peekpoke.h>
+#include <stdio.h>
 
 #include "target.h"
+
+#define VIC_BORDERCOLOR 0xd020
 
 void program_start_hook(void)
 {
@@ -16,7 +19,7 @@ void program_end_hook(void)
 {
 }
 
-void pre_every_test_hook(const char * opcode_description, bool skip_flag)
+void pre_opcode_hook(const char * opcode_description, bool skip_flag)
 {
     (void)opcode_description;
     (void)skip_flag;
@@ -28,7 +31,7 @@ bool post_every_measurement_hook(bool success, unsigned opcode_count, unsigned l
     (void)opcode_count;
     (void)measurement_count;
     (void)error_count;
-    POKE(0xd020, measurement_count);
+    POKE(VIC_BORDERCOLOR, measurement_count);
 
     return true; // Continue (do not cancel) the run.
 }
