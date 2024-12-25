@@ -3,6 +3,7 @@
 // tic_cmd_measurement_test.c //
 ////////////////////////////////
 
+#include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
 
@@ -90,5 +91,6 @@ void tic_cmd_measurement_test(unsigned repeats, unsigned min_cycle_count, unsign
     pre_big_measurement_block_hook();
     run_measurement_tests(repeats, min_cycle_count, max_cycle_count);
     post_big_measurement_block_hook();
+    printf("\n");
     report_test_counts();
 }

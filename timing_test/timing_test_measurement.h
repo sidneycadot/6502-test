@@ -55,6 +55,7 @@ extern unsigned long error_count;
 #define F_STOP_ON_ERROR    0x01
 
 void reset_test_counts(void);
+void prepare_opcode_tests_skip(const char * test_description);
 void prepare_opcode_tests(const char * test_description, ParSpec parspec);
 bool execute_single_opcode_test(uint8_t * entrypoint, uint8_t flags);
 void report_test_counts(void);

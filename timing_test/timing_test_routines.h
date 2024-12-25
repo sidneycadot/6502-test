@@ -22,6 +22,10 @@
 
 extern unsigned STEP_SIZE;
 
+// Timing test for skipped instructions.
+
+bool timing_test_skip_instruction (const char * opcode_description, uint8_t opcode);
+
 // Timing tests for one, two, and three-byte instruction sequences.
 
 bool timing_test_single_byte_instruction_sequence (const char * opcode_description,                             uint8_t b1                                                       , unsigned instruction_cycles);

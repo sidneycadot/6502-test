@@ -405,6 +405,8 @@ bool timing_test_6502_illegal_instructions(void)
     // 12 of these undefined opcodes are "JAM" pseudo-instructions that jam the
     // 6502's internal state machine, thus stalling the 6502 until it is reset.
     //
+    // We do not test these, for onvious reasons.
+    //
     // This leaves 93 undefined opcodes with undefined behavior.
     // Even though their behavior is not defined by the manufacturer, a lot
     // is known about what happens when the 6502 encounters such opcodes.
@@ -416,6 +418,18 @@ bool timing_test_6502_illegal_instructions(void)
     // https://csdb.dk/release/download.php?id=292274
 
     return
+        timing_test_skip_instruction("Illegal JAM " "(0x02)", 0x02) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x12)", 0x12) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x22)", 0x22) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x32)", 0x32) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x42)", 0x42) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x52)", 0x52) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x62)", 0x62) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x72)", 0x72) &&
+        timing_test_skip_instruction("Illegal JAM " "(0x92)", 0x92) &&
+        timing_test_skip_instruction("Illegal JAM " "(0xb2)", 0xb2) &&
+        timing_test_skip_instruction("Illegal JAM " "(0xd2)", 0xd2) &&
+        timing_test_skip_instruction("Illegal JAM " "(0xf2)", 0xf2) &&
         //
         // Illegal SLO instruction (7 variants)
         //
@@ -596,19 +610,23 @@ bool timing_test_65c02_specific_instructions(void)
 {
     // The 65C02 has 256 opcodes.
     //
-    // 151 of the are (almost) identical to their 6502 counterparts.
+    // 151 of the instructions are (almost) identical to their 6502 counterparts.
     //
-    // Three differences:
+    // There are three differences:
     //
     //   * ADC/SBC                behavior and timing in decimal mode.
-    //   * ASL/LSR/ROL/ROR abs,X  timing
+    //   * ASL/LSR/ROL/ROR abs,X  timing.
     //   * JMP (indirect)         behavior and timing.
     //
     // 105 instructions now have defined behavior, which was previously undefined.
     //
-    // We will not test the WAI and STP instructions.
+    // We do not test the WAI and STP instructions. They have no well-defined cycle count.
 
     return
+    //
+        timing_test_skip_instruction("65C02 WAI " "(0x02)", 0xcb) &&
+        timing_test_skip_instruction("65C02 STP " "(0x12)", 0xdb) &&
+        //
         timing_test_branch_always_instruction("65C02 BRA rel (0x80)", 0x80) &&
         //
         timing_test_single_byte_instruction_sequence("65C02 NOP (0x03)", 0x03, 1) &&
@@ -816,6 +834,8 @@ void tic_cmd_cpu_test(unsigned level)
     run_completed = run_instruction_timing_tests();
 
     post_big_measurement_block_hook();
+
+    printf("\n");
     report_test_counts();
 
     if (run_completed)

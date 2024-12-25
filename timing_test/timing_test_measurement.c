@@ -27,20 +27,23 @@ uint8_t par4;
 unsigned m_test_overhead_cycles;
 unsigned m_instruction_cycles;
 
-unsigned long opcode_count;
+unsigned opcode_count;
+unsigned opcode_skip_count;
 unsigned long measurement_count;
 unsigned long error_count;
 
 void reset_test_counts(void)
 {
     opcode_count = 0;
+    opcode_skip_count = 0;
     measurement_count = 0;
     error_count = 0;
 }
 
 void report_test_counts(void)
 {
-    printf("Opcodes tested ........... : %lu\n", opcode_count);
+    printf("Opcodes tested ........... : %u\n", opcode_count);
+    printf("Opcodes skipped .......... : %u\n", opcode_skip_count);
     printf("Measurements performed ... : %lu\n", measurement_count);
     printf("Measurements failed ...... : %lu\n", error_count);
     printf("\n");
@@ -51,7 +54,14 @@ void prepare_opcode_tests(const char * opcode_description, ParSpec parspec)
     m_opcode_description = opcode_description;
     m_parspec = parspec;
     ++opcode_count;
-    pre_every_test_hook(opcode_description);
+    pre_every_test_hook(opcode_description, false);
+}
+
+void prepare_opcode_tests_skip(const char * opcode_description)
+{
+    m_opcode_description = opcode_description;
+    ++opcode_skip_count;
+    pre_every_test_hook(opcode_description, true);
 }
 
 void print_label_value_pair(const char * prefix, const char * label, unsigned long value, unsigned max_label_length)
@@ -138,9 +148,8 @@ bool execute_single_opcode_test(uint8_t * entrypoint, uint8_t flags)
     unsigned actual_cycles;
     bool success, hook_result;
 
-    actual_cycles = measure_cycles_wrapper(entrypoint);
-
     ++measurement_count;
+    actual_cycles = measure_cycles_wrapper(entrypoint);
     success = (actual_cycles == m_test_overhead_cycles + m_instruction_cycles);
 
     if (!success)

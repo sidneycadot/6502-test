@@ -16,9 +16,10 @@ void program_end_hook(void)
 {
 }
 
-void pre_every_test_hook(const char * opcode_description)
+void pre_every_test_hook(const char * opcode_description, bool skip_flag)
 {
     (void)opcode_description;
+    (void)skip_flag;
 }
 
 bool post_every_measurement_hook(bool success, unsigned opcode_count, unsigned long measurement_count, unsigned long error_count)

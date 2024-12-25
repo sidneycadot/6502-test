@@ -26,9 +26,16 @@ void post_big_measurement_block_hook(void)
 {
 }
 
-void pre_every_test_hook(const char * opcode_description)
+void pre_every_test_hook(const char * opcode_description, bool skip_flag)
 {
-    printf("Testing opcode: %s ...\n", opcode_description);
+    if (skip_flag)
+    {
+        printf("Skipping opcode: %s ...\n", opcode_description);
+    }
+    else
+    {
+        printf("Testing opcode: %s ...\n", opcode_description);
+    }
 }
 
 bool post_every_measurement_hook(bool success, unsigned opcode_count, unsigned long measurement_count, unsigned long error_count)

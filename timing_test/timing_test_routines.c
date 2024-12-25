@@ -67,6 +67,19 @@ static bool different_pages(uint8_t * u1, uint8_t * u2)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                   //
+//                                           HANDLE SKIPPED INSTRUCTIONS                                             //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool timing_test_skip_instruction (const char * opcode_description, uint8_t opcode)
+{
+    (void)opcode;
+    prepare_opcode_tests_skip(opcode_description);
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
 //                           TIMING TESTS FOR SINGLE, DOUBLE, AND TRIPLE BYTE INSTRUCTION SEQUENCES                  //
 //                                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
