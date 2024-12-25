@@ -1,5 +1,43 @@
 #! /usr/bin/env python3
 
+"""
+This script tests the behavior of five undocumented/illegal opcodes on the 6502:
+
+  0x93    SHA  (zp),y
+  0x9b    TAS  abs,y
+  0x9c    SHY  abs,x
+  0x9d    SHX  abs,y
+  0x9f    SHA  abs,y
+
+What makes these instructions special / difficult is the last step of determining
+the instruction's effective address: adding either the X or the Y register as an
+offset to some base address.
+
+If this addition does not cross a page boundary, all is well: in that case, the
+effective address is just (base + X) or (base + Y).
+
+However, if a page boundary is crossed, mayhem ensues. For normal (documented)
+instructions, this would simply increment the high byte of the effective address
+by one.
+
+For these five instructions though, the effect is different. In case a page
+boundary crossing would happen, the high byte of the effective address is
+instead replaced by the value being written, which is the high byte of the
+base address incremented by one (as is desirable), but ANDed with the content
+of one or two CPU registers:
+
+                              high byte of W-address in case of page crossing
+                              -----------------------------------------------
+  0x93    SHA  (zp),y         RegA & RegX & basehi_inc
+  0x9b    TAS  abs,y          RegA & RegX & basehi_inc
+  0x9c    SHY  abs,x                 RegY & basehi_inc
+  0x9d    SHX  abs,y                 RegX & basehi_inc
+  0x9f    SHA  abs,y          RegA & RegX & basehi_inc
+
+NOTE: in case of the TAS instruction, an added complexity is that the S register
+      is also overwritten by the instruction.
+"""
+
 from typing import NamedTuple
 
 import json
@@ -198,7 +236,7 @@ def test_9b():
         assert Mem   == final.Mem
 
 def test_9c():
-    """Replicate the behavior of opcode 0x9b: SHY abs,x"""
+    """Replicate the behavior of opcode 0x9c: SHY abs,x"""
 
     filename = "65x02/6502/v1/9c.json"
     with open(filename, "rb") as fi:
