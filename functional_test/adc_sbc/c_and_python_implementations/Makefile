@@ -22,12 +22,17 @@ make_reference_files : make_reference_files.o 6502_adc_sbc.o
 
 test_6502_adc_sbc : 6502_adc_sbc.o 6502_adc_sbc.o
 
+find_cpu_signature : find_cpu_signature.o 6502_adc_sbc.o
+
 test_6502_adc_sbc.o : test_6502_adc_sbc.c 6502_adc_sbc.h
 
+find_cpu_signature.o : find_cpu_signature.c 6502_adc_sbc.h
+
 6502_adc_sbc.o : 6502_adc_sbc.c 6502_adc_sbc.h
+
 
 testcases.npy : preprocess.py $(DATAFILES)
 	./preprocess.py
 
 clean :
-	$(RM) test_6502_adc_sbc make_reference_files testcases.npy *.o *~ $(DATAFILES)
+	$(RM) test_6502_adc_sbc make_reference_files testcases.npy find_cpu_signature *.o *~ $(DATAFILES)
