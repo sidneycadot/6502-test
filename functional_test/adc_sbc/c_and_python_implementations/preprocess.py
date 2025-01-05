@@ -23,7 +23,7 @@ for (processor, filename) in ((1, 'adc_sbc_6502.dat'), (2, 'adc_sbc_65c02.dat'))
                             testcase = (processor, OPERATION, D_FLAG, INITIAL_C, INITIAL_A, OPERAND, FINAL_A, FINAL_N, FINAL_V, FINAL_Z, FINAL_C)
                             testcase_list.append(testcase)
 
-                            print(f"processor {processor:1d} operation {OPERATION:+2d} decimal_flag {D_FLAG:1d} initial_carry_flag {INITIAL_C:1d} initial_accumulator 0x{INITIAL_A:02x} operand 0x{OPERAND:02x} final_accumulator 0x{FINAL_A:02x} final_negative_flag {FINAL_N:1d} final_overflow_flag {FINAL_V:1d} final_zero_flag {FINAL_Z:1d} final_carry_flag {FINAL_C:1d}")
+                            #print(f"processor {processor:1d} operation {OPERATION:+2d} decimal_flag {D_FLAG:1d} initial_carry_flag {INITIAL_C:1d} initial_accumulator 0x{INITIAL_A:02x} operand 0x{OPERAND:02x} final_accumulator 0x{FINAL_A:02x} final_negative_flag {FINAL_N:1d} final_overflow_flag {FINAL_V:1d} final_zero_flag {FINAL_Z:1d} final_carry_flag {FINAL_C:1d}")
 
 testcase_dtype = np.dtype(
     [
