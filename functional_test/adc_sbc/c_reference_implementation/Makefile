@@ -1,5 +1,5 @@
 
-.PHONY : default clean show
+.PHONY : default clean pdf
 
 CFLAGS = -W -Wall -O3
 LDFLAGS = -s
@@ -11,8 +11,10 @@ DATAFILES = adc_sbc_6502.dat adc_sbc_65c02.dat
 default : test_6502_adc_sbc $(DATAFILES)
 	./test_6502_adc_sbc
 
-show : testcases.npy $(DATAFILES)
-	./show_testcases.py
+pdf : testcases.pdf
+
+testcases.pdf : render_testcases_pdf.py testcases.npy
+	./render_testcases_pdf.py
 
 $(DATAFILES) : make_reference_files MD5SUM
 	./make_reference_files
@@ -35,4 +37,4 @@ testcases.npy : preprocess.py $(DATAFILES)
 	./preprocess.py
 
 clean :
-	$(RM) test_6502_adc_sbc make_reference_files testcases.npy find_cpu_signature *.o *~ $(DATAFILES)
+	$(RM) test_6502_adc_sbc make_reference_files testcases.npy testcases.pdf *.o *~ $(DATAFILES)
