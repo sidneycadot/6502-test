@@ -12,6 +12,8 @@
 
                 .export _vdelay
 
+                .align 64
+
 _vdelay:        cpx     #0
                 bne     @8
                 sbc     #33
