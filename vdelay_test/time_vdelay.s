@@ -28,7 +28,7 @@
         ldy     peripheral_counter_value + 1            ;
         sty     tmp2                                    ;
 
-        jsr     _vdelay                                 ; Execute the relocated VDELAY routine.
+        jsr     _vdelay                                 ; Execute the VDELAY routine.
 
         sta     peripheral_counter_latch                ; Latch clock cycle count AFTER vdelay.
 
